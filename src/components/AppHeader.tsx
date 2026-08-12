@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/contexts/AppContext";
 
-const C = { nav: "#0d4f52", teal: "#66c3c6" };
+const C = { nav: "#1E3A66", teal: "#1E3A66" };
 type FontSize = "sm" | "md" | "lg";
 
 export default function AppHeader({ slot }: { slot?: React.ReactNode }) {
@@ -43,7 +43,7 @@ export default function AppHeader({ slot }: { slot?: React.ReactNode }) {
             ))}
           </div>
           <Link href="/trends" style={{
-            fontSize: 11, fontWeight: 600, color: "#66c3c6",
+            fontSize: 11, fontWeight: 600, color: "#1E3A66",
             backgroundColor: "rgba(102,195,198,0.15)", border: "1px solid rgba(102,195,198,0.3)",
             borderRadius: 6, padding: "3px 8px", cursor: "pointer", textDecoration: "none",
           }}>📡 トレンド</Link>

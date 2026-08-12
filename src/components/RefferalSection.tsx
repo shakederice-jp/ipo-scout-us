@@ -19,16 +19,16 @@ export default function ReferralSection({ userId }: { userId: string }) {
   );
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid #b3e8ea" }}>
-      <div className="px-4 py-3" style={{ backgroundColor: "#66c3c6" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid #C7D3E3" }}>
+      <div className="px-4 py-3" style={{ backgroundColor: "#1E3A66" }}>
         <div className="flex items-center gap-2">
-          <Gift size={16} style={{ color: "#082b2e" }} />
-          <span className="font-black text-sm" style={{ color: "#082b2e" }}>
+          <Gift size={16} style={{ color: "#0F1F36" }} />
+          <span className="font-black text-sm" style={{ color: "#0F1F36" }}>
             友達招待プログラム
           </span>
           
         </div>
-        <p style={{ fontSize: "10px", marginTop: "2px", color: "#0d4f52" }}>
+        <p style={{ fontSize: "10px", marginTop: "2px", color: "#1E3A66" }}>
           🎁 今だけ・期間限定（予告なく終了）
         </p>
       </div>
@@ -51,15 +51,15 @@ export default function ReferralSection({ userId }: { userId: string }) {
             <div style={{ fontSize: "9px", color: "#1d4ed8", marginTop: "2px" }}>※登録月含む</div>
           </div>
         </div>
-        <div className="rounded-xl p-3" style={{ backgroundColor: "#f4fbfc", border: "1px solid #dff3f4" }}>
-          <div className="font-bold mb-1" style={{ fontSize: "10px", color: "#2a7a7e" }}>あなたの招待リンク</div>
+        <div className="rounded-xl p-3" style={{ backgroundColor: "#F5F4EF", border: "1px solid #E3E8F0" }}>
+          <div className="font-bold mb-1" style={{ fontSize: "10px", color: "#3D5A85" }}>あなたの招待リンク</div>
           <div className="flex items-center gap-2">
-            <span className="flex-1 truncate font-mono" style={{ fontSize: "10px", color: "#0d4f52" }}>
+            <span className="flex-1 truncate font-mono" style={{ fontSize: "10px", color: "#1E3A66" }}>
               {referralUrl}
             </span>
             <button onClick={handleCopy}
               className="flex items-center gap-1 rounded-lg px-2 py-1 font-bold shrink-0"
-              style={{ fontSize: "10px", backgroundColor: copied ? "#dcfce7" : "#66c3c6", color: copied ? "#15803d" : "white" }}>
+              style={{ fontSize: "10px", backgroundColor: copied ? "#dcfce7" : "#1E3A66", color: copied ? "#15803d" : "white" }}>
               {copied ? <><Check size={10} />コピー済み</> : <><Copy size={10} />コピー</>}
             </button>
           </div>

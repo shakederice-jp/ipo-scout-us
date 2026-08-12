@@ -4,28 +4,40 @@
 
 /* ── ティファニーカラー CSS変数 ─────────────────────── */
 :root {
-  --tiffany:              #66c3c6;
-  --tiffany-dark:         #4aafb3;
-  --tiffany-deep:         #082b2e;
-  --tiffany-mid:          #0d4f52;
-  --tiffany-muted:        #2a7a7e;
-  --tiffany-light:        #e8f9f9;
-  --tiffany-pale:         #f4fbfc;
-  --tiffany-border:       #b3e8ea;
-  --tiffany-border-light: #dff3f4;
+  --navy:              #1E3A66;
+  --navy-dark:         #16294D;
+  --navy-deep:         #0F1F36;
+  --navy-mid:          #1E3A66;
+  --navy-muted:        #3D5A85;
+  --navy-light:        #E8EDF5;
+  --navy-pale:         #F5F4EF;
+  --navy-border:       #C7D3E3;
+  --navy-border-light: #E3E8F0;
+
+  /* 米国版フォント */
+  --font-score:  "Anton", sans-serif;
+  --font-heading:"Oswald", "Noto Sans JP", sans-serif;
+  --font-body:   "Inter", "Noto Sans JP", sans-serif;
+  --font-ticker: "IBM Plex Mono", monospace;
+
+  /* 米国版アクセントカラー */
+  --accent-red:    #B31942;
+  --chart-blue:    #8FB6EE;
+  --chart-purple:  #A99BCF;
+  --chart-sakura:  #F0AFC4;
 }
 
 body {
   font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
-  background-color: var(--tiffany-pale);
-  color: var(--tiffany-deep);
+  background-color: var(--navy-pale);
+  color: var(--navy-deep);
   -webkit-font-smoothing: antialiased;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--tiffany-pale); }
-::-webkit-scrollbar-thumb { background: var(--tiffany-border); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--tiffany-dark); }
+::-webkit-scrollbar-track { background: var(--navy-pale); }
+::-webkit-scrollbar-thumb { background: var(--navy-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--navy-dark); }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }

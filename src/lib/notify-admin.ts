@@ -10,7 +10,7 @@ export async function notifyAdmin(
   level: 'error' | 'warn' | 'info' = 'error'
 ) {
   const emoji = level === 'error' ? '🚨' : level === 'warn' ? '⚠️' : 'ℹ️';
-  const color = level === 'error' ? '#b91c1c' : level === 'warn' ? '#d97706' : '#0d4f52';
+  const color = level === 'error' ? '#b91c1c' : level === 'warn' ? '#d97706' : '#1E3A66';
 
   try {
     await resend.emails.send({
@@ -18,14 +18,14 @@ export async function notifyAdmin(
       to: ADMIN_EMAIL,
       subject: `${emoji}【IPO管理通知】${subject}`,
       html: `
-        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f4fbfc">
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#F5F4EF">
           <div style="background:${color};padding:16px 24px;border-radius:12px 12px 0 0">
             <h2 style="color:white;margin:0;font-size:16px">${emoji} ${subject}</h2>
             <p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:11px">
               ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })} JST
             </p>
           </div>
-          <div style="background:white;padding:24px;border-radius:0 0 12px 12px;border:1px solid #b3e8ea">
+          <div style="background:white;padding:24px;border-radius:0 0 12px 12px;border:1px solid #C7D3E3">
             <pre style="font-size:12px;color:#374151;white-space:pre-wrap;background:#f8fafc;padding:16px;border-radius:8px;border:1px solid #e2e8f0">${body}</pre>
             <p style="margin-top:16px;font-size:11px;color:#94a3b8">
               © 大手町調査室九課 自動監視システム

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const C = { teal: "#66c3c6", nav: "#0d4f52", bg: "#f0fafa" };
+const C = { teal: "#1E3A66", nav: "#1E3A66", bg: "#f0fafa" };
 
 export default function NewsSection() {
   const [newsData, setNewsData] = useState<any>(null);
@@ -107,7 +107,7 @@ export default function NewsSection() {
                     <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
                       <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>📄</span>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontSize:13, fontWeight:600, color:"#082b2e", margin:"0 0 4px",
+                        <p style={{ fontSize:13, fontWeight:600, color:"#0F1F36", margin:"0 0 4px",
                           lineHeight:1.5, display:"-webkit-box", WebkitLineClamp:2,
                           WebkitBoxOrient:"vertical", overflow:"hidden" }}>
                           {item.title}

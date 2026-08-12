@@ -80,12 +80,12 @@ export default function InitialPriceForm() {
 
   const inputStyle = {
     width: "100%", padding: "8px 10px", borderRadius: "8px",
-    border: "1px solid #b3e8ea", boxSizing: "border-box" as const,
+    border: "1px solid #C7D3E3", boxSizing: "border-box" as const,
     fontSize: "13px",
   };
   const labelStyle = {
     fontSize: "11px", fontWeight: "700" as const,
-    color: "#2a7a7e", marginBottom: "4px", display: "block" as const,
+    color: "#3D5A85", marginBottom: "4px", display: "block" as const,
   };
 
   const selectedCompany = companies.find(c => c.id === selected);
@@ -150,7 +150,7 @@ export default function InitialPriceForm() {
       </div>
 
       <button onClick={handleSave} disabled={saving}
-        style={{ width: "100%", padding: "10px", backgroundColor: saving ? "#94a3b8" : "#66c3c6",
+        style={{ width: "100%", padding: "10px", backgroundColor: saving ? "#94a3b8" : "#1E3A66",
           color: "white", border: "none", borderRadius: "8px", fontSize: "13px",
           fontWeight: 700, cursor: saving ? "default" : "pointer" }}>
         {saving ? "保存中..." : "📈 保存する"}

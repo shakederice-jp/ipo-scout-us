@@ -101,27 +101,27 @@ export async function POST() {
         to:      email,
         subject: `【IPO週次通知】翌週（${fromDate}〜${toDate}）のIPOイベント`,
         html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f4fbfc">
-            <div style="background:#0d4f52;padding:16px 24px;border-radius:12px 12px 0 0">
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#F5F4EF">
+            <div style="background:#1E3A66;padding:16px 24px;border-radius:12px 12px 0 0">
               <h2 style="color:white;margin:0;font-size:16px">📊 IPO企業情報AI分析レポート</h2>
               <p style="color:#a0d4d6;margin:4px 0 0;font-size:12px">担当：大手町調査室九課</p>
             </div>
-            <div style="background:white;padding:24px;border-radius:0 0 12px 12px;border:1px solid #b3e8ea">
-              <p style="color:#082b2e;font-size:14px;margin-bottom:16px">
+            <div style="background:white;padding:24px;border-radius:0 0 12px 12px;border:1px solid #C7D3E3">
+              <p style="color:#0F1F36;font-size:14px;margin-bottom:16px">
                 翌週（<strong>${fromDate}〜${toDate}</strong>）のIPOイベントをお知らせします。
               </p>
               <table style="width:100%;border-collapse:collapse;font-size:13px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
                 <thead>
-                  <tr style="background:#f4fbfc">
-                    <th style="padding:8px 12px;text-align:left;color:#2a7a7e;font-size:11px">銘柄</th>
-                    <th style="padding:8px 12px;text-align:left;color:#2a7a7e;font-size:11px">イベント</th>
-                    <th style="padding:8px 12px;text-align:left;color:#2a7a7e;font-size:11px">日付</th>
+                  <tr style="background:#F5F4EF">
+                    <th style="padding:8px 12px;text-align:left;color:#3D5A85;font-size:11px">銘柄</th>
+                    <th style="padding:8px 12px;text-align:left;color:#3D5A85;font-size:11px">イベント</th>
+                    <th style="padding:8px 12px;text-align:left;color:#3D5A85;font-size:11px">日付</th>
                   </tr>
                 </thead>
                 <tbody>${rows.join("")}</tbody>
               </table>
               <a href="https://ipo.finance-tower.com"
-                style="display:inline-block;padding:12px 24px;background:#66c3c6;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin-top:20px;font-size:14px">
+                style="display:inline-block;padding:12px 24px;background:#1E3A66;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin-top:20px;font-size:14px">
                 分析レポートを確認する →
               </a>
               <p style="margin-top:24px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px">

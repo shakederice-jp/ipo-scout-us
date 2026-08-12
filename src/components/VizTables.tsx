@@ -1,8 +1,8 @@
 "use client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-const C = { teal: "#66c3c6", nav: "#0d4f52", bg: "#f0fafa" };
-const COLORS = ["#66c3c6","#0d4f52","#f59e0b","#6366f1","#10b981","#f43f5e","#8b5cf6","#ec4899"];
+const C = { teal: "#1E3A66", nav: "#1E3A66", bg: "#f0fafa" };
+const COLORS = ["#1E3A66","#1E3A66","#f59e0b","#6366f1","#10b981","#f43f5e","#8b5cf6","#ec4899"];
 
 function CardShell({ children }: { children: React.ReactNode }) {
   return (
@@ -79,7 +79,7 @@ export function IpoSummaryTable({ vizData }: { vizData: any }) {
             }}
           >
             <span style={{ fontSize: 12, color: "#64748b", fontWeight: 700, flexShrink: 0 }}>{r.label}</span>
-            <span style={{ fontSize: 13, color: "#082b2e", fontWeight: 700, textAlign: "right", flex: 1, minWidth: 0 }}>{cleanPlaceholderValue(r.label ?? "", r.value)}</span>
+            <span style={{ fontSize: 13, color: "#0F1F36", fontWeight: 700, textAlign: "right", flex: 1, minWidth: 0 }}>{cleanPlaceholderValue(r.label ?? "", r.value)}</span>
           </div>
         ))}
       </div>
@@ -130,7 +130,7 @@ export function UseOfProceedsTable({ vizData }: { vizData: any }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {proceedsRows.map((r: any, i: number) => (
           <div key={i} style={{ backgroundColor: C.bg, borderRadius: 10, padding: "10px 12px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#082b2e", marginBottom: 6, lineHeight: 1.5 }}>{r.category}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#0F1F36", marginBottom: 6, lineHeight: 1.5 }}>{r.category}</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               <div style={{ backgroundColor: "white", borderRadius: 6, padding: "4px 10px", flex: "1 1 100px" }}>
                 <div style={{ fontSize: 9, color: "#94a3b8" }}>金額</div>
@@ -169,7 +169,7 @@ export function ShareholdersLockupTable({ vizData }: { vizData: any }) {
         {shareholdersRows.map((r: any, i: number) => (
           <div key={i} style={{ backgroundColor: C.bg, borderRadius: 10, padding: "10px 12px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#082b2e" }}>{r.name}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#0F1F36" }}>{r.name}</span>
               <span style={{ fontSize: 13, fontWeight: 900, color: C.teal }}>{r.ratio}</span>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -218,7 +218,7 @@ export function RiskTable({ vizData }: { vizData: any }) {
                 <span style={{ fontSize: 10, fontWeight: 900, padding: "1px 8px", borderRadius: 20, backgroundColor: sevColor, color: "white" }}>{r.severity}</span>
                 <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 8px", borderRadius: 20, backgroundColor: "white", color: "#64748b", border: "1px solid #e2e8f0" }}>{r.category}</span>
               </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#082b2e", marginBottom: 2 }}>{r.title}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#0F1F36", marginBottom: 2 }}>{r.title}</div>
               <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.6 }}>{r.description}</div>
             </div>
           );

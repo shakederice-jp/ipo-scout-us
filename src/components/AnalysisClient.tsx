@@ -21,7 +21,7 @@ interface Analysis {
 }
 interface IpoCompany { id:string;name:string;ticker?:string;exchange?:string;sector?:string;biz_type?:string;listing_date?:string; }
 
-const PRIMARY="#66c3c6",DARK="#082b2e",MID="#0d4f52",LIGHT="#e8f9f9",BORDER="#b3e8ea",TTEXT="#2a7a7e";
+const PRIMARY="#1E3A66",DARK="#0F1F36",MID="#1E3A66",LIGHT="#E8EDF5",BORDER="#C7D3E3",TTEXT="#3D5A85";
 
 function ScoreRing({score,size=80}:{score:number;size?:number}) {
   const r=size*0.38,circ=2*Math.PI*r,dash=(Math.min(score,100)/100)*circ;
@@ -113,16 +113,16 @@ function MarkdownReport({text,beginner=false}:{text:string;beginner?:boolean}) {
     return (
       <div style={{fontSize:14,color:"#334155",lineHeight:2.1}}>
         {blocks.map((b,i)=>{
-          if(b.type==="h4") return <div key={i} style={{fontWeight:900,fontSize:15,color:"#0d4f52",margin:"24px 0 10px",display:"flex",alignItems:"center",gap:6}}><span>📌</span>{b.text}</div>;
-          if(b.type==="h3") return <div key={i} style={{fontWeight:900,fontSize:16,color:"#082b2e",margin:"28px 0 12px",paddingBottom:6,borderBottom:`2px solid ${LIGHT}`}}>{b.text}</div>;
-          if(b.type==="h2") return <div key={i} style={{fontWeight:900,fontSize:17,color:"#082b2e",margin:"30px 0 14px"}}>{b.text}</div>;
+          if(b.type==="h4") return <div key={i} style={{fontWeight:900,fontSize:15,color:"#1E3A66",margin:"24px 0 10px",display:"flex",alignItems:"center",gap:6}}><span>📌</span>{b.text}</div>;
+          if(b.type==="h3") return <div key={i} style={{fontWeight:900,fontSize:16,color:"#0F1F36",margin:"28px 0 12px",paddingBottom:6,borderBottom:`2px solid ${LIGHT}`}}>{b.text}</div>;
+          if(b.type==="h2") return <div key={i} style={{fontWeight:900,fontSize:17,color:"#0F1F36",margin:"30px 0 14px"}}>{b.text}</div>;
           if(b.type==="bullet") return (
             <div key={i} style={{display:"flex",gap:8,marginBottom:10,padding:"8px 10px",backgroundColor:LIGHT,borderRadius:8}}>
               <span style={{color:PRIMARY,flexShrink:0}}>✓</span>
               <span>{b.text.replace(/\*\*([^*]+)\*\*/g,'$1')}</span>
             </div>
           );
-          if(b.type==="headingline") return <p key={i} style={{marginBottom:4,fontWeight:700,fontSize:15,color:"#0d4f52"}}>{b.text.replace(/\*\*([^*]+)\*\*/g,'$1')}</p>;
+          if(b.type==="headingline") return <p key={i} style={{marginBottom:4,fontWeight:700,fontSize:15,color:"#1E3A66"}}>{b.text.replace(/\*\*([^*]+)\*\*/g,'$1')}</p>;
           return <p key={i} style={{marginBottom:18}}>{b.text.replace(/\*\*([^*]+)\*\*/g,'$1')}</p>;
         })}
       </div>
@@ -132,9 +132,9 @@ function MarkdownReport({text,beginner=false}:{text:string;beginner?:boolean}) {
   return (
     <div style={{fontSize:12,color:"#334155",lineHeight:1.9}}>
       {normalizedText.split('\n').map((line,i)=>{
-        if(line.startsWith('#### ')) return <div key={i} style={{fontWeight:900,fontSize:13,color:"#0d4f52",margin:"16px 0 6px"}}>{line.replace(/^#### /,'')}</div>;
-        if(line.startsWith('### ')) return <div key={i} style={{fontWeight:900,fontSize:14,color:"#082b2e",margin:"18px 0 8px"}}>{line.replace(/^### /,'')}</div>;
-        if(line.startsWith('## ')) return <div key={i} style={{fontWeight:900,fontSize:15,color:"#082b2e",margin:"20px 0 10px"}}>{line.replace(/^## /,'')}</div>;
+        if(line.startsWith('#### ')) return <div key={i} style={{fontWeight:900,fontSize:13,color:"#1E3A66",margin:"16px 0 6px"}}>{line.replace(/^#### /,'')}</div>;
+        if(line.startsWith('### ')) return <div key={i} style={{fontWeight:900,fontSize:14,color:"#0F1F36",margin:"18px 0 8px"}}>{line.replace(/^### /,'')}</div>;
+        if(line.startsWith('## ')) return <div key={i} style={{fontWeight:900,fontSize:15,color:"#0F1F36",margin:"20px 0 10px"}}>{line.replace(/^## /,'')}</div>;
         if(line.startsWith('- ')) return <div key={i} style={{paddingLeft:12,marginBottom:6}}>{'• '}{line.replace(/^- /,'').replace(/\*\*([^*]+)\*\*/g,'$1')}</div>;
         if(line.trim()==='') return <div key={i} style={{height:12}}/>;
         return <div key={i} style={{marginBottom:10}}>{line.replace(/\*\*([^*]+)\*\*/g,'$1')}</div>;
@@ -271,8 +271,8 @@ function ScenarioCompareChart({scenarios,periodLabel,isLong}:{scenarios:Scenario
               strokeWidth={1.2} strokeDasharray="4 3" strokeOpacity={0.7}/>
           );
         })}
-        <circle cx={x0} cy={y100} r={5} fill="#0d4f52" stroke="white" strokeWidth={2}/>
-        <text x={x0+8} y={y100-7} fontSize={9} fontWeight={900} fill="#0d4f52">公募価格</text>
+        <circle cx={x0} cy={y100} r={5} fill="#1E3A66" stroke="white" strokeWidth={2}/>
+        <text x={x0+8} y={y100-7} fontSize={9} fontWeight={900} fill="#1E3A66">公募価格</text>
         <text x={x0} y={padT+chartH+14} textAnchor="middle" fontSize={9} fill="#64748b">上場日</text>
         <text x={x1} y={padT+chartH+14} textAnchor="middle" fontSize={9} fill="#64748b">{periodLabel||"期間終了"}</text>
         {rows.map(r=>{
@@ -361,7 +361,7 @@ function DeepDiveCard({item,accentColor,level="expert"}:{item:AxisItem;accentCol
     <div style={{borderLeft:`3px solid ${open?accentColor:"#e2e8f0"}`,backgroundColor:open?"#fafffe":"white",transition:"background 0.15s"}}>
       <button onClick={()=>setOpen(!open)} style={{width:"100%",display:"flex",alignItems:"flex-start",
         gap:12,padding:"12px 16px",textAlign:"left",cursor:"pointer",border:"none",
-        backgroundColor:open?"#f4fbfc":"white"}}>
+        backgroundColor:open?"#F5F4EF":"white"}}>
         <div style={{position:"relative",width:52,height:52,flexShrink:0}}>
           <svg width="52" height="52" style={{transform:"rotate(-90deg)",position:"absolute"}}>
             <circle cx="26" cy="26" r={r} fill="none" stroke={open?"rgba(255,255,255,0.3)":"#e2e8f0"} strokeWidth="4"/>
@@ -730,7 +730,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",backgroundColor:"#e8f4f5",borderBottom:"1px solid #d0e8ea",flexWrap:"wrap"}}>
         {allCompanies && allCompanies.length > 0 && (
           <select onChange={e => { if(e.target.value) window.location.href=`/analysis/${e.target.value}`; }}
-            style={{fontSize:12,padding:"6px 8px",borderRadius:8,border:"1px solid #b3e8ea",color:"#0d4f52",backgroundColor:"white",cursor:"pointer",flex:"1 1 140px",minWidth:0}}>
+            style={{fontSize:12,padding:"6px 8px",borderRadius:8,border:"1px solid #C7D3E3",color:"#1E3A66",backgroundColor:"white",cursor:"pointer",flex:"1 1 140px",minWidth:0}}>
             <option value="">他の銘柄を選ぶ</option>
             {allCompanies.map((c:any) => (
               <option key={c.id} value={c.id} selected={c.id===company.id}>{c.name}</option>
@@ -739,7 +739,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
         )}
         <div style={{display:"flex",gap:8,flexShrink:0}}>
           <button onClick={()=>setShowNotify(true)} aria-label="通知設定"
-            style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,backgroundColor:"#0d4f52",border:"none",cursor:"pointer",color:"white",fontSize:15}}>
+            style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,backgroundColor:"#1E3A66",border:"none",cursor:"pointer",color:"white",fontSize:15}}>
             🔔
           </button>
           {showNotify&&<NotifyModal company={company} userId={userId} onClose={()=>setShowNotify(false)}/>}
@@ -863,7 +863,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
               <div style={{fontSize:10,fontWeight:700,color:"#64748b",marginBottom:6}}>📄 引用データ根拠</div>
               {(analysis as any).data_citations.map((c:string, i:number) => (
                 <div key={i} style={{fontSize:11,color:"#475569",display:"flex",gap:6,marginBottom:3}}>
-                  <span style={{color:"#66c3c6",flexShrink:0}}>›</span>{c}
+                  <span style={{color:"#1E3A66",flexShrink:0}}>›</span>{c}
                 </div>
               ))}
             </div>
@@ -871,12 +871,12 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
         </Card>
 
         {!hasAccess && (
-          <div style={{borderRadius:14,padding:"20px",backgroundColor:"#0d4f52",color:"white",textAlign:"center"}}>
+          <div style={{borderRadius:14,padding:"20px",backgroundColor:"#1E3A66",color:"white",textAlign:"center"}}>
             <div style={{fontSize:15,fontWeight:900,marginBottom:6}}>🔒 ここから先は有料コンテンツです</div>
             <p style={{fontSize:12,color:"#a0d4d6",margin:"0 0 14px",lineHeight:1.7}}>
             軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上へのご加入、またはこの銘柄の単品購入（¥500）が必要です。
             </p>
-            <a href="/plans" style={{display:"inline-block",padding:"10px 24px",backgroundColor:"#66c3c6",color:"#082b2e",borderRadius:8,fontWeight:800,fontSize:13,textDecoration:"none"}}>
+            <a href="/plans" style={{display:"inline-block",padding:"10px 24px",backgroundColor:"#1E3A66",color:"#0F1F36",borderRadius:8,fontWeight:800,fontSize:13,textDecoration:"none"}}>
               料金プランを見る →
             </a>
           </div>
@@ -888,7 +888,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={{fontSize:20}}>🔔</span>
               <div>
-                <div style={{fontWeight:900,fontSize:13,color:"#082b2e"}}>BB開始・上場日・公募価格確定をお知らせ</div>
+                <div style={{fontWeight:900,fontSize:13,color:"#0F1F36"}}>BB開始・上場日・公募価格確定をお知らせ</div>
                 <div style={{fontSize:11,color:"#92400e",marginTop:2}}>通知プランで前週金曜18時に自動配信</div>
               </div>
             </div>
@@ -954,7 +954,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 <div style={{backgroundColor:"white",padding:"12px 16px",display:"flex",alignItems:"center",gap:8,borderBottom:"1px solid #d0f0f0"}}>
                   <span style={{fontSize:16}}>💰</span>
                   <div>
-                  <div style={{fontWeight:900,fontSize:14,color:"#082b2e"}}>投資シミュレーション（100株購入の場合）</div>
+                  <div style={{fontWeight:900,fontSize:14,color:"#0F1F36"}}>投資シミュレーション（100株購入の場合）</div>
                   <div style={{fontSize:10,color:"#6b9ea0"}}>公募価格が決定した場合の試算</div>
                   </div>
                 </div>
@@ -962,14 +962,14 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 {!ipoPrice ? (
                   <div style={{backgroundColor:"white",padding:"20px 16px",textAlign:"center"}}>
                     <div style={{fontSize:28,marginBottom:8}}>📅</div>
-                    <div style={{fontWeight:900,fontSize:14,color:"#082b2e",marginBottom:8}}>公募価格確定後に自動表示されます</div>
+                    <div style={{fontWeight:900,fontSize:14,color:"#0F1F36",marginBottom:8}}>公募価格確定後に自動表示されます</div>
                     <p style={{fontSize:12,color:"#64748b",lineHeight:1.8,marginBottom:16}}>
                       {company.name}（{(company as any).ticker ?? ""}）の公募価格はブックビルディング期間終了後に決定されます。<br/>
                       価格決定後は当サイトに再度ご訪問いただくと、具体的な投資金額シミュレーションをご確認いただけます。
                     </p>
                     <button
                       onClick={() => setShowNotify(true)}
-                      style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 20px",backgroundColor:"#66c3c6",borderRadius:20,border:"none",cursor:"pointer",boxShadow:"0 2px 8px rgba(102,195,198,0.3)"}}>
+                      style={{display:"inline-flex",alignItems:"center",gap:6,padding:"10px 20px",backgroundColor:"#1E3A66",borderRadius:20,border:"none",cursor:"pointer",boxShadow:"0 2px 8px rgba(102,195,198,0.3)"}}>
                       <span style={{fontSize:14}}>🔔</span>
                       <span style={{fontSize:12,color:"white",fontWeight:900}}>通知設定をする</span>
                     </button>
@@ -979,16 +979,16 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                     <div style={{display:"flex",gap:12,marginBottom:16,padding:"10px 14px",backgroundColor:"#f0fafa",borderRadius:10}}>
                       <div style={{textAlign:"center"}}>
                         <div style={{fontSize:10,color:"#6b9ea0"}}>公募価格</div>
-                        <div style={{fontWeight:900,fontSize:18,color:"#082b2e"}}>¥{ipoPrice.toLocaleString()}</div>
+                        <div style={{fontWeight:900,fontSize:18,color:"#0F1F36"}}>¥{ipoPrice.toLocaleString()}</div>
                       </div>
                       <div style={{width:1,backgroundColor:"#d0f0f0"}}/>
                       <div style={{textAlign:"center"}}>
                         <div style={{fontSize:10,color:"#6b9ea0"}}>最小投資額（100株）</div>
-                        <div style={{fontWeight:900,fontSize:18,color:"#082b2e"}}>¥{(ipoPrice*100).toLocaleString()}</div>
+                        <div style={{fontWeight:900,fontSize:18,color:"#0F1F36"}}>¥{(ipoPrice*100).toLocaleString()}</div>
                       </div>
                     </div>
 
-                    <div style={{fontSize:11,fontWeight:700,color:"#0d4f52",marginBottom:8}}>{periodLabel}のシナリオ別試算</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"#1E3A66",marginBottom:8}}>{periodLabel}のシナリオ別試算</div>
                     <div style={{overflowX:"auto"}}>
                       <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
                         <thead>
@@ -1031,10 +1031,10 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                                   {icon} {s.verdict}<br/>
                                   <span style={{fontSize:9,fontWeight:400,color:"#94a3b8"}}>確率{s.prob}</span>
                                 </td>
-                                <td style={{padding:"10px 10px",textAlign:"right",color:"#082b2e",fontWeight:700}}>
+                                <td style={{padding:"10px 10px",textAlign:"right",color:"#0F1F36",fontWeight:700}}>
                                   {loPrice>0?(samePrice?`¥${loPrice.toLocaleString()}`:`¥${loPrice.toLocaleString()}〜¥${hiPrice.toLocaleString()}`):"計算中"}
                                 </td>
-                                <td style={{padding:"10px 10px",textAlign:"right",color:"#082b2e",fontWeight:700}}>
+                                <td style={{padding:"10px 10px",textAlign:"right",color:"#0F1F36",fontWeight:700}}>
                                   {loVal>0?(loVal===hiVal?`¥${loVal.toLocaleString()}`:`¥${loVal.toLocaleString()}〜¥${hiVal.toLocaleString()}`):"計算中"}
                                 </td>
                                 <td style={{padding:"10px 10px",textAlign:"right",fontWeight:900,color:loPnl>=0?"#15803d":"#b91c1c"}}>
@@ -1114,7 +1114,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
            </div>
           </div>
           <div style={{display:"flex",justifyContent:"center",padding:"8px 0 4px"}}>
-            <a href="/ipo-guide" style={{fontSize:12,color:"#66c3c6",textDecoration:"none",fontWeight:700,display:"flex",alignItems:"center",gap:6,padding:"8px 20px",borderRadius:20,border:"1px solid #66c3c6",background:"#f0fdf4"}}>
+            <a href="/ipo-guide" style={{fontSize:12,color:"#1E3A66",textDecoration:"none",fontWeight:700,display:"flex",alignItems:"center",gap:6,padding:"8px 20px",borderRadius:20,border:"1px solid #1E3A66",background:"#f0fdf4"}}>
               <span style={{fontSize:16}}>💡</span>
               <span style={{display:"flex",flexDirection:"column",lineHeight:1.5}}>
                 <span>IPO投資で資産を増やす</span>
@@ -1233,16 +1233,16 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           return (
             <div style={{display:"flex",gap:8,justifyContent:"space-between"}}>
               <a href={prev?`/analysis/${prev.id}`:undefined as any}
-                style={{flex:1,padding:"12px 16px",borderRadius:12,backgroundColor:prev?"white":"#f1f5f9",border:`1px solid ${prev?"#b3e8ea":"#e2e8f0"}`,textDecoration:"none",opacity:prev?1:0.4,pointerEvents:prev?"auto":"none"}}>
+                style={{flex:1,padding:"12px 16px",borderRadius:12,backgroundColor:prev?"white":"#f1f5f9",border:`1px solid ${prev?"#C7D3E3":"#e2e8f0"}`,textDecoration:"none",opacity:prev?1:0.4,pointerEvents:prev?"auto":"none"}}>
                 <div style={{fontSize:10,color:"#94a3b8",marginBottom:2}}>← 前の銘柄</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#082b2e"}}>{prev?.name??""}</div>
-                <div style={{fontSize:10,color:"#66c3c6"}}>{prev?.listing_date??""}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#0F1F36"}}>{prev?.name??""}</div>
+                <div style={{fontSize:10,color:"#1E3A66"}}>{prev?.listing_date??""}</div>
               </a>
               <a href={next?`/analysis/${next.id}`:undefined as any}
-                style={{flex:1,padding:"12px 16px",borderRadius:12,backgroundColor:next?"white":"#f1f5f9",border:`1px solid ${next?"#b3e8ea":"#e2e8f0"}`,textDecoration:"none",textAlign:"right",opacity:next?1:0.4,pointerEvents:next?"auto":"none"}}>
+                style={{flex:1,padding:"12px 16px",borderRadius:12,backgroundColor:next?"white":"#f1f5f9",border:`1px solid ${next?"#C7D3E3":"#e2e8f0"}`,textDecoration:"none",textAlign:"right",opacity:next?1:0.4,pointerEvents:next?"auto":"none"}}>
                 <div style={{fontSize:10,color:"#94a3b8",marginBottom:2}}>次の銘柄 →</div>
-                <div style={{fontSize:13,fontWeight:700,color:"#082b2e"}}>{next?.name??""}</div>
-                <div style={{fontSize:10,color:"#66c3c6"}}>{next?.listing_date??""}</div>
+                <div style={{fontSize:13,fontWeight:700,color:"#0F1F36"}}>{next?.name??""}</div>
+                <div style={{fontSize:10,color:"#1E3A66"}}>{next?.listing_date??""}</div>
               </a>
             </div>
           );

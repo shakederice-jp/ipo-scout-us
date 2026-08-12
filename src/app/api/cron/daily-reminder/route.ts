@@ -94,10 +94,10 @@ export async function GET(req: NextRequest) {
     const analysisUrl = ticker ? `${SITE_URL}/analysis/${ticker}` : SITE_URL;
 
     return `
-      <div style="background:white;border:1px solid #b3e8ea;border-radius:12px;padding:20px;margin-bottom:16px">
+      <div style="background:white;border:1px solid #C7D3E3;border-radius:12px;padding:20px;margin-bottom:16px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
           <div>
-            <span style="font-size:16px;font-weight:800;color:#082b2e">${c.name}</span>
+            <span style="font-size:16px;font-weight:800;color:#0F1F36">${c.name}</span>
             ${ticker ? `<span style="font-size:12px;color:#64748b;margin-left:8px">${ticker}</span>` : ''}
           </div>
           <span style="background:${eventColor}15;color:${eventColor};font-weight:700;font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid ${eventColor};white-space:nowrap">${eventLabel}</span>
@@ -111,8 +111,8 @@ export async function GET(req: NextRequest) {
           ${gradeTag(grade)}
           ${ultraGrade ? `<span style="font-size:11px;color:#64748b;margin-left:8px">超短期:${ultraGrade} / 短期:${shortGrade ?? '-'} / 長期:${longGrade ?? '-'}</span>` : ''}
         </div>` : ''}
-        ${aiSummary ? `<p style="font-size:13px;color:#334155;background:#f8fafc;padding:12px;border-radius:8px;margin:0 0 12px;border-left:3px solid #66c3c6;line-height:1.6">${aiSummary}</p>` : ''}
-        ${ticker ? `<a href="${analysisUrl}" style="display:inline-block;padding:8px 18px;background:#0d4f52;color:white;text-decoration:none;border-radius:8px;font-size:12px;font-weight:700">詳細レポートを見る →</a>` : ''}
+        ${aiSummary ? `<p style="font-size:13px;color:#334155;background:#f8fafc;padding:12px;border-radius:8px;margin:0 0 12px;border-left:3px solid #1E3A66;line-height:1.6">${aiSummary}</p>` : ''}
+        ${ticker ? `<a href="${analysisUrl}" style="display:inline-block;padding:8px 18px;background:#1E3A66;color:white;text-decoration:none;border-radius:8px;font-size:12px;font-weight:700">詳細レポートを見る →</a>` : ''}
       </div>
     `;
   };
@@ -146,18 +146,18 @@ export async function GET(req: NextRequest) {
         to: email,
         subject: `【IPO前日通知】明日（${dateLabel}）のIPOイベント`,
         html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f4fbfc">
-            <div style="background:#0d4f52;padding:16px 24px;border-radius:12px 12px 0 0">
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#F5F4EF">
+            <div style="background:#1E3A66;padding:16px 24px;border-radius:12px 12px 0 0">
               <h2 style="color:white;margin:0;font-size:16px">📊 IPO企業情報AI分析レポート</h2>
               <p style="color:#a0d4d6;margin:4px 0 0;font-size:12px">担当：大手町調査室九課</p>
             </div>
-            <div style="background:#f4fbfc;padding:20px 24px">
-              <p style="color:#082b2e;font-size:14px;margin:0 0 16px">
+            <div style="background:#F5F4EF;padding:20px 24px">
+              <p style="color:#0F1F36;font-size:14px;margin:0 0 16px">
                 明日（<strong>${dateLabel}</strong>）のIPOイベントをお知らせします。
               </p>
               ${sections.join('')}
               <div style="text-align:center;margin-top:24px">
-                <a href="${SITE_URL}" style="display:inline-block;padding:14px 32px;background:#66c3c6;color:white;text-decoration:none;border-radius:8px;font-weight:800;font-size:14px">
+                <a href="${SITE_URL}" style="display:inline-block;padding:14px 32px;background:#1E3A66;color:white;text-decoration:none;border-radius:8px;font-weight:800;font-size:14px">
                   全銘柄の分析レポートを見る →
                 </a>
               </div>

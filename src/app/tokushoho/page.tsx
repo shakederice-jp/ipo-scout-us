@@ -7,10 +7,10 @@ export const metadata: Metadata = {
 
 const S = {
   wrap: { maxWidth: 720, margin: "0 auto", padding: "32px 16px 64px", fontFamily: "'Noto Sans JP',sans-serif" } as React.CSSProperties,
-  h1:   { fontSize: 22, fontWeight: 900, color: "#082b2e", marginBottom: 24, paddingBottom: 12, borderBottom: "2px solid #b3e8ea" } as React.CSSProperties,
+  h1:   { fontSize: 22, fontWeight: 900, color: "#0F1F36", marginBottom: 24, paddingBottom: 12, borderBottom: "2px solid #C7D3E3" } as React.CSSProperties,
   table:{ width: "100%", borderCollapse: "collapse" as const, fontSize: 13 },
-  th:   { backgroundColor: "#e8f9f9", color: "#0d4f52", fontWeight: 700, padding: "10px 14px", textAlign: "left" as const, border: "1px solid #b3e8ea", width: "30%", verticalAlign: "top" as const },
-  td:   { padding: "10px 14px", border: "1px solid #b3e8ea", color: "#374151", lineHeight: 1.8, verticalAlign: "top" as const },
+  th:   { backgroundColor: "#E8EDF5", color: "#1E3A66", fontWeight: 700, padding: "10px 14px", textAlign: "left" as const, border: "1px solid #C7D3E3", width: "30%", verticalAlign: "top" as const },
+  td:   { padding: "10px 14px", border: "1px solid #C7D3E3", color: "#374151", lineHeight: 1.8, verticalAlign: "top" as const },
   note: { marginTop: 24, fontSize: 11, color: "#94a3b8", lineHeight: 1.8 } as React.CSSProperties,
 };
 
@@ -33,7 +33,7 @@ const rows = [
 
 export default function TokushohoPage() {
   return (
-    <div style={{ backgroundColor: "#f4fbfc", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "#F5F4EF", minHeight: "100vh" }}>
       <div style={S.wrap}>
         <h1 style={S.h1}>特定商取引法に基づく表記</h1>
         <table style={S.table}>

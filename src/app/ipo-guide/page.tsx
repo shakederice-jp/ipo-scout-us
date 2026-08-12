@@ -8,9 +8,9 @@ import {
 } from "recharts";
 
 const C = {
-  teal: "#66c3c6",
-  nav: "#0d4f52",
-  bg: "#f4fbfc",
+  teal: "#1E3A66",
+  nav: "#1E3A66",
+  bg: "#F5F4EF",
   gold: "#f59e0b",
   red: "#ef4444",
   green: "#22c55e",
@@ -109,7 +109,7 @@ export default function IpoGuidePage() {
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 16px 60px" }}>
 
         {/* 前提：IPO投資の優位性 */}
-        <div style={{ background: "white", borderRadius: 16, padding: "28px 24px", margin: "32px 0", border: "1px solid #b3e8ea" }}>
+        <div style={{ background: "white", borderRadius: 16, padding: "28px 24px", margin: "32px 0", border: "1px solid #C7D3E3" }}>
           <h2 style={{ fontSize: 18, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>なぜIPO投資は有利なのか</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
             {[
@@ -137,7 +137,7 @@ export default function IpoGuidePage() {
           </p>
 
           {/* 流通比率と騰落率グラフ */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>流通比率と平均初値騰落率の関係</h3>
             <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータによる例示。流通比率が低いほど初値上昇率が高い傾向がある</p>
             <ResponsiveContainer width="100%" height={220}>
@@ -156,7 +156,7 @@ export default function IpoGuidePage() {
           </div>
 
           {/* 勝率を上げる6つのチェックリスト */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>初値狙いの勝率チェックリスト</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {checkItems.map((item, i) => (
@@ -175,7 +175,7 @@ export default function IpoGuidePage() {
           </div>
 
           {/* レーダーチャート */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>お宝銘柄のスコア例（6軸評価）</h3>
             <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータ。全方位で高スコアの銘柄が初値買いの最良候補</p>
             <ResponsiveContainer width="100%" height={260}>
@@ -208,7 +208,7 @@ export default function IpoGuidePage() {
           </p>
 
           {/* ロックアップ解除後の株価推移 */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>ロックアップ解除前後の典型的な株価推移</h3>
             <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータによる例示（公募価格=100として指数化）</p>
             <ResponsiveContainer width="100%" height={240}>
@@ -227,7 +227,7 @@ export default function IpoGuidePage() {
           </div>
 
           {/* 初値売り vs 保有比較表 */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>初値売り vs 短期保有 損益シミュレーション</h3>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
@@ -282,7 +282,7 @@ export default function IpoGuidePage() {
           </p>
 
           {/* 長期リターン比較グラフ */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>成長株IPO vs 市場平均 長期リターン比較</h3>
             <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータによる例示（公募価格=100として指数化）</p>
             <ResponsiveContainer width="100%" height={240}>
@@ -299,7 +299,7 @@ export default function IpoGuidePage() {
           </div>
 
           {/* 財務チェック表 */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>長期保有に値する企業の財務チェック</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
               {[
@@ -321,7 +321,7 @@ export default function IpoGuidePage() {
           </div>
 
           {/* 成長ステージ表 */}
-          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #b3e8ea" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>成長ステージ別 投資判断フロー</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[

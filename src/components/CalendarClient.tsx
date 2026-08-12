@@ -42,11 +42,11 @@ const WEEKDAYS = ["日","月","火","水","木","金","土"];
 const C = {
   bg:     "#f0fafa",
   nav:    "#0e5c6b",
-  teal:   "#66c3c6",
+  teal:   "#1E3A66",
   tealLt: "#e0f7f8",
   text:   "#1a3a3a",
   muted:  "#6b8e8e",
-  border: "#b3e8ea",
+  border: "#C7D3E3",
   white:  "#ffffff",
 };
 
@@ -391,16 +391,16 @@ export default function CalendarClient() {
             </a>
           </div>
 
-          <div style={{ backgroundColor:"#e8f9f9", border:"1.5px solid #b3e8ea", borderRadius:12, padding:"12px 16px", marginBottom:16, display:"flex", alignItems:"flex-start", gap:10 }}>
+          <div style={{ backgroundColor:"#E8EDF5", border:"1.5px solid #C7D3E3", borderRadius:12, padding:"12px 16px", marginBottom:16, display:"flex", alignItems:"flex-start", gap:10 }}>
             <span style={{ fontSize:18, flexShrink:0 }}>📋</span>
             <div>
-              <div style={{ fontWeight:900, fontSize:13, color:"#082b2e", marginBottom:2 }}>
+              <div style={{ fontWeight:900, fontSize:13, color:"#0F1F36", marginBottom:2 }}>
                 {lang === "ja" ? "まず無料でお試しください" : "Try for Free First"}
               </div>
-              <p style={{ fontSize:12, color:"#2a7a7e", lineHeight:1.7, margin:0 }}>
+              <p style={{ fontSize:12, color:"#3D5A85", lineHeight:1.7, margin:0 }}>
                 {lang === "ja"
-                  ? <>毎月、日付順で最初の<strong style={{ color:"#082b2e" }}>2銘柄の分析レポートは完全無料</strong>でご覧いただけます。特定銘柄だけをピックアップして読む場合は¥500です。また、すべてコミコミの<strong style={{ color:"#082b2e" }}>コンプリートパック</strong>もあります。</>
-                  : <>The first <strong style={{ color:"#082b2e" }}>2 IPO reports each month are completely free</strong>. Single reports are ¥500. A <strong style={{ color:"#082b2e" }}>Complete Pack</strong> with all features is also available.</>
+                  ? <>毎月、日付順で最初の<strong style={{ color:"#0F1F36" }}>2銘柄の分析レポートは完全無料</strong>でご覧いただけます。特定銘柄だけをピックアップして読む場合は¥500です。また、すべてコミコミの<strong style={{ color:"#0F1F36" }}>コンプリートパック</strong>もあります。</>
+                  : <>The first <strong style={{ color:"#0F1F36" }}>2 IPO reports each month are completely free</strong>. Single reports are ¥500. A <strong style={{ color:"#0F1F36" }}>Complete Pack</strong> with all features is also available.</>
                 }
               </p>
             </div>

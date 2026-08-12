@@ -345,8 +345,8 @@ export default function AdminPage() {
     } catch {}
   };
 
-  const inputStyle = { width:"100%", padding:"8px 10px", borderRadius:"8px", border:"1px solid #b3e8ea", boxSizing:"border-box" as const, fontSize:"13px" };
-  const labelStyle = { fontSize:"11px", fontWeight:"700" as const, color:"#2a7a7e", marginBottom:"4px", display:"block" as const };
+  const inputStyle = { width:"100%", padding:"8px 10px", borderRadius:"8px", border:"1px solid #C7D3E3", boxSizing:"border-box" as const, fontSize:"13px" };
+  const labelStyle = { fontSize:"11px", fontWeight:"700" as const, color:"#3D5A85", marginBottom:"4px", display:"block" as const };
   const sectionStyle = { background:"white", borderRadius:"12px", padding:"20px", marginBottom:"12px", border:"1px solid #d1f5f7" };
   const btnStyle = (color: string, disabled: boolean) => ({ padding:"9px 16px", backgroundColor:disabled?"#94a3b8":color, color:"white", border:"none", borderRadius:"8px", cursor:disabled?"default":"pointer" as const, fontWeight:700 as const, fontSize:"13px", width:"100%" });
 
@@ -368,14 +368,14 @@ export default function AdminPage() {
   };
 
   if (!authed) return (
-    <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:"100vh", backgroundColor:"#f4fbfc" }}>
-      <div style={{ background:"white", padding:"32px", borderRadius:"16px", border:"1px solid #b3e8ea", minWidth:"300px" }}>
-        <h2 style={{ margin:"0 0 16px", fontSize:"16px", color:"#082b2e" }}>⚙️ 管理画面</h2>
+    <div style={{ display:"flex", justifyContent:"center", alignItems:"center", height:"100vh", backgroundColor:"#F5F4EF" }}>
+      <div style={{ background:"white", padding:"32px", borderRadius:"16px", border:"1px solid #C7D3E3", minWidth:"300px" }}>
+        <h2 style={{ margin:"0 0 16px", fontSize:"16px", color:"#0F1F36" }}>⚙️ 管理画面</h2>
         <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&(password===ADMIN_PASSWORD?setAuthed(true):alert("パスワードが違います"))}
-          placeholder="パスワードを入力" style={{ width:"100%", padding:"10px", borderRadius:"8px", border:"1px solid #b3e8ea", marginBottom:"12px", boxSizing:"border-box" }}/>
+          placeholder="パスワードを入力" style={{ width:"100%", padding:"10px", borderRadius:"8px", border:"1px solid #C7D3E3", marginBottom:"12px", boxSizing:"border-box" }}/>
         <button onClick={()=>password===ADMIN_PASSWORD?setAuthed(true):alert("パスワードが違います")}
-          style={{ width:"100%", padding:"10px", backgroundColor:"#66c3c6", color:"white", border:"none", borderRadius:"8px", cursor:"pointer", fontWeight:"700" }}>
+          style={{ width:"100%", padding:"10px", backgroundColor:"#1E3A66", color:"white", border:"none", borderRadius:"8px", cursor:"pointer", fontWeight:"700" }}>
           ログイン
         </button>
       </div>
@@ -383,9 +383,9 @@ export default function AdminPage() {
   );
 
   return (
-    <div style={{ minHeight:"100vh", backgroundColor:"#f4fbfc", padding:"24px" }}>
+    <div style={{ minHeight:"100vh", backgroundColor:"#F5F4EF", padding:"24px" }}>
       <div style={{ maxWidth:"1200px", margin:"0 auto" }}>
-        <h1 style={{ fontSize:"18px", fontWeight:900, color:"#082b2e", marginBottom:"20px" }}>⚙️ 管理画面</h1>
+        <h1 style={{ fontSize:"18px", fontWeight:900, color:"#0F1F36", marginBottom:"20px" }}>⚙️ 管理画面</h1>
         <style>{`
           @media (max-width: 768px) {
             .admin-layout { flex-direction: column !important; }
@@ -399,7 +399,7 @@ export default function AdminPage() {
           <div className="admin-col" style={{ width:"50%", display:"flex", flexDirection:"column", gap:12 }}>
 
             {/* 週次ルーティン */}
-            <div style={{ ...sectionStyle, background:"#0d4f52", border:"none" }}>
+            <div style={{ ...sectionStyle, background:"#1E3A66", border:"none" }}>
               <h2 style={{ fontSize:"13px", fontWeight:900, color:"white", margin:"0 0 12px" }}>📅 週次ルーティン</h2>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {[
@@ -411,9 +411,9 @@ export default function AdminPage() {
                   { day:"金曜", label:"週次通知メールが送信されたか確認", auto:true },
                 ].map((item, i) => (
                   <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 12px", borderRadius:8, background:item.auto?"rgba(255,255,255,0.08)":"rgba(102,195,198,0.2)" }}>
-                    <span style={{ fontSize:10, fontWeight:800, color:item.auto?"#a0d4d6":"#66c3c6", minWidth:40 }}>{item.day}</span>
+                    <span style={{ fontSize:10, fontWeight:800, color:item.auto?"#a0d4d6":"#1E3A66", minWidth:40 }}>{item.day}</span>
                     <span style={{ fontSize:12, color:"white", flex:1 }}>{item.label}</span>
-                    <span style={{ fontSize:10, padding:"2px 8px", borderRadius:20, background:item.auto?"rgba(255,255,255,0.15)":"#66c3c6", color:"white", fontWeight:700, whiteSpace:"nowrap" as const }}>
+                    <span style={{ fontSize:10, padding:"2px 8px", borderRadius:20, background:item.auto?"rgba(255,255,255,0.15)":"#1E3A66", color:"white", fontWeight:700, whiteSpace:"nowrap" as const }}>
                       {item.auto?"🤖 自動":"✋ 手動"}
                     </span>
                   </div>
@@ -434,8 +434,8 @@ export default function AdminPage() {
               {manualOpen && (
                 <div style={{ padding:"16px 20px", display:"flex", flexDirection:"column", gap:14 }}>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:4 }}>🩺 システムヘルスチェック</div>
-                    <button onClick={handleHealthCheck} disabled={healthLoading} style={btnStyle("#0d4f52", healthLoading)}>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:4 }}>🩺 システムヘルスチェック</div>
+                    <button onClick={handleHealthCheck} disabled={healthLoading} style={btnStyle("#1E3A66", healthLoading)}>
                       {healthLoading?"確認中...":"ヘルスチェックを実行"}
                     </button>
                     {healthResult && (
@@ -451,7 +451,7 @@ export default function AdminPage() {
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:2 }}>🔍 DB整合性チェック <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎週月曜に自動実行）</span></div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:2 }}>🔍 DB整合性チェック <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎週月曜に自動実行）</span></div>
                     <button onClick={handleDbCheck} disabled={dbCheckLoading} style={btnStyle("#7c3aed", dbCheckLoading)}>
                       {dbCheckLoading?"確認中...":"整合性チェックを今すぐ実行"}
                     </button>
@@ -468,15 +468,15 @@ export default function AdminPage() {
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:2 }}>📡 IPO情報自動取得 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎日自動実行）</span></div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:2 }}>📡 IPO情報自動取得 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎日自動実行）</span></div>
                     <button onClick={handleAutoFetch} disabled={autoLoading} style={btnStyle("#9b59b6", autoLoading)}>
                       {autoLoading?"取得中...":"今すぐ自動取得を実行"}
                     </button>
-                    {autoResult && <p style={{ marginTop:6, fontSize:11, color:"#2a7a7e" }}>{autoResult}</p>}
+                    {autoResult && <p style={{ marginTop:6, fontSize:11, color:"#3D5A85" }}>{autoResult}</p>}
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:2 }}>📧 週次通知メール送信 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎週金曜18時に自動送信）</span></div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:2 }}>📧 週次通知メール送信 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎週金曜18時に自動送信）</span></div>
                     <p style={{ fontSize:11, color:"#64748b", margin:"0 0 8px" }}>翌週にBB開始・申込開始・上場がある場合のみ送信されます</p>
                     <button onClick={handleTestNotify} disabled={notifyLoading} style={btnStyle("#0369a1", notifyLoading)}>
                       {notifyLoading?"送信中...":"通知メールを今すぐ送信"}
@@ -500,7 +500,7 @@ export default function AdminPage() {
               {masterOpen && (
                 <div style={{ padding:"16px 20px", display:"flex", flexDirection:"column", gap:16 }}>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:4 }}>🏢 競合他社財務データ取得</div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:4 }}>🏢 競合他社財務データ取得</div>
                     <p style={{ fontSize:11, color:"#64748b", margin:"0 0 8px" }}>⑦で収集した競合企業の財務データを取得します</p>
                     {!selectedCompany
                       ? <p style={{ fontSize:11, color:"#94a3b8" }}>※ 右の「銘柄分析」で銘柄を選択してください</p>
@@ -513,19 +513,19 @@ export default function AdminPage() {
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:4 }}>📥 EDINETコードリスト取得 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（数ヶ月に1回）</span></div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:4 }}>📥 EDINETコードリスト取得 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（数ヶ月に1回）</span></div>
                     <p style={{ fontSize:11, color:"#64748b", margin:"0 0 8px" }}>EDINETからCSVをダウンロードし、edinet_companiesテーブルにインポートします。</p>
                     <button onClick={handleEdinetCodes} style={btnStyle("#0369a1", false)}>EDINETダウンロードページを開く</button>
-                    {edinetResult && <p style={{ marginTop:8, fontSize:11, color:"#0d4f52" }}>{edinetResult}</p>}
+                    {edinetResult && <p style={{ marginTop:8, fontSize:11, color:"#1E3A66" }}>{edinetResult}</p>}
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:8 }}>📝 初値・騰落率入力</div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:8 }}>📝 初値・騰落率入力</div>
                     <InitialPriceForm />
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#082b2e", marginBottom:4 }}>🌐 経済指標カレンダー登録 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（年に数回）</span></div>
+                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:4 }}>🌐 経済指標カレンダー登録 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（年に数回）</span></div>
                     <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:12 }}>
                       <div><label style={labelStyle}>日付 *</label><input type="date" value={econDate} onChange={e=>setEconDate(e.target.value)} style={inputStyle}/></div>
                       <div>
@@ -545,13 +545,13 @@ export default function AdminPage() {
                     </div>
                     {econEvents.length>0 && (
                       <div>
-                        <div style={{ fontSize:11, fontWeight:700, color:"#2a7a7e", marginBottom:6 }}>登録済みイベント（{econEvents.length}件）</div>
+                        <div style={{ fontSize:11, fontWeight:700, color:"#3D5A85", marginBottom:6 }}>登録済みイベント（{econEvents.length}件）</div>
                         <div style={{ display:"flex", flexDirection:"column", gap:4, maxHeight:200, overflowY:"auto" }}>
                           {econEvents.map(e=>(
                             <div key={e.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 10px", background:"#f8fafc", borderRadius:8, border:"1px solid #e2e8f0" }}>
                               <div>
-                                <span style={{ fontSize:12, fontWeight:700, color:"#082b2e" }}>{e.event_date}</span>
-                                <span style={{ fontSize:11, color:"#2a7a7e", marginLeft:8 }}>{e.event_type}</span>
+                                <span style={{ fontSize:12, fontWeight:700, color:"#0F1F36" }}>{e.event_date}</span>
+                                <span style={{ fontSize:11, color:"#3D5A85", marginLeft:8 }}>{e.event_type}</span>
                                 {e.label && <span style={{ fontSize:11, color:"#64748b", marginLeft:6 }}>（{e.label}）</span>}
                               </div>
                               <button onClick={()=>handleDeleteEconEvent(e.id)} style={{ background:"none", border:"none", cursor:"pointer", color:"#ef4444", fontSize:16, padding:"2px 6px" }}>×</button>
@@ -573,11 +573,11 @@ export default function AdminPage() {
 
             {/* 銘柄分析 */}
             <div style={sectionStyle}>
-              <h2 style={{ fontSize:"15px", fontWeight:900, color:"#082b2e", marginBottom:4 }}>🔬 銘柄分析（手動作業）</h2>
+              <h2 style={{ fontSize:"15px", fontWeight:900, color:"#0F1F36", marginBottom:4 }}>🔬 銘柄分析（手動作業）</h2>
               <p style={{ fontSize:11, color:"#64748b", marginBottom:16 }}>新規IPO銘柄が出たら、以下の順番で実行してください。<br/><strong>① → ⑦ → ② → ③ → ④⑤⑥一括 → 視覚化</strong></p>
 
-              <div style={{ marginBottom:14, padding:"12px 14px", backgroundColor:"#f0fafa", borderRadius:10, border:"1px solid #b3e8ea" }}>
-                <div style={{ fontWeight:700, fontSize:12, color:"#082b2e", marginBottom:6 }}>
+              <div style={{ marginBottom:14, padding:"12px 14px", backgroundColor:"#f0fafa", borderRadius:10, border:"1px solid #C7D3E3" }}>
+                <div style={{ fontWeight:700, fontSize:12, color:"#0F1F36", marginBottom:6 }}>
                   📋 EDINET書類ID未設定銘柄を一括検索
                   <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>({companies.filter(c=>!c.edinet_doc_id).length}件が未設定)</span>
                 </div>
@@ -634,8 +634,8 @@ export default function AdminPage() {
                     </div>
                     {edinetSearchResult && <p style={{ marginTop:4, fontSize:11, color:edinetSearchResult.startsWith("❌")?"#dc2626":"#166534" }}>{edinetSearchResult}</p>}
                   </div>
-                  <div style={{ borderTop:"2px dashed #b3e8ea", paddingTop:14, marginBottom:4 }}>
-                    <p style={{ fontSize:11, fontWeight:700, color:"#2a7a7e", marginBottom:10 }}>▼ 以下の順番で実行してください</p>
+                  <div style={{ borderTop:"2px dashed #C7D3E3", paddingTop:14, marginBottom:4 }}>
+                    <p style={{ fontSize:11, fontWeight:700, color:"#3D5A85", marginBottom:10 }}>▼ 以下の順番で実行してください</p>
                   </div>
                   <StepRow num="1" color="#3b82f6" title="STEP 1｜EDINETからテキスト取得" desc="目論見書のテキストをDBに保存します（約10〜20秒）" btnLabel="① テキストを取得する" onClick={handleStep1}/>
                   <StepRow num="7" color="#0369a1" title="STEP 2｜市場・競合情報収集" desc="主幹事証券・競合企業・業界PER・直近IPO事例を収集します（約20〜30秒）" btnLabel="⑦ 市場・競合情報を収集する" onClick={handleStep7}/>
@@ -654,9 +654,9 @@ export default function AdminPage() {
                     ))}
                   </div>
                   <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:10, border:`1px solid ${vizResult?.startsWith("❌")?"#fecaca":vizResult?.includes("完了")?"#bbf7d0":"#e2e8f0"}`, background:vizResult?.startsWith("❌")?"#fef2f2":vizResult?.includes("完了")?"#f0fdf4":"#f8fafc" }}>
-                    <div style={{ fontWeight:900, color:"#0d4f52", fontSize:13, marginBottom:3 }}>STEP 6｜視覚化データ生成</div>
+                    <div style={{ fontWeight:900, color:"#1E3A66", fontSize:13, marginBottom:3 }}>STEP 6｜視覚化データ生成</div>
                     <p style={{ fontSize:11, color:"#64748b", margin:"2px 0 8px" }}>グラフ・表データをまとめて生成します（約30〜60秒）</p>
-                    <button onClick={handleVisualize} disabled={vizLoading} style={btnStyle("#0d4f52", vizLoading)}>
+                    <button onClick={handleVisualize} disabled={vizLoading} style={btnStyle("#1E3A66", vizLoading)}>
                       {vizLoading?"⏳ 生成中...":"📊 視覚化データを生成"}
                     </button>
                     {vizResult && <div style={{ marginTop:6, fontSize:11, padding:"4px 8px", borderRadius:6, background:vizResult.startsWith("❌")?"#fef2f2":"#f0fdf4", color:vizResult.startsWith("❌")?"#dc2626":"#166534" }}>{vizResult}</div>}

@@ -6,8 +6,8 @@ export const metadata: Metadata = {
 };
 
 const C = {
-  teal: "#66c3c6", nav: "#0d4f52", dark: "#082b2e",
-  light: "#f0fafa", border: "#b3e8ea", mid: "#2a7a7e",
+  teal: "#1E3A66", nav: "#1E3A66", dark: "#0F1F36",
+  light: "#f0fafa", border: "#C7D3E3", mid: "#3D5A85",
 };
 
 const plans = [
@@ -74,7 +74,7 @@ const plans = [
     price: "¥2,490",
     period: "/月",
     color: C.nav,
-    bg: "#e8f9f9",
+    bg: "#E8EDF5",
     border: C.teal,
     badge: null,
     target: "通知も情報も両方欲しい方・IPO投資に本気で取り組む方",

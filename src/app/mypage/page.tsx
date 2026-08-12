@@ -4,11 +4,11 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { User, CreditCard, Gift, Bell, ShoppingBag, Calendar, Copy, Check, LogOut } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
 
-const PRIMARY = "#66c3c6";
-const DARK = "#082b2e";
-const MID = "#0d4f52";
-const LIGHT = "#e8f9f9";
-const BORDER = "#b3e8ea";
+const PRIMARY = "#1E3A66";
+const DARK = "#0F1F36";
+const MID = "#1E3A66";
+const LIGHT = "#E8EDF5";
+const BORDER = "#C7D3E3";
 
 const PLAN_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   free:     { label: "無料プラン",           color: "#64748b", bg: "#f1f5f9" },
@@ -145,13 +145,13 @@ export default function MyPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f4fbfc" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#F5F4EF" }}>
       <p style={{ color: MID, fontSize: 14 }}>読み込み中...</p>
     </div>
   );
 
   if (!data || data.error) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f4fbfc" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#F5F4EF" }}>
       <div style={{ textAlign: "center" }}>
         <p style={{ color: "#64748b", marginBottom: 16 }}>ログインが必要です</p>
         <a href="/auth" style={{ padding: "10px 24px", backgroundColor: PRIMARY, color: "white", borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>ログイン</a>
@@ -178,7 +178,7 @@ export default function MyPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f4fbfc", fontFamily: "'Noto Sans JP',sans-serif" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#F5F4EF", fontFamily: "'Noto Sans JP',sans-serif" }}>
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px 48px" }}>
 
         {/* ヘッダー */}

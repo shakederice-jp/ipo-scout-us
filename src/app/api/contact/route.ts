@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
         to: email.trim(),
         subject: "【大手町調査室九課】お問い合わせを受け付けました",
         html: `
-          <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f4fbfc">
-            <div style="background:#0d4f52;padding:20px 28px;border-radius:12px 12px 0 0">
+          <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#F5F4EF">
+            <div style="background:#1E3A66;padding:20px 28px;border-radius:12px 12px 0 0">
               <h2 style="color:white;margin:0;font-size:17px;font-weight:900">📊 IPO企業情報AI分析レポート</h2>
               <p style="color:#a0d4d6;margin:4px 0 0;font-size:12px">大手町調査室九課</p>
             </div>
-            <div style="background:white;padding:28px;border-radius:0 0 12px 12px;border:1px solid #b3e8ea">
+            <div style="background:white;padding:28px;border-radius:0 0 12px 12px;border:1px solid #C7D3E3">
 
-              <p style="color:#082b2e;font-size:15px;font-weight:700;margin:0 0 16px">
+              <p style="color:#0F1F36;font-size:15px;font-weight:700;margin:0 0 16px">
                 ${displayName} 様
               </p>
 
@@ -55,12 +55,12 @@ export async function POST(req: NextRequest) {
               </p>
 
               <p style="color:#374151;font-size:14px;line-height:1.9;margin:0 0 16px">
-                いただいた<strong style="color:#0d4f52">「${catLabel}」</strong>のご連絡は、確かに受け付けました。<br/>
+                いただいた<strong style="color:#1E3A66">「${catLabel}」</strong>のご連絡は、確かに受け付けました。<br/>
                 内容を丁寧に確認のうえ、サービスの改善・品質向上に向けて真摯に検討してまいります。
               </p>
 
-              <div style="background:#f0fafa;border-left:4px solid #66c3c6;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
-                <p style="color:#0d4f52;font-size:13px;line-height:1.8;margin:0">
+              <div style="background:#f0fafa;border-left:4px solid #1E3A66;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
+                <p style="color:#1E3A66;font-size:13px;line-height:1.8;margin:0">
                   なお、いただいたご意見・ご提案はサービス改善の重要な参考とさせていただきますが、
                   すべてのご要望にお応えすることや、ご意見の内容がそのまま反映されることをお約束するものではございません。
                   何卒ご理解いただけますと幸いです。
@@ -74,9 +74,9 @@ export async function POST(req: NextRequest) {
               </p>
 
               <div style="border-top:1px solid #e2e8f0;margin-top:24px;padding-top:16px">
-                <p style="color:#082b2e;font-size:13px;font-weight:700;margin:0 0 4px">大手町調査室九課</p>
+                <p style="color:#0F1F36;font-size:13px;font-weight:700;margin:0 0 4px">大手町調査室九課</p>
                 <p style="color:#64748b;font-size:12px;margin:0">IPO企業情報AI分析レポート</p>
-                <a href="https://ipo.finance-tower.com" style="color:#66c3c6;font-size:12px;text-decoration:none">ipo.finance-tower.com</a>
+                <a href="https://ipo.finance-tower.com" style="color:#1E3A66;font-size:12px;text-decoration:none">ipo.finance-tower.com</a>
               </div>
 
               <p style="margin-top:20px;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:12px;line-height:1.7">

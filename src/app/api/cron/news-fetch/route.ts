@@ -155,23 +155,23 @@ export async function GET(req: NextRequest) {
     const now = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
     const emailRows = featuredItems.map((item, i) => {
       return "<div style='margin-bottom:24px;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0'>"
-        + "<div style='font-size:11px;color:#66c3c6;font-weight:700;margin-bottom:6px'>📌 注目ニュース " + (i + 1) + "｜" + item.sector + "</div>"
+        + "<div style='font-size:11px;color:#1E3A66;font-weight:700;margin-bottom:6px'>📌 注目ニュース " + (i + 1) + "｜" + item.sector + "</div>"
         + "<div style='font-size:12px;color:#334155;margin-bottom:12px;line-height:1.5'>" + item.title + "</div>"
-        + "<div style='background:#0d4f52;border-radius:8px;padding:12px 14px'>"
+        + "<div style='background:#1E3A66;border-radius:8px;padding:12px 14px'>"
         + "<div style='font-size:10px;color:#a0d4d6;margin-bottom:6px;font-weight:700'>▼ X投稿用（そのままコピペ）</div>"
         + "<div style='font-size:13px;color:white;line-height:1.7;white-space:pre-wrap;'>" + item.tweet + "</div>"
         + "</div>"
-        + "<div style='margin-top:8px;font-size:11px;color:#94a3b8'>🔗 元記事: <a href='" + item.shortUrl + "' style='color:#66c3c6'>" + item.shortUrl + "</a></div>"
+        + "<div style='margin-top:8px;font-size:11px;color:#94a3b8'>🔗 元記事: <a href='" + item.shortUrl + "' style='color:#1E3A66'>" + item.shortUrl + "</a></div>"
         + "</div>";
     }).join("");
 
-    const emailHtml = "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f4fbfc'>"
-      + "<div style='background:#0d4f52;padding:16px 24px;border-radius:12px 12px 0 0'>"
+    const emailHtml = "<div style='font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#F5F4EF'>"
+      + "<div style='background:#1E3A66;padding:16px 24px;border-radius:12px 12px 0 0'>"
       + "<h2 style='color:white;margin:0;font-size:16px'>📡 大手町発マーケットトレンド</h2>"
       + "<p style='color:#a0d4d6;margin:4px 0 0;font-size:12px'>注目ニュース自動レポート｜" + now + "</p>"
       + "</div>"
-      + "<div style='background:white;padding:24px;border-radius:0 0 12px 12px;border:1px solid #b3e8ea'>"
-      + "<p style='font-size:13px;color:#082b2e;margin:0 0 20px'>以下のツイート文をそのままXにコピペして投稿できます。</p>"
+      + "<div style='background:white;padding:24px;border-radius:0 0 12px 12px;border:1px solid #C7D3E3'>"
+      + "<p style='font-size:13px;color:#0F1F36;margin:0 0 20px'>以下のツイート文をそのままXにコピペして投稿できます。</p>"
       + emailRows
       + "<p style='margin-top:16px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:12px'>"
       + "情報源: PR TIMES / ロイター日本語版 / 東洋経済オンライン / みんかぶ / THE BRIDGE / ダイヤモンド・オンライン<br/>"

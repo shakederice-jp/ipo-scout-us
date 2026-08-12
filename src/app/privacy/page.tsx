@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 
 const S = {
   wrap: { maxWidth: 720, margin: "0 auto", padding: "32px 16px 64px", fontFamily: "'Noto Sans JP',sans-serif" } as React.CSSProperties,
-  h1:   { fontSize: 22, fontWeight: 900, color: "#082b2e", marginBottom: 24, paddingBottom: 12, borderBottom: "2px solid #b3e8ea" } as React.CSSProperties,
-  h2:   { fontSize: 15, fontWeight: 900, color: "#0d4f52", marginTop: 28, marginBottom: 8 } as React.CSSProperties,
+  h1:   { fontSize: 22, fontWeight: 900, color: "#0F1F36", marginBottom: 24, paddingBottom: 12, borderBottom: "2px solid #C7D3E3" } as React.CSSProperties,
+  h2:   { fontSize: 15, fontWeight: 900, color: "#1E3A66", marginTop: 28, marginBottom: 8 } as React.CSSProperties,
   p:    { fontSize: 13, color: "#374151", lineHeight: 1.9, marginBottom: 12 } as React.CSSProperties,
   ul:   { fontSize: 13, color: "#374151", lineHeight: 1.9, paddingLeft: 20, marginBottom: 12 } as React.CSSProperties,
   note: { marginTop: 32, fontSize: 11, color: "#94a3b8", lineHeight: 1.8 } as React.CSSProperties,
@@ -16,7 +16,7 @@ const S = {
 
 export default function PrivacyPage() {
   return (
-    <div style={{ backgroundColor: "#f4fbfc", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: "#F5F4EF", minHeight: "100vh" }}>
       <div style={S.wrap}>
         <h1 style={S.h1}>プライバシーポリシー</h1>
 

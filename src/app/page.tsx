@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 const cardStyle: React.CSSProperties = {
   backgroundColor: "white",
   borderRadius: 16,
-  border: "1px solid #b3e8ea",
+  border: "1px solid #C7D3E3",
   overflow: "hidden",
 };
 
@@ -45,7 +45,7 @@ export default async function Home({
   const userId = session?.user?.id ?? null;
 
   return (
-    <div style={{ backgroundColor:"#f4fbfc", minHeight:"100vh", fontFamily:"'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif" }}>
+    <div style={{ backgroundColor:"#F5F4EF", minHeight:"100vh", fontFamily:"'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif" }}>
 
 <style>{`
         @media (max-width: 700px) {
@@ -80,18 +80,18 @@ export default async function Home({
         <aside className="top-sidebar" style={{ flex:"0 0 300px", minWidth:280, display:"flex", flexDirection:"column", gap:12 }}>
 
           {/* トレンドページへのリンク */}
-          <a href="/trends" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#0d4f52", border:"2px solid #0d4f52", textDecoration:"none" }}>
+          <a href="/trends" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#1E3A66", border:"2px solid #1E3A66", textDecoration:"none" }}>
             <div>
               <div style={{ fontSize:13, fontWeight:900, color:"white" }}>📡 大手町発マーケットトレンド</div>
               <div style={{ fontSize:10, color:"#a0d4d6", marginTop:2 }}>IPO・スタートアップ・資金調達の最新動向</div>
             </div>
-            <span style={{ fontSize:16, color:"#66c3c6" }}>→</span>
+            <span style={{ fontSize:16, color:"#1E3A66" }}>→</span>
           </a>
 
 {/* IPO投資ガイドへのリンク */}
 <a href="/ipo-guide" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#f0fdf4", textDecoration:"none", border:"1.5px solid #22c55e" }}>
             <div>
-              <div style={{ fontSize:12, fontWeight:900, color:"#082b2e" }}>💡 IPO投資で資産を増やす法則</div>
+              <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>💡 IPO投資で資産を増やす法則</div>
               <div style={{ fontSize:10, color:"#15803d", marginTop:2 }}>超短期・短期・長期の実践的戦略</div>
             </div>
             <span style={{ fontSize:16, color:"#22c55e" }}>→</span>
@@ -106,27 +106,27 @@ export default async function Home({
 {/* サービス説明・免責一言 */}
 <div style={{ ...cardStyle, padding:"12px 14px", backgroundColor:"#f8fefe", display:"flex", alignItems:"flex-start", gap:8 }}>
             <span style={{ fontSize:13, flexShrink:0 }}>📋</span>
-            <p style={{ fontSize:10, color:"#2a7a7e", lineHeight:1.8, margin:0 }}>
+            <p style={{ fontSize:10, color:"#3D5A85", lineHeight:1.8, margin:0 }}>
               本サービスは、IPO銘柄が金融庁に提出する目論見書をAIが解析・要約し、投資判断に役立つ情報を抽出することを目的としています。目論見書に記載のない情報は「不明」「データ不足」と表示されます。AIによる試算・評価であり、投資勧誘ではありません。
             </p>
           </div>
 
           {/* 料金プランページへのリンク */}
-          <a href="/plans" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#e8f9f9", textDecoration:"none", border:"1.5px solid #66c3c6" }}>
+          <a href="/plans" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#E8EDF5", textDecoration:"none", border:"1.5px solid #1E3A66" }}>
             <div>
-              <div style={{ fontSize:12, fontWeight:900, color:"#082b2e" }}>📋 料金プランを見る</div>
-              <div style={{ fontSize:10, color:"#2a7a7e", marginTop:2 }}>無料〜¥2,490/月・4プラン比較</div>
+              <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>📋 料金プランを見る</div>
+              <div style={{ fontSize:10, color:"#3D5A85", marginTop:2 }}>無料〜¥2,490/月・4プラン比較</div>
             </div>
-            <span style={{ fontSize:16, color:"#66c3c6" }}>→</span>
+            <span style={{ fontSize:16, color:"#1E3A66" }}>→</span>
           </a>
 
           {/* 購入パネル */}
           <div style={cardStyle}>
-            <div style={{ padding:"12px 16px", backgroundColor:"#66c3c6", display:"flex", alignItems:"center", gap:8 }}>
-              <Crown size={16} color="#082b2e" />
+            <div style={{ padding:"12px 16px", backgroundColor:"#1E3A66", display:"flex", alignItems:"center", gap:8 }}>
+              <Crown size={16} color="#0F1F36" />
               <div>
-                <div style={{ fontWeight:900, fontSize:13, color:"#082b2e" }}>有料プランのお申込み</div>
-                <div style={{ fontSize:10, color:"#0d4f52" }}>Stripeで安全決済 🔒</div>
+                <div style={{ fontWeight:900, fontSize:13, color:"#0F1F36" }}>有料プランのお申込み</div>
+                <div style={{ fontSize:10, color:"#1E3A66" }}>Stripeで安全決済 🔒</div>
               </div>
             </div>
             <div style={{ padding:16, backgroundColor:"white" }}>
@@ -140,16 +140,16 @@ export default async function Home({
           {/* 通知案内 */}
           <div style={{ ...cardStyle, padding:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-              <Zap size={16} color="#66c3c6" />
-              <span style={{ fontWeight:900, fontSize:13, color:"#082b2e" }}>通知サービス</span>
+              <Zap size={16} color="#1E3A66" />
+              <span style={{ fontWeight:900, fontSize:13, color:"#0F1F36" }}>通知サービス</span>
             </div>
-            <p style={{ fontSize:12, color:"#2a7a7e", lineHeight:1.7, margin:"0 0 12px" }}>
-              上場日・BB・申込開始・ロックアップ解除を<strong style={{ color:"#082b2e" }}>前週金曜日18時</strong>にまとめてお届けします。
+            <p style={{ fontSize:12, color:"#3D5A85", lineHeight:1.7, margin:"0 0 12px" }}>
+              上場日・BB・申込開始・ロックアップ解除を<strong style={{ color:"#0F1F36" }}>前週金曜日18時</strong>にまとめてお届けします。
             </p>
             {[{ label:"通知プラン", price:"¥890/月" }, { label:"コンプリートパック", price:"¥2,490/月" }].map(item => (
-              <div key={item.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderRadius:10, padding:"8px 12px", marginBottom:6, backgroundColor:"#f4fbfc", border:"1px solid #dff3f4" }}>
-                <span style={{ fontSize:11, fontWeight:700, color:"#0d4f52" }}>{item.label}</span>
-                <span style={{ fontSize:11, fontWeight:900, color:"#66c3c6" }}>{item.price}</span>
+              <div key={item.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderRadius:10, padding:"8px 12px", marginBottom:6, backgroundColor:"#F5F4EF", border:"1px solid #E3E8F0" }}>
+                <span style={{ fontSize:11, fontWeight:700, color:"#1E3A66" }}>{item.label}</span>
+                <span style={{ fontSize:11, fontWeight:900, color:"#1E3A66" }}>{item.price}</span>
               </div>
             ))}
           </div>
@@ -159,21 +159,21 @@ export default async function Home({
 
 
       {/* フッター */}
-      <footer style={{ borderTop:"1px solid #b3e8ea", backgroundColor:"white", padding:"24px 16px", textAlign:"center" }}>
+      <footer style={{ borderTop:"1px solid #C7D3E3", backgroundColor:"white", padding:"24px 16px", textAlign:"center" }}>
         <div style={{ display:"flex", justifyContent:"center", gap:16, marginBottom:10 }}>
-        <a href="/tokushoho" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>特定商取引法に基づく表記</a>
+        <a href="/tokushoho" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>特定商取引法に基づく表記</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/privacy" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>プライバシーポリシー</a>
+          <a href="/privacy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>プライバシーポリシー</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/contact" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>お問い合わせ</a>
+          <a href="/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>お問い合わせ</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/guide" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>このサイトの使い方</a>
+          <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>このサイトの使い方</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/plans" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>料金プラン</a>
+          <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>料金プラン</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/trends" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>📡 マーケットトレンド</a>
+          <a href="/trends" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>📡 マーケットトレンド</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/ipo-guide" style={{ fontSize:11, color:"#66c3c6", textDecoration:"none" }}>💡 IPO投資の法則</a>
+          <a href="/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>💡 IPO投資の法則</a>
         </div>
         <p style={{ fontSize:10, color:"#94a3b8", lineHeight:1.7, margin:0 }}>
           本サービスの分析・スコアはAIによる試算値であり、投資勧誘ではありません。<br/>

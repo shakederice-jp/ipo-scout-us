@@ -72,27 +72,27 @@ export default function TrendsPage() {
     : null;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f4fbfc" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#F5F4EF" }}>
       <div style={{ maxWidth: 800, margin: "0 auto", padding: "24px 16px" }}>
 
         {/* ヘッダー */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
             <span style={{ fontSize: 24 }}>📡</span>
-            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#082b2e", margin: 0 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 900, color: "#0F1F36", margin: 0 }}>
               大手町発マーケットトレンド
             </h1>
           </div>
           <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
             IPO・スタートアップ・資金調達の最新動向を毎日3回自動更新
-            {updatedAt && <span style={{ marginLeft: 8, color: "#66c3c6" }}>最終更新: {updatedAt}</span>}
+            {updatedAt && <span style={{ marginLeft: 8, color: "#1E3A66" }}>最終更新: {updatedAt}</span>}
           </p>
         </div>
 
         {/* 注目セクターランキング */}
         {topSectors.length > 0 && (
-          <div style={{ background: "white", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #b3e8ea" }}>
-            <h2 style={{ fontSize: 13, fontWeight: 900, color: "#082b2e", margin: "0 0 14px" }}>
+          <div style={{ background: "white", borderRadius: 12, padding: 20, marginBottom: 20, border: "1px solid #C7D3E3" }}>
+            <h2 style={{ fontSize: 13, fontWeight: 900, color: "#0F1F36", margin: "0 0 14px" }}>
               🔥 今日の注目セクターランキング
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -104,10 +104,10 @@ export default function TrendsPage() {
                     {i + 1}
                   </span>
                   <span style={{ fontSize: 16 }}>{SECTOR_EMOJI[s.sector.split("/")[0].trim()] ?? "📌"}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#082b2e", flex: 1 }}>{s.sector}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#0F1F36", flex: 1 }}>{s.sector}</span>
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <div style={{ width: 60, height: 6, borderRadius: 3, backgroundColor: "#e2e8f0", overflow: "hidden" }}>
-                      <div style={{ width: `${s.avg * 10}%`, height: "100%", backgroundColor: "#66c3c6", borderRadius: 3 }} />
+                      <div style={{ width: `${s.avg * 10}%`, height: "100%", backgroundColor: "#1E3A66", borderRadius: 3 }} />
                     </div>
                     <span style={{ fontSize: 11, color: "#64748b" }}>{s.avg}/10</span>
                   </div>
@@ -122,8 +122,8 @@ export default function TrendsPage() {
        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" as const }}>
           {activeSector !== "all" && (
             <button onClick={() => setActiveSector("all")}
-              style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #66c3c6", cursor: "pointer", fontSize: 12,
-                backgroundColor: "#f0fdf4", color: "#0d4f52", fontWeight: 700 }}>
+              style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid #1E3A66", cursor: "pointer", fontSize: 12,
+                backgroundColor: "#f0fdf4", color: "#1E3A66", fontWeight: 700 }}>
               {activeSector} ✕
             </button>
           )}
@@ -140,7 +140,7 @@ export default function TrendsPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {filtered.map(t => (
               <div key={t.id} style={{ background: "white", borderRadius: 12, padding: 16,
-                border: `1px solid ${t.is_featured ? "#66c3c6" : "#e2e8f0"}`,
+                border: `1px solid ${t.is_featured ? "#1E3A66" : "#e2e8f0"}`,
                 boxShadow: t.is_featured ? "0 2px 8px rgba(102,195,198,0.15)" : "none" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const }}>
@@ -156,16 +156,16 @@ export default function TrendsPage() {
                       {t.source}
                     </span>
                   </div>
-                  <span style={{ fontSize: 11, color: "#66c3c6", fontWeight: 700, whiteSpace: "nowrap" as const }}>
+                  <span style={{ fontSize: 11, color: "#1E3A66", fontWeight: 700, whiteSpace: "nowrap" as const }}>
                     {t.sector_score}/10
                   </span>
                 </div>
                 <a href={t.url} target="_blank" rel="noopener noreferrer"
-                  style={{ fontSize: 14, fontWeight: 700, color: "#082b2e", textDecoration: "none", lineHeight: 1.5, display: "block", marginBottom: 6 }}>
+                  style={{ fontSize: 14, fontWeight: 700, color: "#0F1F36", textDecoration: "none", lineHeight: 1.5, display: "block", marginBottom: 6 }}>
                   {t.title}
                 </a>
                 {t.ai_comment && (
-                  <p style={{ fontSize: 12, color: "#2a7a7e", margin: 0, padding: "6px 10px", backgroundColor: "#f0fdf4", borderRadius: 6, borderLeft: "3px solid #66c3c6" }}>
+                  <p style={{ fontSize: 12, color: "#3D5A85", margin: 0, padding: "6px 10px", backgroundColor: "#f0fdf4", borderRadius: 6, borderLeft: "3px solid #1E3A66" }}>
                     💡 {t.ai_comment}
                   </p>
                 )}
@@ -176,7 +176,7 @@ export default function TrendsPage() {
 
        {/* フッター */}
        <div style={{ marginTop: 32, padding: "20px", background: "white", borderRadius: 12, border: "1px solid #e2e8f0" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#2a7a7e", marginBottom: 10 }}>📰 情報源</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#3D5A85", marginBottom: 10 }}>📰 情報源</div>
           <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8, marginBottom: 16 }}>
             {[
               { name: "PR TIMES", url: "https://prtimes.jp" },
@@ -185,8 +185,8 @@ export default function TrendsPage() {
               { name: "みんかぶ", url: "https://minkabu.jp" },
             ].map(src => (
               <a key={src.name} href={src.url} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, backgroundColor: "#f4fbfc",
-                  border: "1px solid #b3e8ea", color: "#2a7a7e", textDecoration: "none" }}>
+                style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, backgroundColor: "#F5F4EF",
+                  border: "1px solid #C7D3E3", color: "#3D5A85", textDecoration: "none" }}>
                 {src.name}
               </a>
             ))}
@@ -194,7 +194,7 @@ export default function TrendsPage() {
           <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 12px" }}>
             ※ 各記事の著作権は各情報源に帰属します。当サイトはRSSフィードを通じて情報を収集・要約しています。
           </p>
-          <Link href="/" style={{ fontSize: 12, color: "#66c3c6", textDecoration: "none" }}>
+          <Link href="/" style={{ fontSize: 12, color: "#1E3A66", textDecoration: "none" }}>
             ← IPO分析レポートトップに戻る
           </Link>
         </div>

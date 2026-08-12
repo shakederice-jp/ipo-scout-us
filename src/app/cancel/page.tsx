@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 
-const PRIMARY = "#66c3c6";
-const DARK = "#082b2e";
-const MID = "#0d4f52";
-const LIGHT = "#e8f9f9";
-const BORDER = "#b3e8ea";
+const PRIMARY = "#1E3A66";
+const DARK = "#0F1F36";
+const MID = "#1E3A66";
+const LIGHT = "#E8EDF5";
+const BORDER = "#C7D3E3";
 
 export default function CancelPage() {
   const [agreed, setAgreed] = useState(false);
@@ -31,7 +31,7 @@ export default function CancelPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f4fbfc", fontFamily: "'Noto Sans JP',sans-serif" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#F5F4EF", fontFamily: "'Noto Sans JP',sans-serif" }}>
       <div style={{ maxWidth: 560, margin: "0 auto", padding: "32px 16px 48px" }}>
 
         <div style={{ marginBottom: 20 }}>
