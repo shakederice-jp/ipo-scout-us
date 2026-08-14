@@ -60,6 +60,24 @@ function isNewRegistration(row: IdxRow): boolean {
   return row.formType === "S-1";
 }
 
+// 既にティッカーシンボルを持っている(=既上場企業)かどうかをSEC公式APIで確認する
+// 日本版のEDINET secCode チェックに相当する処理
+async function isAlreadyListed(cik: string): Promise<boolean> {
+  try {
+    const paddedCik = cik.padStart(10, "0");
+    const res = await fetch(`https://data.sec.gov/submissions/CIK${paddedCik}.json`, {
+      headers: { "User-Agent": SEC_USER_AGENT },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return false; // 情報が取れない場合は「新規の可能性あり」として扱う
+    const data = await res.json();
+    const tickers: string[] = data?.tickers ?? [];
+    return tickers.length > 0;
+  } catch {
+    return false; // 通信エラー時は誤って除外しないよう安全側に倒す
+  }
+}
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -99,6 +117,13 @@ export async function GET(req: NextRequest) {
       const already = (existing ?? []).find(c => c.cik === row.cik);
       if (already) {
         results.push(`スキップ(登録済み): ${row.companyName}`);
+        continue;
+      }
+
+      // 既上場企業(ティッカーシンボルを既に持っている)は新規IPOではないため除外
+      const listedAlready = await isAlreadyListed(row.cik);
+      if (listedAlready) {
+        results.push(`スキップ(既上場企業): ${row.companyName}（CIK:${row.cik}）`);
         continue;
       }
 
