@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { NEXT_COOKIE, safeNext } from "@/lib/post-login";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -10,11 +11,19 @@ export default function AuthPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refCode, setRefCode] = useState("");
+  // 購入ボタンなどから来た場合の戻り先（ログイン・登録のあとに、元の画面へ戻して決済に進むため）
+  const [next, setNext] = useState<string | null>(null);
 
   const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const n = safeNext(new URLSearchParams(window.location.search).get("next"));
+      if (n) {
+        setNext(n);
+        // 購入ボタンから来た人は、まだ会員でない可能性が高いので「新規登録」を先に見せる
+        if (n.includes("buy=")) setMode("signup");
+      }
       const urlRef = new URLSearchParams(window.location.search).get("ref");
       if (urlRef) setRefCode(urlRef);
     }
@@ -23,6 +32,9 @@ export default function AuthPage() {
   const handleSubmit = async () => {
     setLoading(true); setError(null); setMessage(null);
     if (mode === "signup") {
+      if (next) {
+        try { document.cookie = `${NEXT_COOKIE}=${encodeURIComponent(next)}; path=/; max-age=3600; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`; } catch {}
+      }
       const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { emailRedirectTo: `${location.origin}/auth/callback` },
@@ -30,22 +42,24 @@ export default function AuthPage() {
 
     if (error) {
       setError(error.message);
-    } else if (refCode.trim() && data?.user?.id) {
-      try {
-        await fetch("/api/referral", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ referral_code: refCode, user_id: data.user.id }),
-        });
-      } catch (e) {
-        console.error("referral apply failed", e);
+    } else {
+      if (refCode.trim() && data?.user?.id) {
+        try {
+          await fetch("/api/referral", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ referral_code: refCode, user_id: data.user.id }),
+          });
+        } catch (e) {
+          console.error("referral apply failed", e);
+        }
       }
+      setMessage(`確認メールを送信しました。メールをご確認ください。${next?.includes("buy=") ? " メール内のリンクを押すと、自動でお支払い画面に進みます。" : ""}`);
     }
-      else setMessage("確認メールを送信しました。メールをご確認ください。");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError("メールアドレスまたはパスワードが違います");
-      else location.href = "/";
+      else location.href = next ?? "/";
     }
     setLoading(false);
   };
@@ -57,6 +71,12 @@ export default function AuthPage() {
           📊 IPO企業情報AI分析レポート
         </h1>
         <p style={{ margin:"0 0 24px", fontSize:"11px", color:"#3D5A85" }}>担当：大手町調査室九課</p>
+
+        {next?.includes("buy=") && (
+          <div style={{ marginBottom:"16px", padding:"10px 12px", borderRadius:"8px", backgroundColor:"#fffbeb", border:"1px solid #fde68a", fontSize:"12px", color:"#92400e", lineHeight:1.7 }}>
+            🔒 お申し込みには、会員登録（無料）またはログインが必要です。完了すると、自動でお支払い画面に進みます。<br/>すでに会員の方は「ログイン」を押してください。
+          </div>
+        )}
 
         <div style={{ display:"flex", marginBottom:"24px", borderRadius:"8px", overflow:"hidden", border:"1px solid #C7D3E3" }}>
           {(["login", "signup"] as const).map(m => (

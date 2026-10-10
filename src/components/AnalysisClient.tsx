@@ -8,6 +8,7 @@ import {
 } from "@/components/VizTables";
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { PlanButton } from "@/components/PlanButton";
 import { fmtUsd, fmtJpyApprox, FX_NOTE } from "@/lib/fx";
 import { jpy, jpyMonth } from "@/lib/pricing";
 import { Zap, TrendingUp, Users, Shield, BarChart2, Star, ArrowUpRight, ArrowDownRight, Minus, Info, Clock, Calendar, ChevronRight, AlertTriangle } from "lucide-react";
@@ -905,9 +906,15 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             <p style={{fontSize:12,color:"#C7D3E3",margin:"0 0 14px",lineHeight:1.7}}>
             軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上へのご加入、またはこの銘柄の単品購入（{jpy("single")}）が必要です。
             </p>
-            <a href="/plans" style={{display:"inline-block",padding:"10px 24px",backgroundColor:"white",color:"#1E3A66",borderRadius:8,fontWeight:800,fontSize:13,textDecoration:"none"}}>
-              料金プランを見る →
-            </a>
+            <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:380,margin:"0 auto"}}>
+              <PlanButton plan="single" stockId={company.id} label={`この銘柄だけ読む（${jpy("single")}・買い切り）`}
+                style={{display:"block",width:"100%",padding:"13px 16px",backgroundColor:"#ffffff",color:"#1E3A66",borderRadius:10,fontWeight:900,fontSize:14,border:"none"}} messageStyle={{color:"#fecaca"}} />
+              <PlanButton plan="report" label={`全銘柄が読み放題（レポート無制限 ${jpyMonth("unlimited")}）`}
+                style={{display:"block",width:"100%",padding:"12px 16px",backgroundColor:"transparent",color:"#ffffff",borderRadius:10,fontWeight:800,fontSize:13,border:"1.5px solid #C7D3E3"}} messageStyle={{color:"#fecaca"}} />
+              <a href="/plans" style={{fontSize:12,color:"#C7D3E3",textDecoration:"underline"}}>
+                通知プラン・コンプリートパックなど、全プランを比較する →
+              </a>
+            </div>
           </div>
         )}
 
