@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 const anthropic = new Anthropic();
 export const maxDuration = 60;
+
+// 保存が権限の都合で無言で失敗しないよう、サービスロールキーを優先して使う
+const getSupabase = () => createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 const CHART_TYPES = ["revenue_chart", "shareholders_chart", "valuation_table", "market_structure_chart", "ipo_summary_table", "use_of_proceeds_table", "risk_table", "shareholders_lockup_table", "key_metrics_table"] as const;
 type ChartType = typeof CHART_TYPES[number];
@@ -60,6 +66,25 @@ function parseJpNumber(val: any): number | null {
   const num = parseFloat(m[1]);
   return isNegative ? -num : num;
 }
+// "123,456千ドル" "1.2百万ドル" "3億ドル" "-12,345千ドル" "(1,234)" "$1,234" → 百万ドル単位の数値（小数1桁）
+function parseUsdMillions(val: any): number | null {
+  if (typeof val === "number") return val;
+  if (typeof val !== "string") return null;
+  const s = val.trim();
+  const m = s.replace(/,/g, "").match(/([0-9]+(?:\.[0-9]+)?)/);
+  if (!m) return null;
+  const isNegative = /^[-−–△▲]/.test(s) || /^[(（]/.test(s) || s.includes("△") || s.includes("▲");
+  let factor = 1e-6; // 単位の記載がなければ「ドル」そのもの
+  if (/十億ドル|billion/i.test(s)) factor = 1000;
+  else if (/億ドル/.test(s)) factor = 100;
+  else if (/百万ドル|million/i.test(s)) factor = 1;
+  else if (/万ドル/.test(s)) factor = 0.01;
+  else if (/千ドル|thousand/i.test(s)) factor = 1e-3;
+  const v = Math.round(parseFloat(m[1]) * factor * 10) / 10;
+  return isNegative ? -v : v;
+}
+const fmtM = (v: number | null) => (v === null ? "不明" : v.toLocaleString("en-US", { maximumFractionDigits: 1 }));
+
 function buildPrompt(chartType: ChartType, name: string, sd: any, market: any): string {
   const header = `You are a financial data extractor. Extract visualization data from this IPO company structured data and return ONLY valid JSON with no explanation or markdown.
 
@@ -74,17 +99,16 @@ if (chartType === "revenue_chart") {
   return `${header}
 - "citation" fields MUST be natural Japanese sentences — NEVER output raw key:value dumps.
 - Use null for any numeric value that is genuinely unknown. Do not invent numbers.
-- CRITICAL UNIT RULE: "revenue" and "profit" values MUST be in 百万円（millions of yen）units. Convert as needed: if the source data is in 千円（thousands of yen）, divide by 1,000. If the source data is in 億円（hundred-millions of yen）, multiply by 100. Example: "2,855,346千円" → 2855 (百万円). "285.5億円" → 28550 (百万円). Double-check your conversion before output — a value like 2855346 is WRONG (that means you forgot to convert from 千円).
-- - "profit" must be 営業利益（operating profit）specifically, taken from financials.profit_trend. Do NOT substitute 経常利益（ordinary profit）or any other profit type, and do not use that term in the title/citation either.
-- The "citation" sentence MUST describe the exact same 営業利益 figures you used in the "data" array above (not 経常利益 from key_metrics or any other source). Before writing the citation, double-check that the profit number you mention matches the "profit" value for that year in your own "data" array.
+- CRITICAL UNIT RULE: "revenue" and "profit" values MUST be in 百万ドル（millions of US dollars）units. If the source data is in 千ドル（thousands of dollars）, divide by 1,000.
+- "profit" must be 営業損益（operating income/loss）specifically. Losses are negative numbers.
 
 Return this exact JSON structure:
 {
 "revenue_chart": {
   "available": true,
-  "title": "売上高・営業利益推移",
-  "data": [{"year": "2023年8月期", "revenue": 23210, "profit": 780}],
-  "citation": "目論見書の財務情報によると、2024年8月期の売上高は前年比23.0%増加し285.5億円となった"
+  "title": "売上高・営業損益推移",
+  "data": [{"year": "FY2023", "revenue": 232.1, "profit": -7.8}],
+  "citation": "S-1の財務情報によると、FY2024の売上高は前年比23.0%増加し285.5百万ドルとなった"
 }
 }`;
 }
@@ -101,8 +125,8 @@ Return this exact JSON structure:
     "available": true,
     "title": "株主構成",
     "data": [{"name": "name", "ratio": 50, "type": "創業者", "lockup": true}],
-    "lockup_info": "創業者および主要株主にはロックアップが設定されている（具体的な期間は目論見書に記載なし）",
-    "citation": "目論見書の株主構成によると、創業者および主要株主にロックアップが設定されている"
+    "lockup_info": "創業者および主要株主にはロックアップが設定されている（具体的な期間は書類に記載なし）",
+    "citation": "S-1の株主構成によると、創業者および主要株主にロックアップが設定されている"
   }
 }`;
   }
@@ -111,6 +135,7 @@ Return this exact JSON structure:
     return `${header}
 - "citation" and "comment" fields MUST be natural Japanese sentences — NEVER output raw key:value dumps.
 - Use null for any numeric value that is genuinely unknown. Do not invent numbers.
+- "fundraising" must be a plain number in 百万ドル（millions of US dollars）. If ipo_details.fundraising_amount is in 千ドル（thousands of dollars）, divide by 1,000.
 
 Return this exact JSON structure:
 {
@@ -123,16 +148,16 @@ Return this exact JSON structure:
     "pbr": null,
     "float_ratio": 17.5,
     "fundraising": 318,
-    "comment": "流通比率は推定15～20%程度。IPO価格は未決定のためPER・PBR・時価総額は上場後に確定する",
-    "citation": "目論見書のIPO詳細によると、推定流通比率は15～20%程度である"
+    "comment": "流通比率は推定15～20%程度。IPO価格は未決定のためPER・PSR・時価総額は上場後に確定する",
+    "citation": "S-1のIPO詳細によると、推定流通比率は15～20%程度である"
   }
 }`;
   }
   if (chartType === "ipo_summary_table") {
     return `${header}
 - "citation" fields MUST be natural Japanese sentences — NEVER output raw key:value dumps.
-- Extract from ipo_details: 公開株数（公募+売出の合計株数）, オーバーアロットメント（金額・有無）, 調達額（合計上限）, 流通比率, ロックアップ対象, ロックアップ期間. Use the original text values as-is (no need to compute or convert units).
-- If a value is genuinely unknown or not stated, use "目論見書に記載なし" as the value (not null).
+- Extract from ipo_details: 公開株数（公募+売出の合計株数）, 想定公募価格レンジ（price_range）, 追加購入オプション（金額・有無）, 調達額（合計上限）, 流通比率, ロックアップ対象, ロックアップ期間. Use the original text values as-is (no need to compute or convert units). Amounts are in US dollars.
+- If a value is genuinely unknown or not stated, use "書類に記載なし" as the value (not null).
 - Do not invent numbers.
 
 Return this exact JSON structure:
@@ -141,14 +166,15 @@ Return this exact JSON structure:
     "available": true,
     "title": "IPO条件・資金調達サマリー",
     "rows": [
-      {"label": "公開株数（公募+売出）", "value": "100,000株"},
-      {"label": "オーバーアロットメント", "value": "上限222,525,000円相当"},
-      {"label": "調達額（上限）", "value": "318,403千円"},
+      {"label": "公開株数（公募+売出）", "value": "5,000,000株"},
+      {"label": "想定公募価格レンジ", "value": "16〜18ドル"},
+      {"label": "追加購入オプション", "value": "30日以内に最大750,000株"},
+      {"label": "調達額（上限）", "value": "約95百万ドル"},
       {"label": "流通比率", "value": "推定15〜20%程度"},
       {"label": "ロックアップ対象", "value": "創業者・主要株主"},
-      {"label": "ロックアップ期間", "value": "目論見書に記載なし"}
+      {"label": "ロックアップ期間", "value": "書類に記載なし"}
     ],
-    "citation": "目論見書のIPO概要によると、公募及び売出による調達額の上限は318,403千円である"
+    "citation": "S-1のIPO概要によると、公募及び売出による調達額の上限は約95百万ドルである"
   }
 }`;
   }
@@ -157,9 +183,10 @@ Return this exact JSON structure:
     return `${header}
 - "citation" fields MUST be natural Japanese sentences — NEVER output raw key:value dumps.
 - Extract from ipo_details.use_of_proceeds (and fundraising_amount if helpful). List each distinct use-of-funds item as a separate row, using the company's own wording for the category (do NOT force-fit into generic categories like 設備投資/人件費/広告費 unless the prospectus actually uses those terms).
-- "amount" is the original display string exactly as stated (e.g. "173,520千円").
-- "amount_value" is the SAME amount converted to a plain number in 千円 (thousand-yen) units, for charting. Examples: "173,520千円" → 173520. "1.5億円" → 150000. "2,000万円" → 200. "3,000,000円" → 3000. If the amount is not a parseable number (e.g. "未定" or a percentage only), set amount_value to null.
-- "timing" should be the fiscal year/period the funds will be used in, if stated (e.g. "2027年8月期"). Omit (set to null) if not stated.
+- "amount" is the original display string exactly as stated (e.g. "約20百万ドル" or "調達額の30%").
+- "amount_value" is the SAME amount converted to a plain number in 千ドル (thousand-dollar) units, for charting. Examples: "20百万ドル" → 20000. "1.5百万ドル" → 1500. "3,000千ドル" → 3000. If the amount is not a parseable number (e.g. "未定" or a percentage only), set amount_value to null.
+- "timing" should be the fiscal year/period the funds will be used in, if stated (e.g. "FY2027"). Omit (set to null) if not stated.
+- US S-1 filings often describe use of proceeds only in general terms (working capital, R&D, sales and marketing, general corporate purposes) with percentages or no amounts. Still list each item as a row; when no amount is given, set "amount" to the stated percentage or "金額の記載なし" and amount_value to null.
 - If use_of_proceeds information is too vague to break into rows (e.g. just one general sentence with no amounts), set available to false and rows to [].
 - Do not invent numbers.
 
@@ -169,17 +196,17 @@ Return this exact JSON structure:
     "available": true,
     "title": "調達資金の使途",
     "rows": [
-      {"category": "既存事業の直営店新規出店資金", "amount": "173,520千円", "amount_value": 173520, "timing": "2027年8月期"},
-      {"category": "既存事業の直営店新規出店資金", "amount": "144,882千円", "amount_value": 144882, "timing": "2028年8月期"}
+      {"category": "研究開発費", "amount": "約20百万ドル", "amount_value": 20000, "timing": "FY2027"},
+      {"category": "運転資金・一般事業目的", "amount": "調達額の30%", "amount_value": null, "timing": null}
     ],
-    "citation": "目論見書によると、調達資金は既存事業の直営店新規出店資金に充当される予定である"
+    "citation": "S-1によると、調達資金は研究開発費と運転資金などに充当される予定である"
   }
 }`;
   }
   if (chartType === "risk_table") {
     return `${header}
 - "citation" fields MUST be natural Japanese sentences — NEVER output raw key:value dumps.
-- For each entry in the input "risks" array, classify it into a short Japanese category label based on its content (e.g. "競合", "法的規制", "市場・人口動態", "為替・海外事業", "人材・組織", "技術・セキュリティ", "顧客・取引先依存" etc — choose whatever label best fits each risk's actual content, do not force-fit into a fixed list).
+- For each entry in the input "risks" array, classify it into a short Japanese category label based on its content (e.g. "競合", "法的規制", "継続企業・資金繰り", "市場・景気動向", "人材・組織", "技術・セキュリティ", "顧客・取引先依存", "支配株主・複数議決権" etc — choose whatever label best fits each risk's actual content, do not force-fit into a fixed list).
 - Keep the original "severity" (高/中/低) and "description" from the input as-is. Use the risk's "title" as well.
 - Include ALL risks from the input array, do not omit or summarize them away.
 - Do not invent risks that aren't in the input data.
@@ -188,11 +215,11 @@ Return this exact JSON structure:
 {
   "risk_table": {
     "available": true,
-    "title": "事業等のリスク（重要度別）",
+    "title": "主なリスク要因（重要度別）",
     "rows": [
-      {"category": "市場・人口動態", "severity": "高", "title": "人口動態の変化", "description": "少子化による既存店収支及び新規出店計画への影響"}
+      {"category": "継続企業・資金繰り", "severity": "高", "title": "累積赤字と資金調達の必要性", "description": "営業損失が続いており、追加の資金調達が必要となる可能性"}
     ],
-    "citation": "目論見書に記載されたリスク要因を、市場・法的規制・人材などのカテゴリ別に整理した"
+    "citation": "S-1に記載されたリスク要因（Risk Factors）を、カテゴリ別に整理した"
   }
 }`;
   }
@@ -208,9 +235,9 @@ Return this exact JSON structure:
 {
   "recent_ipo_chart": {
     "available": true,
-    "title": "直近の同業種IPO 初値パフォーマンス",
+    "title": "直近の米国同業種IPO 初日パフォーマンス",
     "data": [{"name": "企業名", "performance": 25}],
-    "citation": "市場動向調査によると、直近の同業種IPOは好調な初値を記録した"
+    "citation": "市場動向調査によると、直近の米国同業種IPOはIPO価格を上回る初日終値を記録した"
   }
 }`;
 }
@@ -219,7 +246,7 @@ export async function POST(req: NextRequest) {
   const { companyId, chart_type, save_results } = await req.json();
   if (!companyId) return NextResponse.json({ error: "companyId required" }, { status: 400 });
 
-  const supabase = (await createSupabaseServerClient())!;
+  const supabase = getSupabase();
 
   if (save_results) {
     const { error: saveError } = await supabase
@@ -267,7 +294,7 @@ export async function POST(req: NextRequest) {
           { label: "上場時流通株式", shares: floatShares, ratio: floatRatio },
           { label: "ロックアップ対象等", shares: lockupShares, ratio: lockupRatio },
         ],
-        citation: `目論見書のIPO詳細によると、上場後発行済株式総数${totalShares.toLocaleString()}株に対し流通比率は推定${floatRatio}%程度である`,
+        citation: `S-1のIPO詳細によると、上場後発行済株式総数${totalShares.toLocaleString()}株に対し流通比率は推定${floatRatio}%程度である`,
       };
     } else {
       shareStructureChart = { available: false, title: "株式構成（上場時）", data: [], citation: "" };
@@ -293,11 +320,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         chart_type,
-        data: { share_structure_chart: shareStructureChart, recent_ipo_chart: { available: false, data: [], title: "直近の同業種IPO 初値パフォーマンス", citation: "" } },
+        data: { share_structure_chart: shareStructureChart, recent_ipo_chart: { available: false, data: [], title: "直近の米国同業種IPO 初日パフォーマンス", citation: "" } },
       });
     }
   }
-// revenue_chart: 5期分確実に揃っているkey_metrics（経常利益）を使い、TS側で確定的に計算する
+// revenue_chart: 構造化済みのkey_metrics（売上高・営業損益）を使い、TS側で確定的に計算する（単位：百万ドル）
 if (chart_type === "revenue_chart") {
   const keyMetrics: any[] = Array.isArray(sd?.key_metrics) ? sd.key_metrics : [];
 
@@ -305,27 +332,25 @@ if (chart_type === "revenue_chart") {
     return NextResponse.json({
       success: true,
       chart_type,
-      data: { revenue_chart: { available: false, title: "売上高・経常利益推移", data: [], citation: "" } },
+      data: { revenue_chart: { available: false, title: "売上高・営業損益推移", data: [], citation: "" } },
     });
   }
 
-  const chartData = keyMetrics.map((m: any) => {
-    const revenueThousand = parseJpNumber(m.revenue); // 千円
-    const profitThousand = parseJpNumber(m.ordinary_profit); // 千円
-    return {
-      year: m.period,
-      revenue: revenueThousand !== null ? Math.round(revenueThousand / 1000) : null, // 百万円に変換
-      profit: profitThousand !== null ? Math.round(profitThousand / 1000) : null, // 百万円に変換
-    };
-  });
+  const chartData = keyMetrics.map((m: any) => ({
+    year: m.period,
+    revenue: parseUsdMillions(m.revenue),        // 百万ドル
+    profit: parseUsdMillions(m.ordinary_profit), // 営業損益（百万ドル）。赤字はマイナス
+  }));
 
   const first = chartData[0];
   const last = chartData[chartData.length - 1];
-  const toOku = (man: number | null) => (man !== null ? (man / 100).toFixed(1) : "不明");
 
-  const citation = (first && last)
-    ? `${(co as any).name}の財務実績によると、売上高は${first.year}の${toOku(first.revenue)}億円から${last.year}の${toOku(last.revenue)}億円へ成長し、経常利益も${last.year}には${toOku(last.profit)}億円となった。`
-    : "";
+  let citation = "";
+  if (first && last) {
+    citation = chartData.length >= 2
+      ? `${(co as any).name}の財務実績によると、売上高は${first.year}の${fmtM(first.revenue)}百万ドルから${last.year}の${fmtM(last.revenue)}百万ドルとなり、営業損益は${last.year}に${fmtM(last.profit)}百万ドルとなった。`
+      : `${(co as any).name}の財務実績によると、${last.year}の売上高は${fmtM(last.revenue)}百万ドル、営業損益は${fmtM(last.profit)}百万ドルである。`;
+  }
 
   return NextResponse.json({
     success: true,
@@ -333,7 +358,8 @@ if (chart_type === "revenue_chart") {
     data: {
       revenue_chart: {
         available: true,
-        title: "売上高・経常利益推移",
+        title: "売上高・営業損益推移",
+        unit: "百万ドル",
         data: chartData,
         citation,
       },
@@ -348,17 +374,17 @@ if (chart_type === "shareholders_lockup_table") {
   const lockupTargets = sd?.ipo_details?.lockup_targets ?? null;
 
   const rows = shareholders.map((s: any) => ({
-    name: s?.name ?? "目論見書に記載なし",
-    shares: s?.shares ?? "目論見書に記載なし",
-    ratio: s?.ratio ?? "目論見書に記載なし",
-    type: s?.type ?? "目論見書に記載なし",
-    lockup: s?.lockup ?? "目論見書に記載なし",
+    name: s?.name ?? "書類に記載なし",
+    shares: s?.shares ?? "書類に記載なし",
+    ratio: s?.ratio ?? "書類に記載なし",
+    type: s?.type ?? "書類に記載なし",
+    lockup: s?.lockup ?? "書類に記載なし",
   }));
 
   const citationParts: string[] = [];
   if (lockupTargets) citationParts.push(`ロックアップ対象は${lockupTargets}`);
   if (lockupPeriod) citationParts.push(`期間は${lockupPeriod}`);
-  const citation = citationParts.length > 0 ? `目論見書によると、${citationParts.join("、")}である。` : "";
+  const citation = citationParts.length > 0 ? `S-1によると、${citationParts.join("、")}である。` : "";
 
   return NextResponse.json({
     success: true,
@@ -376,16 +402,23 @@ if (chart_type === "shareholders_lockup_table") {
   });
 }
 
-// key_metrics_table: 構造化済みデータをそのまま使い、PER・PBRはIPO価格が入力されていれば自動計算する
+// key_metrics_table: 構造化済みデータをそのまま使い、PER・PSRはIPO価格が入力されていれば自動計算する
 if (chart_type === "key_metrics_table") {
   const keyMetrics: any[] = Array.isArray(sd?.key_metrics) ? sd.key_metrics : [];
   const latest = keyMetrics.length > 0 ? keyMetrics[keyMetrics.length - 1] : null;
 
   const ipoPrice = (co as any).ipo_price ?? null;
   const latestEps = latest ? parseJpNumber(latest.eps) : null;
-  const latestBps = latest ? parseJpNumber(latest.bps) : null;
   const per = (ipoPrice && latestEps && latestEps > 0) ? Math.round((ipoPrice / latestEps) * 10) / 10 : null;
-  const pbr = (ipoPrice && latestBps && latestBps > 0) ? Math.round((ipoPrice / latestBps) * 100) / 100 : null;
+
+  // PSR（株価売上高倍率）＝ 時価総額 ÷ 直近の売上高（赤字企業でも使える指標）
+  const ipoDetails = sd?.ipo_details ?? {};
+  const existingShares = parseNumericShares(ipoDetails.total_shares);
+  const newShares = parsePublicOfferingShares(ipoDetails.public_shares);
+  const totalShares = (existingShares !== null && newShares !== null) ? existingShares + newShares : existingShares;
+  const latestRevenue = latest ? parseUsdMillions(latest.revenue) : null;
+  const marketCap = (ipoPrice && totalShares) ? (ipoPrice * totalShares) / 1_000_000 : null; // 百万ドル
+  const psr = (marketCap && latestRevenue && latestRevenue > 0) ? Math.round((marketCap / latestRevenue) * 10) / 10 : null;
 
   return NextResponse.json({
     success: true,
@@ -393,20 +426,20 @@ if (chart_type === "key_metrics_table") {
     data: {
       key_metrics_table: {
         available: keyMetrics.length > 0,
-        title: "主要経営指標の推移",
+        title: "主要財務指標の推移",
         trend_rows: keyMetrics,
         latest_summary: latest ? {
           period: latest.period,
-          equity_ratio: latest.equity_ratio,
-          roe: latest.roe,
+          total_assets: latest.total_assets,
+          net_assets: latest.net_assets,
           eps: latest.eps,
-          bps: latest.bps,
         } : null,
         per,
-        pbr,
+        psr,
+        pbr: null,
         ipo_price: ipoPrice,
         citation: keyMetrics.length > 0
-          ? `目論見書の主要経営指標等の推移によると、直近期（${latest?.period ?? ""}）の自己資本比率は${latest?.equity_ratio ?? "不明"}、自己資本利益率（ROE）は${latest?.roe ?? "不明"}である。`
+          ? `S-1の財務サマリーによると、直近期（${latest?.period ?? ""}）の売上高は${latest?.revenue ?? "不明"}、営業損益は${latest?.ordinary_profit ?? "不明"}、純損益は${latest?.net_profit ?? "不明"}である。`
           : "",
       },
     },
@@ -449,18 +482,19 @@ if (chart_type === "key_metrics_table") {
       const keyMetrics: any[] = Array.isArray(sd?.key_metrics) ? sd.key_metrics : [];
       const latest = keyMetrics.length > 0 ? keyMetrics[keyMetrics.length - 1] : null;
       const latestEps = latest ? parseJpNumber(latest.eps) : null;
-      const latestBps = latest ? parseJpNumber(latest.bps) : null;
+      const latestRevenue = latest ? parseUsdMillions(latest.revenue) : null;
 
-      const marketCap = totalShares ? Math.round((ipoPrice * totalShares) / 1_000_000) : null; // 百万円
+      const marketCap = totalShares ? Math.round((ipoPrice * totalShares) / 1_000_000) : null; // 百万ドル
       const per = (latestEps && latestEps > 0) ? Math.round((ipoPrice / latestEps) * 10) / 10 : null;
-      const pbr = (latestBps && latestBps > 0) ? Math.round((ipoPrice / latestBps) * 100) / 100 : null;
+      const psr = (marketCap && latestRevenue && latestRevenue > 0) ? Math.round((marketCap / latestRevenue) * 10) / 10 : null;
 
       filtered.valuation_table = {
         ...filtered.valuation_table,
         ipo_price: ipoPrice,
         market_cap: marketCap,
         per,
-        pbr,
+        psr,
+        pbr: null,
       };
     }
   }

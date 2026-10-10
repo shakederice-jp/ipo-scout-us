@@ -44,11 +44,11 @@ function buildProceedsChartData(rows: any[]) {
 
 /* 「推定XX.X%程度」のようにAIが埋め切れなかったプレースホルダー値を検知し、分かりやすい文言に差し替える */
 function cleanPlaceholderValue(label: string, value: string | null | undefined): string {
-  if (!value) return "目論見書に記載なし";
+  if (!value) return "書類に記載なし";
   const hasPlaceholder = /X{1,3}(\.X+)?/i.test(value) || /[◯○△▲×]{2,}/.test(value);
   if (hasPlaceholder) {
-    if (label.includes("流通比率")) return "目論見書に株主別保有比率の記載がなく算出できず";
-    return "目論見書に具体的記載なし";
+    if (label.includes("流通比率")) return "S-1に株主別保有比率の記載がなく算出できず";
+    return "S-1に具体的記載なし";
   }
   return value;
 }
@@ -110,8 +110,8 @@ export function UseOfProceedsTable({ vizData }: { vizData: any }) {
             <BarChart data={proceedsChartData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e0f0f0" />
               <XAxis dataKey="timing" tick={{ fontSize: 10 }} />
-              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 10).toLocaleString()}万`} />
-              <Tooltip formatter={(value: any) => [`${(Number(value) / 10).toLocaleString()}万円`]} />
+              <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${Number(v).toLocaleString()}`} />
+              <Tooltip formatter={(value: any) => [`${Number(value).toLocaleString()}千ドル`]} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               {proceedsCategories.map((cat, i) => (
                 <Bar
@@ -134,7 +134,7 @@ export function UseOfProceedsTable({ vizData }: { vizData: any }) {
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               <div style={{ backgroundColor: "white", borderRadius: 6, padding: "4px 10px", flex: "1 1 100px" }}>
                 <div style={{ fontSize: 9, color: "#94a3b8" }}>金額</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>{r.amount ?? "目論見書に記載なし"}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>{r.amount ?? "書類に記載なし"}</div>
               </div>
               {r.timing && (
                 <div style={{ backgroundColor: "white", borderRadius: 6, padding: "4px 10px", flex: "1 1 100px" }}>

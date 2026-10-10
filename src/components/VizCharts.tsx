@@ -14,7 +14,7 @@ function CardShell({ children }: { children: React.ReactNode }) {
 
 const fmt = (v: any, suffix: string = "") => (v === null || v === undefined ? "未定" : `${v}${suffix}`);
 
-/* ② 売上高・経常利益推移 */
+/* ② 売上高・営業損益推移（単位：百万ドル） */
 export function RevenueChart({ vizData }: { vizData: any }) {
   const revenue_chart = vizData?.revenue_chart;
   const visible = revenue_chart?.available && revenue_chart.data?.length > 0;
@@ -28,22 +28,23 @@ export function RevenueChart({ vizData }: { vizData: any }) {
       {revenue_chart.citation && (
         <p style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 12 }}>📄 {revenue_chart.citation}</p>
       )}
+      <p style={{ fontSize: 10, color: "#94a3b8", marginBottom: 8 }}>単位：百万ドル（赤字は下向きの棒）</p>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={revenue_chart.data} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e0f0f0" />
           <XAxis dataKey="year" tick={{ fontSize: 10 }} />
-          <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v/100).toFixed(0)}億`} />
-          <Tooltip formatter={(value: any) => [`${(value/100).toFixed(1)}億円`]} />
+          <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => Number(v).toLocaleString()} />
+          <Tooltip formatter={(value: any) => [`${Number(value).toLocaleString()}百万ドル`]} />
           <Legend />
           <Bar dataKey="revenue" name="売上高" fill={C.teal} radius={[4,4,0,0]} />
-          <Bar dataKey="profit" name="経常利益" fill={C.nav} radius={[4,4,0,0]} />
+          <Bar dataKey="profit" name="営業損益" fill={C.nav} radius={[4,4,0,0]} />
         </BarChart>
       </ResponsiveContainer>
     </CardShell>
   );
 }
 
-/* ③ 主要経営指標の推移 */
+/* ③ 主要財務指標の推移 */
 export function KeyMetricsTable({ vizData }: { vizData: any }) {
   const key_metrics_table = vizData?.key_metrics_table;
   const rows: any[] = key_metrics_table?.trend_rows ?? [];
@@ -51,12 +52,12 @@ export function KeyMetricsTable({ vizData }: { vizData: any }) {
   if (!visible) return null;
   const latestSummary = key_metrics_table?.latest_summary;
   const per = key_metrics_table?.per;
-  const pbr = key_metrics_table?.pbr;
+  const psr = key_metrics_table?.psr;
   return (
     <CardShell>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <span style={{ fontSize: 16 }}>📐</span>
-        <h3 style={{ fontSize: 14, fontWeight: 900, color: C.nav, margin: 0 }}>主要経営指標の推移</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 900, color: C.nav, margin: 0 }}>主要財務指標の推移</h3>
       </div>
       {key_metrics_table.citation && (
         <p style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 12 }}>📄 {key_metrics_table.citation}</p>
@@ -64,10 +65,10 @@ export function KeyMetricsTable({ vizData }: { vizData: any }) {
       {latestSummary && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
           {[
-            { label: "自己資本比率", value: latestSummary.equity_ratio },
-            { label: "ROE", value: latestSummary.roe },
+            { label: "総資産", value: latestSummary.total_assets },
+            { label: "株主資本", value: latestSummary.net_assets },
             { label: "PER", value: per ? `${per}倍` : "未定" },
-            { label: "PBR", value: pbr ? `${pbr}倍` : "未定" },
+            { label: "PSR", value: psr ? `${psr}倍` : "未定" },
           ].map((item, i) => (
             <div key={i} style={{ backgroundColor: C.bg, borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
               <div style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 2 }}>{item.label}</div>
@@ -82,10 +83,10 @@ export function KeyMetricsTable({ vizData }: { vizData: any }) {
             <tr style={{ borderBottom: "2px solid #d0f0f0" }}>
               <th style={{ textAlign: "left", padding: "6px 8px", color: "#6b9ea0" }}>決算期</th>
               <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>売上高</th>
-              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>経常利益</th>
-              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>当期純利益</th>
-              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>自己資本比率</th>
-              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>ROE</th>
+              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>営業損益</th>
+              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>純損益</th>
+              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>総資産</th>
+              <th style={{ textAlign: "right", padding: "6px 8px", color: "#6b9ea0" }}>株主資本</th>
             </tr>
           </thead>
           <tbody>
@@ -95,8 +96,8 @@ export function KeyMetricsTable({ vizData }: { vizData: any }) {
                 <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.revenue}</td>
                 <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.ordinary_profit}</td>
                 <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.net_profit}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.equity_ratio}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.roe}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.total_assets}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right", color: "#374151" }}>{row.net_assets}</td>
               </tr>
             ))}
           </tbody>
@@ -221,19 +222,19 @@ export function ValuationTable({ vizData }: { vizData: any }) {
         </h3>
       </div>
       {valuation_table.ipo_price == null && (
-        <p style={{ fontSize: 10, color: "#9ca3af", marginBottom: 4 }}>※ IPO価格未決定のため、PER・PBR・時価総額は上場後に算出されます</p>
+        <p style={{ fontSize: 10, color: "#9ca3af", marginBottom: 4 }}>※ IPO価格未決定のため、PER・PSR・時価総額は上場後に算出されます</p>
       )}
       {valuation_table.citation && (
         <p style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 12 }}>📄 {valuation_table.citation}</p>
       )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 12 }}>
         {[
-          { label: "IPO価格", value: valuation_table.ipo_price ? `¥${valuation_table.ipo_price?.toLocaleString()}` : "未定" },
-          { label: "時価総額", value: valuation_table.market_cap ? `${(valuation_table.market_cap/100).toFixed(0)}億円` : "未定" },
+          { label: "IPO価格", value: valuation_table.ipo_price ? `$${valuation_table.ipo_price?.toLocaleString()}` : "未定" },
+          { label: "時価総額", value: valuation_table.market_cap ? `${Number(valuation_table.market_cap).toLocaleString()}百万ドル` : "未定" },
           { label: "PER", value: valuation_table.per ? `${valuation_table.per}倍` : (valuation_table.ipo_price ? "赤字のため算出不可" : "未定") },
-          { label: "PBR", value: valuation_table.pbr ? `${valuation_table.pbr}倍` : "未定" },
-          { label: "流通比率", value: valuation_table.float_ratio != null ? `${valuation_table.float_ratio}%` : "目論見書に株主別保有比率の記載がなく算出できず" },
-          { label: "調達額", value: valuation_table.fundraising ? `${valuation_table.fundraising}百万円` : "未定" },
+          { label: "PSR", value: valuation_table.psr ? `${valuation_table.psr}倍` : "未定" },
+          { label: "流通比率", value: valuation_table.float_ratio != null ? `${valuation_table.float_ratio}%` : "S-1に株主別保有比率の記載がなく算出できず" },
+          { label: "調達額", value: valuation_table.fundraising ? `${valuation_table.fundraising}百万ドル` : "未定" },
         ].map((item, i) => (
           <div key={i} style={{ backgroundColor: C.bg, borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
             <div style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 2 }}>{item.label}</div>
@@ -317,7 +318,7 @@ export function ShareStructureChart({ vizData }: { vizData: any }) {
   );
 }
 
-/* ⑦ 直近の同業種IPO 初値パフォーマンス */
+/* ⑦ 直近の米国同業種IPO 初日パフォーマンス */
 export function RecentIpoChart({ vizData }: { vizData: any }) {
   const recent_ipo_chart = vizData?.recent_ipo_chart;
   const recentIpoData: any[] = recent_ipo_chart?.data ?? [];
@@ -329,13 +330,13 @@ export function RecentIpoChart({ vizData }: { vizData: any }) {
     <CardShell>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <span style={{ fontSize: 16 }}>🚀</span>
-        <h3 style={{ fontSize: 14, fontWeight: 900, color: C.nav, margin: 0 }}>{recent_ipo_chart.title ?? "直近の同業種IPO 初値パフォーマンス"}</h3>
+        <h3 style={{ fontSize: 14, fontWeight: 900, color: C.nav, margin: 0 }}>{recent_ipo_chart.title ?? "直近の米国同業種IPO 初日パフォーマンス"}</h3>
       </div>
       {recent_ipo_chart.citation && (
         <p style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 4 }}>📄 {recent_ipo_chart.citation}</p>
       )}
       <p style={{ fontSize: 10, color: "#94a3b8", marginBottom: 12 }}>
-        棒の起点(0%)が各社の公募価格。上に伸びるほど初値上昇、下に伸びるほど公募割れを示します。
+        棒の起点(0%)が各社のIPO価格。上に伸びるほど初日終値が上昇、下に伸びるほどIPO価格割れを示します。
       </p>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={filtered} margin={{ top: 16, right: 16, left: 8, bottom: 48 }}>
@@ -349,8 +350,8 @@ export function RecentIpoChart({ vizData }: { vizData: any }) {
               Math.max(10, ...recentIpoData.map((d: any) => d.performance ?? 0)) + 10,
             ]}
           />
-          <Tooltip formatter={(value: any) => [`${value > 0 ? "+" : ""}${value}%`, "初値騰落率"]} />
-          <ReferenceLine y={0} stroke="#475569" strokeWidth={1.5} label={{ value: "公募価格", position: "insideTopLeft", fontSize: 9, fill: "#475569" }} />
+          <Tooltip formatter={(value: any) => [`${value > 0 ? "+" : ""}${value}%`, "初日騰落率"]} />
+          <ReferenceLine y={0} stroke="#475569" strokeWidth={1.5} label={{ value: "IPO価格", position: "insideTopLeft", fontSize: 9, fill: "#475569" }} />
           <Bar dataKey="performance" radius={[4, 4, 0, 0]}>
             {filtered.map((d: any, i: number) => (
               <Cell key={i} fill={d.performance >= 0 ? "#22c55e" : "#f87171"} />
