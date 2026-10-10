@@ -6,10 +6,27 @@ export const maxDuration = 60;
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  (process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!
 );
 
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// 構造化に使うモデル。Haiku 5.5へ切り替える場合はここだけ変える
+// (5.5は「プレフィル」が使えないため、プロンプトでJSON出力を指示する作りにしてある)
+const STRUCTURE_MODEL = "claude-haiku-4-5";
+const JSON_ONLY_NOTE = "\n\n【出力形式】前置き・説明文・コードブロックは一切付けず、{ で始まるJSONオブジェクトだけを出力してください。";
+
+// 応答の中から text ブロックだけを取り出す
+function textOf(msg: any): string {
+  const blocks = Array.isArray(msg?.content) ? msg.content : [];
+  return blocks.filter((b: any) => b?.type === "text").map((b: any) => b.text ?? "").join("");
+}
+
+// 最初の { 以降を返す(コードブロックや前置きが付いても、JSON本体だけ取り出せるようにする)
+function fromFirstBrace(text: string): string {
+  const i = text.indexOf("{");
+  return i === -1 ? text : text.slice(i);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,124 +44,120 @@ export async function POST(req: NextRequest) {
     }
 
     if (!company.raw_prospectus) {
-      return NextResponse.json({ error: "EDINETデータがありません。先に①を実行してください。" }, { status: 400 });
+      return NextResponse.json({ error: "SEC書類のデータがありません。先に①を実行してください。" }, { status: 400 });
     }
 
     const sections = (company.raw_prospectus ?? {}) as Record<string, string>;
     const rawText = Object.entries(sections)
       .map(([label, content]) => `【${label}】\n${content}`)
       .join("\n\n")
-      .slice(0, 80000);
+      .slice(0, 95000);
 
-    const prompt = `以下は日本のIPO企業「${company.name}」の目論見書テキストです。
-必要な財務・株主数値はデータを抽出してJSONのみで返してください。前置き・後置き・マークダウン記法は一切不要です。
-数値は必ず具体的な数字で表現してください。目論見書に記載がない場合は"目論見書に記載なし"と表現してください（ただし、価格未決定など開示時点でまだ確定していない項目は"未定"としてください）。
-特にpublic_shares、fundraising_amountは、目論見書本文に明記された数字のみを使用し、決して推測や概算をしないでください。本文に明記がない場合は素直に"目論見書に記載なし"としてください。
-float_ratio（流通比率）のみ、以下の計算式で必ず算出してください（他の独自解釈は禁止）：
-  ・上場後発行済株式総数 ＝ 既存の発行済株式総数（「株式等の状況」内の発行済株式数） ＋ 公募株式数（新規発行株式数）
-  ・流通株式数 ＝ 公募株式数 ＋ 売出株式数（引受人の買取引受による売出し） ＋ オーバーアロットメント株式数
-  ・float_ratio ＝ 流通株式数 ÷ 上場後発行済株式総数 × 100（％、小数点1桁、"推定XX.X%程度"の形式で出力）
+    const prompt = `以下は米国のIPO企業「${company.name}」のSEC提出書類(Form S-1など、目論見書を兼ねた登録届出書)の英語テキスト(抜粋)です。
+必要な財務・株主・公募条件の数値を抽出し、JSONのみで返してください。前置き・後置き・マークダウン記法は一切不要です。
+説明文・要約は日本語で書き、数値は書類に記載された通貨・単位(通常は米ドル、「in thousands」なら千ドル)のまま、桁を変換せずに使ってください(例：「$12,345 千ドル」ではなく、書類が千ドル単位なら「12,345千ドル」)。
+書類に記載がない項目は"書類に記載なし"としてください。ただし公募価格・株数・価格帯など、書類の時点でまだ確定していない項目(「[●]」「$—」が空欄など)は"未定"としてください。
+特にpublic_shares、fundraising_amountは、書類本文に明記された数字のみを使用し、決して推測や概算をしないでください。
+float_ratio(流通比率)のみ、以下の計算式で必ず算出してください(他の独自解釈は禁止)：
+  ・上場後発行済株式総数 ＝ 公募前の発行済株式総数(「The Offering」の「Common stock outstanding before this offering」など。複数クラスがある場合は合算) ＋ 公募(新規発行)株式数
+  ・流通株式数 ＝ 公募株式数 ＋ 売出株式数(既存株主の売出し「selling stockholders」) ＋ 追加購入オプション(option to purchase additional shares)の株式数
+  ・float_ratio ＝ 流通株式数 ÷ 上場後発行済株式総数 × 100(％、小数点1桁、"推定XX.X%程度"の形式で出力)
 
-key_metricsは特に重要な項目です。目論見書内の「１ 【主要な経営指標等の推移】」という表（回次・決算年月ごとに売上高、経常利益、当期純利益、総資産額、純資産額、自己資本比率、自己資本利益率、１株当たり純資産額、１株当たり当期純利益などが並ぶ表）を必ず探し出し、この項目を絶対に省略せずに出力してください。記載されている全期間分（通常5期分）を、古い期から新しい期の順に配列で抽出してください。値が「―」など未記載の場合はnullとしてください。数値は目論見書記載の単位（千円など）のまま、桁を変換せずに使用してください。
-出力例（2期分のみ示す。実際は表に記載されている全期間分を出力すること）：
+key_metricsは特に重要な項目です。「Summary Financial Data」(または「Summary Consolidated Financial Data」「Selected Financial Data」)の表から、記載されている全期間分(通常は直近2〜3会計年度。中間期の数字も併記されている場合は、それも別の行として)を、古い期から新しい期の順に配列で抽出してください。この項目を絶対に省略しないでください。
+米国のS-1には日本の「経常利益」「自己資本比率」「ROE」「1株当たり純資産」にあたる記載が無いことが多いため、次の対応で入れてください。
+  ・revenue：売上高(Revenue / Total revenue)
+  ・ordinary_profit：営業損益(Income (loss) from operations / Operating income (loss))。営業損益の記載が無ければ"書類に記載なし"
+  ・net_profit：当期純損益(Net income (loss))
+  ・total_assets：総資産(Total assets)
+  ・net_assets：株主資本(Total stockholders' equity (deficit))
+  ・equity_ratio：書類に自己資本比率の記載が無ければnull(自分で計算しないこと)
+  ・roe：書類に記載が無ければnull
+  ・eps：1株当たり純損益(Net income (loss) per share, basic)
+  ・bps：書類に記載が無ければnull
+値が「—」など未記載の場合はnullとしてください。損失は「△」ではなく「-」または「(1,234)」の書類表記を踏まえ、「-1,234千ドル」のようにマイナスで表してください。
+出力例(2期分のみ示す。実際は表に記載されている全期間分を出力すること)：
 "key_metrics": [
-  {"period": "2024年3月期", "revenue": "1,234,567千円", "ordinary_profit": "98,765千円", "net_profit": "65,432千円", "total_assets": "987,654千円", "net_assets": "345,678千円", "equity_ratio": "12.3%", "roe": "45.6%", "eps": "10.50円", "bps": "23.40円"},
-  {"period": "2025年3月期", "revenue": "1,456,789千円", "ordinary_profit": "120,000千円", "net_profit": "80,000千円", "total_assets": "1,100,000千円", "net_assets": "400,000千円", "equity_ratio": "15.0%", "roe": "50.0%", "eps": "13.20円", "bps": "27.80円"}
+  {"period": "FY2024(2024年12月期)", "revenue": "123,456千ドル", "ordinary_profit": "-12,345千ドル", "net_profit": "-15,000千ドル", "total_assets": "200,000千ドル", "net_assets": "80,000千ドル", "equity_ratio": null, "roe": null, "eps": "-1.20ドル", "bps": null},
+  {"period": "FY2025(2025年12月期)", "revenue": "180,000千ドル", "ordinary_profit": "-5,000千ドル", "net_profit": "-6,500千ドル", "total_assets": "260,000千ドル", "net_assets": "120,000千ドル", "equity_ratio": null, "roe": null, "eps": "-0.65ドル", "bps": null}
 ]
 
-【目論見書テキスト】
+【SEC提出書類のテキスト(英語)】
 ${rawText}
 
 【抽出するJSON形式】
 {
   "company_name": "企業名",
-  "business_summary": "事業内容の要約（200字以内）",
+  "business_summary": "事業内容の要約(日本語、200字以内)",
   "financials": {
-    "revenue_trend": "売上高の推移（例：2022年3月期19.3億円→2023年3月期29.1億円→...）",
-    "profit_trend": "営業利益の推移",
-    "profit_margin": "直近の営業利益率（例：10.5%）",
-    "cash_flow": "営業キャッシュフローの状況"
+    "revenue_trend": "売上高の推移(例：FY2023 85百万ドル→FY2024 123百万ドル→...)",
+    "profit_trend": "営業損益・純損益の推移(黒字化の時期や赤字幅の変化がわかるように)",
+    "profit_margin": "直近の営業利益率(赤字なら営業損失率。例：△10.5%)",
+    "cash_flow": "営業キャッシュフローの状況(MD&Aの記載から。記載が無ければ'書類に記載なし')"
   },
   "key_metrics": [
     {
-      "period": "決算期（例：2025年8月期）",
-      "revenue": "売上高（千円単位の数値そのまま、例：285,5346千円）",
-      "ordinary_profit": "経常利益（例：358,755千円）",
-      "net_profit": "当期純利益（例：248,907千円）",
-      "total_assets": "総資産額（例：2,060,585千円）",
-      "net_assets": "純資産額（例：310,956千円）",
-      "equity_ratio": "自己資本比率（例：15.1%）",
-      "roe": "自己資本利益率・ROE（例：133.5%）",
-      "eps": "1株当たり当期純利益（例：62.23円）",
-      "bps": "1株当たり純資産額（例：77.74円）"
+      "period": "決算期(例：FY2025(2025年12月期)、または中間期)",
+      "revenue": "売上高(書類記載の単位のまま)",
+      "ordinary_profit": "営業損益",
+      "net_profit": "当期純損益",
+      "total_assets": "総資産",
+      "net_assets": "株主資本",
+      "equity_ratio": null,
+      "roe": null,
+      "eps": "1株当たり純損益",
+      "bps": null
     }
   ],
   "ipo_details": {
-    "total_shares": "発行済株式総数（例：9,000,000株）",
-    "public_shares": "公募・売出株式数（例：公募100,000株・売出1,200,000株）",
-    "float_ratio": "流通株式比率の推定（例：推定20%程度）",
-    "fundraising_amount": "調達資金総額（例：1,013,850千円）",
-    "use_of_proceeds": "資金使途の要約",
-   "lockup_period": "ロックアップ期間（例：上場後180日間）",
-    "lockup_targets": "ロックアップ対象者（例：創業者・主要役員）※注意：ロックアップ条項の文章は「〇〇は、主幹事会社に対し〜売却等を行わない旨合意しております」という構造になっています。売却を制限される対象者は文の主語（〇〇の部分、通常は創業者や既存株主）であり、主幹事会社（証券会社名）自体はロックアップの相手方であって対象者ではありません。証券会社名をlockup_targetsに含めないでください。",
-    "overallotment": "オーバーアロットメントの有無と規模"
+    "total_shares": "公募前の発行済株式総数(例：52,000,000株。複数クラスなら合算し内訳を添える)",
+    "public_shares": "公募・売出株式数。必ず『公募5,000,000株・売出1,000,000株』の形式で、売出が無ければ『公募5,000,000株・売出0株』と書くこと",
+    "float_ratio": "流通株式比率の推定(例：推定15.2%程度)",
+    "fundraising_amount": "調達資金総額の見込み(書類に明記があれば。公募価格レンジの中間値×公募株数など、自分で計算した値は書かず、明記が無ければ'書類に記載なし'または'未定')",
+    "use_of_proceeds": "資金使途の要約(Use of Proceedsより)",
+    "price_range": "想定公募価格帯(例：1株15〜17ドル。未確定なら'未定')",
+    "underwriters": "主幹事・引受幹事の証券会社(例：Goldman Sachs & Co. LLC、Morgan Stanley。Underwritingの表紙・表より)",
+    "listing_venue": "上場予定の取引所とティッカー(例：Nasdaq Global Market・「ABCD」)",
+    "lockup_period": "ロックアップ期間(例：目論見書日から180日間)",
+    "lockup_targets": "ロックアップ対象者(例：役員・取締役・ほぼ全ての既存株主)※注意：ロックアップ条項は「we, our directors, officers and holders of substantially all of our securities have agreed not to sell... without the prior written consent of the representatives」という構造です。売却を制限される対象者は主語(会社、役員、既存株主)で、引受証券会社(representatives)は同意権を持つ相手方であり対象者ではありません。証券会社名をlockup_targetsに含めないでください。",
+    "overallotment": "追加購入オプション(option to purchase additional shares)の有無と規模(例：30日以内に引受人が最大750,000株を追加購入できる)。株数は『750,000株』の形式で書くこと"
   },
   "shareholders": [
     {
-      "name": "株主名（個人名または法人名）",
-      "ratio": "保有比率（例：43.9%）※必ず%付きの数値で",
-      "shares": "保有株式数（例：3,950,000株）",
-      "type": "属性（創業者/VC/事業会社/役員/その他）",
-      "lockup": "ロックアップ（有/無/記載なし）"
+      "name": "株主名(個人名または法人名・ファンド名)",
+      "ratio": "公募前の保有比率(例：43.9%)※必ず%付きの数値で",
+      "shares": "保有株式数(例：3,950,000株)",
+      "type": "属性(創業者/VC/事業会社/役員/その他)",
+      "lockup": "ロックアップ(有/無/記載なし)"
     }
   ],
   "risks": [
     {
-      "title": "リスクタイトル",
+      "title": "リスクタイトル(日本語)",
       "severity": "高/中/低",
-      "description": "内容（50字以内）"
+      "description": "内容(日本語、50字以内)"
     }
   ],
-  "management": "代表取締役の主な情報",
-  "growth_drivers": "成長ドライバー（主な2〜3点）",
-  "concerns": "懸念点（主な2〜3点）"
+  "management": "CEOなど主要経営陣の主な情報",
+  "growth_drivers": "成長ドライバー(主な2〜3点)",
+  "concerns": "懸念点(主な2〜3点。赤字・資金繰り・顧客集中・複数議決権株式による支配など、Risk Factorsの要点)"
 }
 
-特に株主構成については、以下の優先順位で情報を集めてください：
-1. 目論見書内に「大株主の状況」という一覧表がある場合は、そこから氏名・保有株式数・持株比率を正確に抽出してください。
-2. その表が存在しない場合（株主数が少ない非上場企業からの新規上場でよくあります）は、次の手がかりから株主を推測して構成してください：
-   - 役員の状況・経営陣の記載にある「（注）所有株式数には、資産管理会社〇〇が所有する株式数を含む」等の注記
-   - ロックアップ条項に明記されている「売出人」「貸株人」「当社株主である〇〇」等の氏名・社名
-   - 「所有者別状況」の表にある株主区分（個人、その他の法人等）ごとの株主数・所有株式数(単元)の割合
-   これらを組み合わせ、氏名・推定保有比率・推定株式数を可能な範囲で埋めてください。
-   特に重要：創業者個人と、その資産管理会社（「株式会社〇〇」のような名前）は、たとえ「所有株式数に資産管理会社の分を含む」という注記があっても、必ず別々の株主として2行に分けて出力してください（1人にまとめないでください）。
-   按分する際は、「所有者別状況」の「その他の法人」区分の比率・株主数を、必ず法人名（「株式会社」「合同会社」等を含む名前）の方に割り当ててください。「個人」区分の比率・株主数は、必ず個人名（人物の氏名）の方に割り当ててください。法人と個人を取り違えないよう、割り当てたあとに「法人名には法人区分の数値が入っているか」を確認してください。
-   具体例：所有者別状況に「その他の法人60%、個人40%」とあり、株主が「南太郎（個人）」と「株式会社サウスホールディングス（南太郎の資産管理会社）」の2名だった場合 → 株式会社サウスホールディングスに60%、南太郎個人に40%を割り当てる。
-   【最終確認・必須】出力する直前に、shareholders配列を見直し、以下を確認してください：
-   ・名前に「株式会社」「合同会社」等が含まれる行には、必ず「その他の法人」区分の比率（多くの場合60%側）が入っているか？
-   ・人物の氏名のみの行には、必ず「個人」区分の比率（多くの場合40%側）が入っているか？
-   ・逆になっていたら、出力前に必ず入れ替えてください。
-   ・法人名（「株式会社〇〇」等）を省略して「その他個人株主」のような曖昧な名称にせず、目論見書に記載された正式名称をそのまま使用してください。
-   文中に明記がなく概算した場合は、ratioやsharesの末尾に「（推定）」と付け加えてください。
+株主構成については、「Principal Stockholders(または Principal and Selling Stockholders)」の表から、5%以上の保有者と役員・取締役の合計を、氏名(法人名・ファンド名)・保有株式数・公募前の保有比率で抜き出してください。複数クラスの株式がある場合は、議決権の割合ではなく株式数ベースの比率を優先し、判断できなければ書類に記載された数字をそのまま書いてください。表が無い場合のみ、書類中の記載から推測し、ratioやsharesの末尾に「(推定)」と付けてください。
 持株比率は必ず「XX.X%」形式の数値で返してください。`;
 
     const msg = await claude.messages.create({
-      model: "claude-haiku-4-5",
-      max_tokens: 5500,
-      messages: [
-        { role: "user", content: prompt },
-        { role: "assistant", content: '{"company_name":"' }
-      ]
-    });
+      model: STRUCTURE_MODEL,
+      max_tokens: 7000,
+      messages: [{ role: "user", content: prompt + JSON_ONLY_NOTE }]
+    } as any);
 
-    const raw2 = (msg.content[0] as any).text ?? "";
-    const text = '{"company_name":"' + raw2;
+    const text = fromFirstBrace(textOf(msg));
 
     let structured: any = null;
     try {
       structured = JSON.parse(text);
     } catch {
-      for (let i = text.length - 1; i > text.length - 200; i--) {
+      for (let i = text.length - 1; i > Math.max(0, text.length - 3000); i--) {
         if (text[i] === '}') {
           try {
             structured = JSON.parse(text.slice(0, i + 1));
@@ -184,10 +197,13 @@ ${rawText}
       }
     }
 
-    await supabase.from("ipo_companies").update({
+    const { error: saveError } = await supabase.from("ipo_companies").update({
       structured_data: structured,
       analysis_detail: null,
     }).eq("id", company_id);
+    if (saveError) {
+      return NextResponse.json({ error: `保存に失敗しました: ${saveError.message}` }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,

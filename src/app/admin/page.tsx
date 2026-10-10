@@ -59,7 +59,7 @@ export default function AdminPage() {
 
   const handleSelectCompany = (c: any) => {
     setSelectedCompany(c);
-    setEdinetDocId(c.edinet_doc_id ?? "");
+    setEdinetDocId("");
     setStepResult({});
     setStepLoading({});
     setVizResult(null);
@@ -71,7 +71,7 @@ export default function AdminPage() {
     if (!selectedCompany) return;
     setStep("1", true);
     try {
-      const res = await fetch("/api/edinet", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ company_id:selectedCompany.id, company_name:selectedCompany.name, edinet_doc_id:edinetDocId||undefined }) });
+      const res = await fetch("/api/sec", { method:"POST", headers:{"Content-Type":"application/json","x-admin-password":ADMIN_PASSWORD}, body:JSON.stringify({ company_id:selectedCompany.id, doc_url:edinetDocId||undefined }) });
       const data = await res.json();
       setStep("1", false, data.error ? `❌ ${data.error}` : `✅ ${data.message}`);
     } catch { setStep("1", false, "❌ 通信エラー"); }
@@ -576,21 +576,6 @@ export default function AdminPage() {
               <h2 style={{ fontSize:"15px", fontWeight:900, color:"#0F1F36", marginBottom:4 }}>🔬 銘柄分析（手動作業）</h2>
               <p style={{ fontSize:11, color:"#64748b", marginBottom:16 }}>新規IPO銘柄が出たら、以下の順番で実行してください。<br/><strong>① → ⑦ → ② → ③ → ④⑤⑥一括 → 視覚化</strong></p>
 
-              <div style={{ marginBottom:14, padding:"12px 14px", backgroundColor:"#f0fafa", borderRadius:10, border:"1px solid #C7D3E3" }}>
-                <div style={{ fontWeight:700, fontSize:12, color:"#0F1F36", marginBottom:6 }}>
-                  📋 EDINET書類ID未設定銘柄を一括検索
-                  <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>({companies.filter(c=>!c.edinet_doc_id).length}件が未設定)</span>
-                </div>
-                <button onClick={handleBulkEdinetSearch} disabled={bulkEdinetLoading} style={btnStyle("#0369a1", bulkEdinetLoading)}>
-                  {bulkEdinetLoading?"⏳ 検索中...":"🔍 一括でEDINET書類IDを検索・保存"}
-                </button>
-                {bulkEdinetResult && (
-                  <div style={{ marginTop:8, fontSize:11, lineHeight:1.8, padding:"8px 10px", backgroundColor:"white", borderRadius:8, border:"1px solid #e2e8f0", whiteSpace:"pre-wrap", maxHeight:120, overflowY:"auto" }}>
-                    {bulkEdinetResult}
-                  </div>
-                )}
-              </div>
-
               <div style={{ marginBottom:14 }}>
                 <label style={labelStyle}>📌 分析する銘柄を選択 *</label>
                 <select onChange={e=>{ const c=companies.find(x=>x.id===e.target.value); if(c) handleSelectCompany(c); }} style={inputStyle} value={selectedCompany?.id??""}>
@@ -605,9 +590,9 @@ export default function AdminPage() {
                     ✅ 選択中：<strong>{selectedCompany.name}</strong>
                   </div>
                   <div style={{ background:"#fffbeb", borderRadius:8, padding:12, marginBottom:14, border:"1px solid #fde68a" }}>
-                    <label style={{ ...labelStyle, color:"#92400e" }}>💴 公募価格（円）※価格決定後に入力</label>
+                    <label style={{ ...labelStyle, color:"#92400e" }}>💵 公募価格（ドル）※価格決定後に入力</label>
                     <div style={{ display:"flex", gap:8 }}>
-                      <input type="number" value={ipoPriceInput} onChange={e=>setIpoPriceInput(e.target.value)} placeholder="例：1290" style={{ ...inputStyle, flex:1 }}/>
+                      <input type="number" value={ipoPriceInput} onChange={e=>setIpoPriceInput(e.target.value)} placeholder="例：16" style={{ ...inputStyle, flex:1 }}/>
                       <button onClick={handleSetIpoPrice} disabled={ipoPriceLoading} style={{ padding:"8px 14px", backgroundColor:ipoPriceLoading?"#94a3b8":"#d97706", color:"white", border:"none", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:12, whiteSpace:"nowrap" }}>
                         {ipoPriceLoading?"保存中...":"保存"}
                       </button>
@@ -615,29 +600,14 @@ export default function AdminPage() {
                     {ipoPriceResult && <p style={{ marginTop:6, fontSize:11, color:ipoPriceResult.startsWith("❌")?"#dc2626":"#166534" }}>{ipoPriceResult}</p>}
                   </div>
                   <div style={{ marginBottom:14 }}>
-                    <label style={labelStyle}>EDINET書類ID（空白で自動検索）</label>
-                    <div style={{ display:"flex", gap:8 }}>
-                      <input value={edinetDocId} onChange={e=>setEdinetDocId(e.target.value)} placeholder="例：S100XLWF" style={{ ...inputStyle, flex:1 }}/>
-                      <button onClick={async()=>{
-                        if(!selectedCompany) return;
-                        setEdinetSearchLoading(true); setEdinetSearchResult(null);
-                        try {
-                          const res = await fetch("/api/admin/find-edinet-doc", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ company_name:selectedCompany.name }) });
-                          const data = await res.json();
-                          if(data.error) setEdinetSearchResult(`❌ ${data.error}`);
-                          else { setEdinetDocId(data.doc_id); setEdinetSearchResult(`✅ ${data.doc_id}`); }
-                        } catch { setEdinetSearchResult("❌ 通信エラー"); }
-                        setEdinetSearchLoading(false);
-                      }} disabled={edinetSearchLoading} style={{ padding:"8px 12px", backgroundColor:edinetSearchLoading?"#94a3b8":"#475569", color:"white", border:"none", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:12, whiteSpace:"nowrap" }}>
-                        {edinetSearchLoading?"検索中...":"🔍"}
-                      </button>
-                    </div>
-                    {edinetSearchResult && <p style={{ marginTop:4, fontSize:11, color:edinetSearchResult.startsWith("❌")?"#dc2626":"#166534" }}>{edinetSearchResult}</p>}
+                    <label style={labelStyle}>SEC書類のURL（空白で自動検索。通常は入力不要）</label>
+                    <input value={edinetDocId} onChange={e=>setEdinetDocId(e.target.value)} placeholder="例：https://www.sec.gov/Archives/edgar/data/…/xxxx.htm" style={inputStyle}/>
+                    <p style={{ marginTop:4, fontSize:11, color:"#64748b" }}>会社番号(CIK)から最新のS-1を自動で探します。別の書類を使いたいときだけ、そのURLを入れてください。</p>
                   </div>
                   <div style={{ borderTop:"2px dashed #C7D3E3", paddingTop:14, marginBottom:4 }}>
                     <p style={{ fontSize:11, fontWeight:700, color:"#3D5A85", marginBottom:10 }}>▼ 以下の順番で実行してください</p>
                   </div>
-                  <StepRow num="1" color="#3b82f6" title="STEP 1｜EDINETからテキスト取得" desc="目論見書のテキストをDBに保存します（約10〜20秒）" btnLabel="① テキストを取得する" onClick={handleStep1}/>
+                  <StepRow num="1" color="#3b82f6" title="STEP 1｜SECからテキスト取得" desc="SEC EDGARのS-1(目論見書)のテキストをDBに保存します（約10〜30秒）" btnLabel="① テキストを取得する" onClick={handleStep1}/>
                   <StepRow num="7" color="#0369a1" title="STEP 2｜市場・競合情報収集" desc="主幹事証券・競合企業・業界PER・直近IPO事例を収集します（約20〜30秒）" btnLabel="⑦ 市場・競合情報を収集する" onClick={handleStep7}/>
                   <StepRow num="2" color="#16a34a" title="STEP 3｜財務データを構造化" desc="テキストから財務・株主・ロックアップ情報をJSON化します（約15〜25秒）" btnLabel="② 財務データを構造化する" onClick={handleStep2}/>
                   <StepRow num="3" color="#0e7490" title="STEP 4｜スコア・シナリオ生成" desc="総合スコア→まずここに注目→株価シナリオの順に3回に分けて生成します（約40〜60秒）" btnLabel="③ スコア・シナリオを生成する" onClick={handleStep3}/>
