@@ -5,7 +5,8 @@ export const maxDuration = 60;
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  // 書き込み（保存）が権限の都合で無言で失敗しないよう、サービスロールキーを優先して使う
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 const AXIS_CONFIG = {

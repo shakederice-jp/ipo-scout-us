@@ -5,7 +5,8 @@ export const maxDuration = 60;
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  // 書き込み（保存）が権限の都合で無言で失敗しないよう、サービスロールキーを優先して使う
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 const AXIS_CONFIG = {
@@ -43,7 +44,7 @@ const REPORT_SECTIONS: Record<number, string> = {
 この指標が{PERIOD}のIPO投資判断に与える影響を200〜350字程度で説明してください。1文目で結論を端的に述べ、そのあと空行を1行挟んでから理由・背景の説明を続ける2段落構成にしてください。
 
 ### データ分析
-目論見書の具体的数値・事実を引用しながら200〜350字程度で分析してください。意味のまとまりごとに空行を1行挟み、2〜3段落に分けてください（1段落を100字程度が目安）。
+S-1（目論見書）の具体的数値・事実を引用しながら200〜350字程度で分析してください。意味のまとまりごとに空行を1行挟み、2〜3段落に分けてください（1段落を100字程度が目安）。
 
 ### ポジティブ要因
 - （箇条書き3〜4点、各40〜70字程度）`,
@@ -54,7 +55,7 @@ const REPORT_SECTIONS: Record<number, string> = {
 この軸から導かれる具体的な投資判断の材料を200〜350字程度で記述してください。1文目で結論を端的に述べ、そのあと空行を1行挟んでから根拠の説明を続ける2段落構成にしてください。
 
 ### 参考文献
-目論見書のどのページ・どの項目・どの開示資料を確認すべきか、必ず具体的なページ番号（「P.XX」など。正確な番号が分からない場合は推定ページ）を示しながら200字程度で記述してください。`,
+S-1（目論見書）やSECの開示資料（424B4、8-Kなど）のどのセクション・項目を確認すべきかを、具体的な項目名（例：「Risk Factors」「Principal Stockholders」「Shares Eligible for Future Sale」）を示しながら200字程度で記述してください。`,
 };
 
 function buildDataContext(structured: any, raw: any): string {
@@ -68,6 +69,9 @@ function buildDataContext(structured: any, raw: any): string {
       `CF:${d.financials?.cash_flow??"不明"}`,
       `発行済株式総数:${d.ipo_details?.total_shares??"不明"}`,
       `公募・売出株数:${d.ipo_details?.public_shares??"不明"}`,
+      `想定公募価格レンジ(USD):${d.ipo_details?.price_range??"不明"}`,
+      `主幹事(引受会社):${(d.ipo_details?.underwriters??"不明").toString().slice(0,120)}`,
+      `上場予定市場:${d.ipo_details?.listing_venue??"不明"}`,
       `流通比率:${d.ipo_details?.float_ratio??"不明"}`,
       `調達金額:${d.ipo_details?.fundraising_amount??"不明"}`,
       `資金使途:${(d.ipo_details?.use_of_proceeds??"").slice(0,200)}`,
@@ -113,8 +117,8 @@ async function analyzeAxisPart(
   const sections = (REPORT_SECTIONS[part] ?? REPORT_SECTIONS[1]).replace("{PERIOD}", periodLabel);
   const firstHeading = sections.split("\n")[0];
 
-  const prompt = `あなたは日本のIPO投資の専門アナリストです。
-${companyName}（${sector}、${exchange}市場、上場予定${listingDate}）の${periodLabel}投資判断における「${name}」指標を徹底的に分析してください。
+  const prompt = `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。金額は米ドル（USD）基準で扱い、円換算は行わないでください。
+${companyName}（${sector}、${exchange}、上場予定${listingDate}）の${periodLabel}投資判断における「${name}」指標を徹底的に分析してください。
 
 【企業データ】
 ${dataContext || "データ未取得のため一般的な分析を行ってください"}
@@ -210,7 +214,7 @@ export async function POST(req: NextRequest) {
 
     const axesScores = co.analysis_summary?.axes_scores ?? {};
     const marketInfo = co.analysis_market
-      ? `\n【市場・競合情報】主幹事:${co.analysis_market.lead_underwriter ?? ""}・競合:${(co.analysis_market.competitors ?? []).map((c: any) => c.name).join("、")}・業界PER:${co.analysis_market.industry_per ?? ""}・市場動向:${co.analysis_market.market_trend ?? ""}`
+      ? `\n【市場・競合情報】主幹事:${co.analysis_market.lead_underwriter ?? ""}・競合:${(co.analysis_market.competitors ?? []).map((c: any) => c.name).join("、")}・業界バリュエーション:${co.analysis_market.industry_per ?? ""}・市場動向:${co.analysis_market.market_trend ?? ""}`
       : "";
     const dataContext = buildDataContext(co.structured_data, co.raw_prospectus) + marketInfo;
     const axisId = single_axis ?? config.axes[0];
@@ -221,7 +225,7 @@ export async function POST(req: NextRequest) {
       co.name ?? "不明",
       co.sector ?? "tech",
       co.listing_date ?? "2026",
-      co.exchange ?? "グロース",
+      co.exchange ?? "NASDAQ/NYSE",
       axisId,
       config.label,
       dataContext,

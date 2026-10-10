@@ -1,118 +1,118 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import Anthropic from "@anthropic-ai/sdk";
 
+export const maxDuration = 60;
+
+// 書き込みはサービスロールキーで行う（RLSで匿名キーの書き込みが無言で失敗するのを防ぐ）
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const anthropic = new Anthropic();
+const SEC_UA = "ipo-scout-us shakederice@gmail.com";
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-async function findLatestAnnualReport(edinetCode: string): Promise<string | null> {
-  const apiKey = process.env.EDINET_API_KEY ?? "";
-  const today = new Date();
-  const dates: string[] = [];
-  for (let i = 0; i < 90; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
+type TickerRow = { cik: number; ticker: string; title: string };
 
-  const results = await Promise.all(
-    dates.map(async (dateStr) => {
-      try {
-        const res = await fetch(
-          `https://disclosure.edinet-fsa.go.jp/api/v2/documents.json?date=${dateStr}&type=2&Subscription-Key=${apiKey}`,
-          { signal: AbortSignal.timeout(8000) }
-        );
-        if (!res.ok) return null;
-        const data = await res.json();
-        const found = (data?.results ?? []).find((doc: any) =>
-          doc.edinetCode === edinetCode &&
-          doc.ordinanceCode === "010" &&
-          doc.formCode === "030000"
-        );
-        return found ? found.docID : null;
-      } catch { return null; }
-    })
-  );
-  return results.find(r => r !== null) ?? null;
+// SECの「ティッカー⇔CIK」対応表を取得
+async function loadTickerTable(): Promise<TickerRow[]> {
+  const res = await fetch("https://www.sec.gov/files/company_tickers.json", {
+    headers: { "User-Agent": SEC_UA, "Accept": "application/json" },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw new Error(`SECの企業一覧の取得に失敗しました (${res.status})`);
+  const json: any = await res.json();
+  return Object.values(json).map((v: any) => ({
+    cik: Number(v.cik_str),
+    ticker: String(v.ticker ?? "").toUpperCase(),
+    title: String(v.title ?? ""),
+  }));
 }
 
-async function fetchDocumentText(docId: string): Promise<string> {
-  const apiKey = process.env.EDINET_API_KEY ?? "";
-  try {
-    // type=2でメタデータのみ取得（軽量）→ type=1のZIPは重いため
-    const res = await fetch(
-      `https://disclosure.edinet-fsa.go.jp/api/v2/documents/${docId}?type=1&Subscription-Key=${apiKey}`
-    );
-    if (!res.ok) return "";
-    const buffer = await res.arrayBuffer();
-    
-    // ZIPファイルを展開してテキストを抽出
-    const { default: JSZip } = await import("jszip");
-    const zip = await JSZip.loadAsync(buffer);
-    
-    let combinedText = "";
-    for (const [filename, file] of Object.entries(zip.files)) {
-      if (filename.endsWith(".htm") || filename.endsWith(".html") || filename.endsWith(".txt")) {
-        const content = await (file as any).async("string");
-        // HTMLタグを除去
-        const text = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        combinedText += text.slice(0, 10000) + "\n";
-        if (combinedText.length > 25000) break;
-      }
-    }
-    return combinedText.slice(0, 30000);
-  } catch { return ""; }
-}
-
-function toFullWidth(str: string): string {
-  return str.replace(/[A-Za-z0-9]/g, c =>
-    String.fromCharCode(c.charCodeAt(0) + 0xFEE0)
-  );
-}
-
-async function findEdinetCode(supabase: any, compName: string): Promise<string | null> {
-  // 1. 証券コード（括弧内4桁）で検索
-  const codeMatch = compName.match(/[（(](\d{4})[）)]/);
-  if (codeMatch) {
-    const code5 = codeMatch[1] + "0";
-    const { data: r1 } = await supabase
-      .from("edinet_companies")
-      .select("edinet_code")
-      .eq("security_code", code5)
-      .limit(1);
-    if (r1?.[0]?.edinet_code) return r1[0].edinet_code;
-  }
-
-  // 2. 社名クリーニングして部分一致
-  const cleanName = compName
-    .replace(/[（(].*[）)]/g, "")
-    .replace(/株式会社|（株）|\(株\)|㈱/g, "")
+function normName(s: string): string {
+  return s.toLowerCase()
+    .replace(/[.,]/g, " ")
+    .replace(/\b(inc|incorporated|corp|corporation|co|company|ltd|limited|plc|holdings?|group|class [a-c])\b/g, " ")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
-  if (!cleanName) return null;
+}
 
-  const { data: r2 } = await supabase
-    .from("edinet_companies")
-    .select("edinet_code")
-    .ilike("company_name", `%${cleanName}%`)
-    .limit(1);
-  if (r2?.[0]?.edinet_code) return r2[0].edinet_code;
-
-  // 3. 全角変換して再検索（LITALICO→ＬＩＴＡＬＩＣＯ対策）
-  const fullWidthName = toFullWidth(cleanName);
-  if (fullWidthName !== cleanName) {
-    const { data: r3 } = await supabase
-      .from("edinet_companies")
-      .select("edinet_code")
-      .ilike("company_name", `%${fullWidthName}%`)
-      .limit(1);
-    if (r3?.[0]?.edinet_code) return r3[0].edinet_code;
+function findCompany(table: TickerRow[], name: string, ticker?: string): TickerRow | null {
+  const t = (ticker ?? "").toUpperCase().replace(/[^A-Z.\-]/g, "");
+  if (t) {
+    const hit = table.find(r => r.ticker === t);
+    if (hit) return hit;
   }
+  const n = normName(name);
+  if (!n) return null;
+  return table.find(r => normName(r.title) === n)
+    ?? table.find(r => normName(r.title).startsWith(n + " ") || normName(r.title) === n)
+    ?? null;
+}
 
+const REVENUE_TAGS = [
+  "RevenueFromContractWithCustomerExcludingAssessedTax",
+  "Revenues",
+  "RevenueFromContractWithCustomerIncludingAssessedTax",
+  "SalesRevenueNet",
+];
+const OPERATING_TAGS = ["OperatingIncomeLoss"];
+const NET_TAGS = ["NetIncomeLoss", "ProfitLoss"];
+
+type Fact = { end: string; start?: string; val: number; form?: string; fp?: string; filed?: string };
+
+function daysBetween(a: string, b: string): number {
+  return (Date.parse(b) - Date.parse(a)) / 86400000;
+}
+
+// 年次(約1年間)の値のうち、決算日(end)が最新のものを返す
+function latestAnnual(facts: any, tags: string[]): Fact | null {
+  let best: Fact | null = null;
+  for (const tag of tags) {
+    const arr: Fact[] = facts?.["us-gaap"]?.[tag]?.units?.USD ?? [];
+    for (const f of arr) {
+      if (!f.start || !f.end || typeof f.val !== "number") continue;
+      const d = daysBetween(f.start, f.end);
+      if (d < 340 || d > 380) continue;
+      if (f.form && !/^10-K/.test(f.form)) continue;
+      if (!best || f.end > best.end || (f.end === best.end && (f.filed ?? "") > (best.filed ?? ""))) best = f;
+    }
+  }
+  return best;
+}
+
+function valueAtEnd(facts: any, tags: string[], end: string): number | null {
+  for (const tag of tags) {
+    const arr: Fact[] = facts?.["us-gaap"]?.[tag]?.units?.USD ?? [];
+    const hit = arr
+      .filter(f => f.end === end && f.start && typeof f.val === "number" && daysBetween(f.start, f.end) >= 340 && daysBetween(f.start, f.end) <= 380 && (!f.form || /^10-K/.test(f.form)))
+      .sort((a, b) => (b.filed ?? "").localeCompare(a.filed ?? ""))[0];
+    if (hit) return hit.val;
+  }
   return null;
+}
+
+const toMillions = (v: number | null) => v === null ? null : Math.round(v / 1e5) / 10; // 百万ドル(小数1桁)
+
+function extractFinancials(companyFacts: any) {
+  const facts = companyFacts?.facts;
+  const rev = latestAnnual(facts, REVENUE_TAGS);
+  if (!rev) return null;
+  const end = rev.end;
+  const op = valueAtEnd(facts, OPERATING_TAGS, end);
+  const net = valueAtEnd(facts, NET_TAGS, end);
+  const fiscal_year = `${end.slice(0, 4)}年${Number(end.slice(5, 7))}月期`;
+  return {
+    revenue: toMillions(rev.val),
+    operating_profit: toMillions(op),
+    net_profit: toMillions(net),
+    fiscal_year,
+    unit: "百万ドル",
+    currency: "USD",
+    per: null as number | null,
+    pbr: null as number | null,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -135,68 +135,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "競合他社情報がありません。先に⑦市場・競合情報収集を実行してください。" }, { status: 400 });
     }
 
+    const table = await loadTickerTable();
     const results: any[] = [];
 
-    for (const comp of competitors) {
+    for (const comp of competitors.slice(0, 6)) {
       const compName = comp.name ?? "";
-
-      const edinetCode = await findEdinetCode(supabase, compName);
-
-      if (!edinetCode) {
-        results.push({ name: compName, error: "EDINETコードが見つかりません", revenue: null, operating_profit: null, per: null, pbr: null });
-        continue;
-      }
-
-      const docId = await findLatestAnnualReport(edinetCode);
-      if (!docId) {
-        results.push({ name: compName, error: "有価証券報告書が見つかりません", revenue: null, operating_profit: null, per: null, pbr: null });
-        continue;
-      }
-
-      const text = await fetchDocumentText(docId);
-      if (!text) {
-        results.push({ name: compName, error: "テキスト取得失敗", revenue: null, operating_profit: null, per: null, pbr: null });
+      const row = findCompany(table, compName, comp.ticker);
+      if (!row) {
+        results.push({ name: compName, ticker: comp.ticker ?? null, error: "SECの企業一覧に見つかりません（米国上場企業ではない可能性）", revenue: null, operating_profit: null, per: null, pbr: null });
         continue;
       }
 
       try {
-        const message = await anthropic.messages.create({
-          model: "claude-haiku-4-5",
-          max_tokens: 1000,
-          messages: [{
-            role: "user",
-            content: `以下の有価証券報告書テキストから財務データを抽出してください。JSONのみ返してください。
-
-抽出項目：
-- revenue: 直近期の売上高（億円、数値のみ）
-- operating_profit: 直近期の営業利益（億円、数値のみ）
-- net_profit: 直近期の当期純利益（億円、数値のみ）
-- fiscal_year: 決算期（例：2025年3月期）
-- per: PER（倍、数値のみ。記載なければnull）
-- pbr: PBR（倍、数値のみ。記載なければnull）
-
-JSON形式：{"revenue": 123.4, "operating_profit": 12.3, "net_profit": 8.5, "fiscal_year": "2025年3月期", "per": null, "pbr": null}
-
-テキスト：
-${text}`
-          }]
-        }, { timeout: 30000 });
-
-        const raw = (message.content[0] as any).text;
-        const clean = raw.replace(/```json|```/g, "").trim();
-        const parsed = JSON.parse(clean);
-        results.push({ name: compName, edinet_code: edinetCode, doc_id: docId, ...parsed });
+        await sleep(200); // SECの利用ルール（秒間10回以内）を守る
+        const cik10 = String(row.cik).padStart(10, "0");
+        const res = await fetch(`https://data.sec.gov/api/xbrl/companyfacts/CIK${cik10}.json`, {
+          headers: { "User-Agent": SEC_UA, "Accept": "application/json" },
+          signal: AbortSignal.timeout(20000),
+        });
+        if (!res.ok) {
+          results.push({ name: compName, ticker: row.ticker, cik: row.cik, error: `財務データ取得失敗 (${res.status})`, revenue: null, operating_profit: null, per: null, pbr: null });
+          continue;
+        }
+        const fin = extractFinancials(await res.json());
+        if (!fin) {
+          results.push({ name: compName, ticker: row.ticker, cik: row.cik, error: "年次の売上高データが見つかりません（米国会計基準以外の可能性）", revenue: null, operating_profit: null, per: null, pbr: null });
+          continue;
+        }
+        results.push({ name: compName, ticker: row.ticker, cik: row.cik, ...fin });
       } catch {
-        results.push({ name: compName, error: "財務データ抽出失敗", revenue: null, operating_profit: null, per: null, pbr: null });
+        results.push({ name: compName, ticker: row.ticker, cik: row.cik, error: "財務データ取得失敗", revenue: null, operating_profit: null, per: null, pbr: null });
       }
     }
 
-    const { error: saveError } = await supabase
+    const { data: updated, error: saveError } = await supabase
       .from("ipo_companies")
       .update({ analysis_market: { ...co.analysis_market, competitor_financials: results } })
-      .eq("id", company_id);
+      .eq("id", company_id)
+      .select("id");
 
     if (saveError) return NextResponse.json({ error: saveError.message }, { status: 500 });
+    if (!updated || updated.length === 0) {
+      return NextResponse.json({ error: "保存できませんでした（書き込み権限を確認してください）" }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true, results });
 

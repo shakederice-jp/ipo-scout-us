@@ -87,6 +87,9 @@ function buildDataContext(structured: any, raw: any): { ctx: string; source: str
       `CF:${d.financials?.cash_flow??"不明"}`,
       `発行済株式:${d.ipo_details?.total_shares??"不明"}`,
       `公募売出株数:${d.ipo_details?.public_shares??"不明"}`,
+      `想定公募価格レンジ(USD):${d.ipo_details?.price_range??"不明"}`,
+      `主幹事(引受会社):${(d.ipo_details?.underwriters??"不明").toString().slice(0,120)}`,
+      `上場予定市場:${d.ipo_details?.listing_venue??"不明"}`,
       `流通比率:${d.ipo_details?.float_ratio??"不明"}`,
       `調達金額:${d.ipo_details?.fundraising_amount??"不明"}`,
       `資金使途:${(d.ipo_details?.use_of_proceeds??"").slice(0,150)}`,
@@ -99,13 +102,13 @@ function buildDataContext(structured: any, raw: any): { ctx: string; source: str
       `成長要因:${(d.growth_drivers??"").slice(0,200)}`,
       `懸念点:${(d.concerns??"").slice(0,200)}`,
     ].join("\n");
-    return { ctx: ctx.slice(0, 2500), source: "EDINET+Claude(7step)" };
+    return { ctx: ctx.slice(0, 2800), source: "SEC EDGAR+Claude(7step)" };
   }
   if (raw && Object.keys(raw).length > 0) {
     const ctx = Object.entries(raw as Record<string,string>)
       .map(([k,v]) => `[${k}]${String(v).slice(0,500)}`)
       .join("\n");
-    return { ctx: ctx.slice(0, 2500), source: "EDINET+Claude" };
+    return { ctx: ctx.slice(0, 2500), source: "SEC EDGAR+Claude" };
   }
   return { ctx: "", source: "AI" };
 }
@@ -113,7 +116,7 @@ function buildDataContext(structured: any, raw: any): { ctx: string; source: str
 function buildDataNote(co: any) {
   const { ctx: dataContext, source: dataSource } = buildDataContext(co.structured_data, co.raw_prospectus);
   const marketInfo = co.analysis_market
-    ? `\n【市場・競合情報】主幹事:${co.analysis_market.lead_underwriter ?? ""}・競合:${(co.analysis_market.competitors ?? []).map((c: any) => c.name).join("、")}・業界PER:${co.analysis_market.industry_per ?? ""}・市場動向:${co.analysis_market.market_trend ?? ""}`
+    ? `\n【市場・競合情報】主幹事:${co.analysis_market.lead_underwriter ?? ""}・競合:${(co.analysis_market.competitors ?? []).map((c: any) => c.name).join("、")}・業界バリュエーション:${co.analysis_market.industry_per ?? ""}・市場動向:${co.analysis_market.market_trend ?? ""}`
     : "";
   const n = co.name ?? "unknown";
   const sc = co.sector ?? "tech";
@@ -124,26 +127,27 @@ function buildDataNote(co: any) {
 }
 
 function scorePrompt(co: any, dataNote: string) {
-  const n = co.name ?? "unknown", sc = co.sector ?? "tech", ld = co.listing_date ?? "2026", ex = co.exchange ?? "グロース";
-  return `あなたは日本のIPO投資アナリストです。
-${n}（${sc}、${ex}市場、上場予定${ld}）のIPOを総合評価してください。
+  const n = co.name ?? "unknown", sc = co.sector ?? "tech", ld = co.listing_date ?? "2026", ex = co.exchange ?? "NASDAQ/NYSE";
+  return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
+${n}（${sc}、${ex}、上場予定${ld}）のIPOを総合評価してください。
+金額は米ドル（USD）基準で扱い、円換算は行わないこと。S-1などSEC提出書類に基づく実データを根拠とすること。
 JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。文章はすべて「ですます調」で記述すること。
 
 ${dataNote}
 
 【絶対ルール】
 1. 数値・事実は必ず上記【実データ】から引用すること。データにない数値は絶対に作らない
-2. データに記載のない情報は「不明」または「目論見書参照」と記載する
+2. データに記載のない情報は「不明」または「S-1参照」と記載する
 3. summaryには必ず実データから引用した具体的数値を最低2つ含める
-4. missing_data_pointsには、IPO投資判断において通常あるべき以下のような項目のうち、上記【実データ】に記載がなかった、または「不明」「目論見書参照」となっていたものだけを具体的に列挙すること（記載があった項目は含めない）:
-   業績予想（次期見通し）／配当方針／株主別の具体的な保有比率／流通株式比率の具体的な数値／主幹事証券会社名／類似他社との詳細な比較データ／黒字化・収益化の見込み時期／代表者の同業界での実績年数
+4. missing_data_pointsには、IPO投資判断において通常あるべき以下のような項目のうち、上記【実データ】に記載がなかった、または「不明」「S-1参照」となっていたものだけを具体的に列挙すること（記載があった項目は含めない）:
+   想定公募価格レンジ／配当方針／株主別の具体的な保有比率／流通株式比率の具体的な数値／主幹事（引受会社）名／類似上場企業とのバリュエーション比較／黒字化・収益化の見込み時期／ロックアップの解除条件／種類株（議決権の差）の有無／代表者の同業界での実績年数
    ※このリストは例示であり、他にも実データに記載がなく投資判断上重要と思われる項目があれば追加してよい
 5. 記載がなかった項目が無い場合はmissing_data_pointsを空配列[]にすること
 
 【出力形式】必ず以下の構造のみで完結させること:
 {
   "summary": "300字以内。必ず実データの具体的数値を2つ以上引用して記述。1文目で結論を端的に述べ、改行(\\n\\n)を1つ挟んでから詳細説明を続ける2段落構成にすること。ですます調",
-  "summary_beginner": "同じ内容を、投資初心者にも分かるように書き直したもの。300〜400字程度。専門用語（経常利益率、営業CF、流通比率など）が出てきたら都度かんたんな説明を一言添えること。1文目で結論、改行(\\n\\n)を挟んで詳細、という2段落構成。ですます調",
+  "summary_beginner": "同じ内容を、投資初心者にも分かるように書き直したもの。300〜400字程度。専門用語（営業利益率、営業CF、流通比率、ロックアップ、希薄化など）が出てきたら都度かんたんな説明を一言添えること。1文目で結論、改行(\\n\\n)を挟んで詳細、という2段落構成。ですます調",
   "data_citations": ["引用根拠1", "引用根拠2", "引用根拠3"],
   "data_confidence": "high（実データあり）/ medium（一部推定）/ low（データ不足）のいずれか",
   "missing_data_points": ["記載がなかった項目1（15字以内、体言止め）", "記載がなかった項目2（15字以内、体言止め）"],
@@ -168,7 +172,7 @@ ${dataNote}
 
 function insightsPrompt(co: any, dataNote: string) {
   const n = co.name ?? "unknown";
-  return `あなたは日本のIPO投資アナリストです。
+  return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
 ${n}のIPOについて、「まずここに注目！」というコーナー用のインサイトを3つ作成してください。
 JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。文章はすべて「ですます調」で記述すること。
 
@@ -192,7 +196,7 @@ ${dataNote}
 
 function insightsBeginnerPrompt(insights: any[]): string {
   const list = insights.map((ins: any, i: number) => `${i+1}. タイトル:${ins.title}\n本文:${ins.detail ?? ins.body ?? ""}`).join("\n\n");
-  return `以下は日本のIPO投資に関する3つの解説です。それぞれを、投資初心者にも分かるように書き直してください。
+  return `以下は米国IPO投資に関する3つの解説です。それぞれを、投資初心者にも分かるように書き直してください。
 JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。
 
 【元の解説】
@@ -212,7 +216,7 @@ ${list}
 
 function scenariosPrompt(co: any, dataNote: string) {
   const n = co.name ?? "unknown";
-  return `あなたは日本のIPO投資アナリストです。
+  return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
 ${n}のIPOについて、短期（〜6ヶ月）と長期（5〜10年）の株価シナリオをそれぞれ3パターン（強気・中立・弱気）作成してください。
 JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。文章はすべて「ですます調」で記述すること。
 
@@ -267,9 +271,9 @@ export async function POST(req: NextRequest) {
         axes_scores:       r.axes_scores ?? {},
         data_source:       r.data_source ?? "AI",
         sources: [
-          { label:"東証新規上場情報", url:"https://www.jpx.co.jp/listing/stocks/new/index.html" },
-          { label:"EDINET・有価証券届出書", url:"https://disclosure2.edinet-fsa.go.jp/" },
-          { label:"IPOkabu", url:"https://ipokabu.net/" },
+          { label:"SEC EDGAR（S-1・目論見書）", url:"https://www.sec.gov/edgar/search/" },
+          { label:"Nasdaq IPOカレンダー", url:"https://www.nasdaq.com/market-activity/ipos" },
+          { label:"NYSE IPOセンター", url:"https://www.nyse.com/ipo-center/recent-ipo" },
         ],
         generated_at: new Date().toISOString(),
       };
@@ -282,7 +286,7 @@ export async function POST(req: NextRequest) {
       // X分析系投稿：「まずここに注目！」の1つ目のインサイトを紹介
       if (process.env.X_AUTOPOST_ENABLED === "true" && summary.insights?.[0]) {
         try {
-          const tweetText = `【IPO分析】${co.name}（${(co as any).ticker ?? ""}）\n\n${summary.tweet_summary}\n\n詳しい分析はプロフィールのリンクから👆\n\n#IPO #新規上場`;
+          const tweetText = `【IPO分析】${co.name}（${(co as any).ticker ?? ""}）\n\n${summary.tweet_summary}\n\n詳しい分析はプロフィールのリンクから👆\n\n#IPO #米国IPO #米国株`;
           const postResult = await postToX(tweetText);
           if (!postResult.success) {
             await notifyAdmin(
@@ -306,8 +310,7 @@ export async function POST(req: NextRequest) {
       const insights = body.insights ?? [];
       const prompt = insightsBeginnerPrompt(insights);
       const msg = await callClaudeWithRetry(prompt);
-      const raw2 = (msg.content[0] as any).text ?? "";
-      const parsed = repairJson('{' + raw2);
+      const parsed = repairJson(fromFirstBrace(textOf(msg)));
       if (!parsed) {
         return NextResponse.json({ error: "parse failed (insights_beginner)" }, { status: 500 });
       }
