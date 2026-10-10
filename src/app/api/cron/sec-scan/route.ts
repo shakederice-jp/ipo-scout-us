@@ -3,6 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import { notifyAdmin } from "@/lib/notify-admin";
 import Anthropic from "@anthropic-ai/sdk";
 
+// 1回の実行で複数社を処理するため、最大実行時間を60秒に延ばす
+export const maxDuration = 60;
+
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
