@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useApp } from "@/contexts/AppContext";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { fmtUsd } from "@/lib/fx";
+import { jpy } from "@/lib/pricing";
 
 type Company = {
   id: string;
@@ -242,17 +244,17 @@ export default function CalendarClient() {
             </div>
 
             <div style={{ marginBottom:20 }}>
-              <label style={{ fontSize:11, fontWeight:700, color:C.nav, display:"block", marginBottom:4 }}>損益（円）※任意</label>
+              <label style={{ fontSize:11, fontWeight:700, color:C.nav, display:"block", marginBottom:4 }}>損益（ドル）※任意</label>
               <input
                 type="number"
                 value={pnlInput}
                 onChange={e => setPnlInput(e.target.value)}
-                placeholder="例：5000 または -3000"
+                placeholder="例：50 または -30"
                 style={{ width:"100%", padding:"8px 10px", borderRadius:8, border:`1px solid ${C.border}`, fontSize:13, boxSizing:"border-box" }}
               />
               {pnlInput !== "" && !isNaN(parseInt(pnlInput)) && (
                 <div style={{ marginTop:4, fontSize:12, fontWeight:700, color: parseInt(pnlInput) >= 0 ? "#15803d" : "#b91c1c" }}>
-                  {parseInt(pnlInput) >= 0 ? "▲ +" : "▼ "}{parseInt(pnlInput).toLocaleString()}円
+                  {parseInt(pnlInput) >= 0 ? "▲ +" : "▼ "}{fmtUsd(parseInt(pnlInput))}
                 </div>
               )}
             </div>
@@ -399,8 +401,8 @@ export default function CalendarClient() {
               </div>
               <p style={{ fontSize:12, color:"#3D5A85", lineHeight:1.7, margin:0 }}>
                 {lang === "ja"
-                  ? <>毎月、日付順で最初の<strong style={{ color:"#0F1F36" }}>2銘柄の分析レポートは完全無料</strong>でご覧いただけます。特定銘柄だけをピックアップして読む場合は¥500です。また、すべてコミコミの<strong style={{ color:"#0F1F36" }}>コンプリートパック</strong>もあります。</>
-                  : <>The first <strong style={{ color:"#0F1F36" }}>2 IPO reports each month are completely free</strong>. Single reports are ¥500. A <strong style={{ color:"#0F1F36" }}>Complete Pack</strong> with all features is also available.</>
+                  ? <>毎月、日付順で最初の<strong style={{ color:"#0F1F36" }}>2銘柄の分析レポートは完全無料</strong>でご覧いただけます。特定銘柄だけをピックアップして読む場合は{jpy("single")}です。また、すべてコミコミの<strong style={{ color:"#0F1F36" }}>コンプリートパック</strong>もあります。</>
+                  : <>The first <strong style={{ color:"#0F1F36" }}>2 IPO reports each month are completely free</strong>. Single reports are {jpy("single")}. A <strong style={{ color:"#0F1F36" }}>Complete Pack</strong> with all features is also available.</>
                 }
               </p>
             </div>

@@ -3,26 +3,27 @@ import CalendarClient from "@/components/CalendarClient";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Zap, Crown, AlertCircle, User } from "lucide-react";
+import { jpyMonth } from "@/lib/pricing";
 
 export const metadata: Metadata = {
-  title: "IPO企業情報AI分析レポート｜大手町調査室九課",
-  description: "2026年IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。大手町調査室九課が運営。",
+  title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
+  description: "米国IPO予定企業のAI分析レポート。SEC提出書類をもとに総合スコア・株価シナリオ・9軸詳細分析を掲載。大手町調査室九課が運営。",
   openGraph: {
-    title: "IPO企業情報AI分析レポート｜大手町調査室九課",
-    description: "2026年IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。",
-    url: "https://ipo.finance-tower.com",
+    title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
+    description: "米国IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。",
+    url: "https://ipo-us.finance-tower.com",
     siteName: "大手町調査室九課",
     locale: "ja_JP",
     type: "website",
-    images: [{ url: "https://ipo.finance-tower.com/ogp.png", width: 1200, height: 630 }],
+    images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "IPO企業情報AI分析レポート｜大手町調査室九課",
-    description: "2026年IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。",
-    images: ["https://ipo.finance-tower.com/ogp.png"],
+    title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
+    description: "米国IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。",
+    images: ["https://ipo-us.finance-tower.com/ogp.png"],
   },
-  alternates: { canonical: "https://ipo.finance-tower.com" },
+  alternates: { canonical: "https://ipo-us.finance-tower.com" },
 };
 
 const cardStyle: React.CSSProperties = {
@@ -107,7 +108,7 @@ export default async function Home({
 <div style={{ ...cardStyle, padding:"12px 14px", backgroundColor:"#f8fefe", display:"flex", alignItems:"flex-start", gap:8 }}>
             <span style={{ fontSize:13, flexShrink:0 }}>📋</span>
             <p style={{ fontSize:10, color:"#3D5A85", lineHeight:1.8, margin:0 }}>
-              本サービスは、IPO銘柄が金融庁に提出する目論見書をAIが解析・要約し、投資判断に役立つ情報を抽出することを目的としています。目論見書に記載のない情報は「不明」「データ不足」と表示されます。AIによる試算・評価であり、投資勧誘ではありません。
+              本サービスは、IPO銘柄が米国証券取引委員会（SEC）に提出する目論見書（S-1 / 424B4）をAIが解析・要約し、投資判断に役立つ情報を抽出することを目的としています。目論見書に記載のない情報は「不明」「データ不足」と表示されます。AIによる試算・評価であり、投資勧誘ではありません。
             </p>
           </div>
 
@@ -115,7 +116,7 @@ export default async function Home({
           <a href="/plans" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#E8EDF5", textDecoration:"none", border:"1.5px solid #1E3A66" }}>
             <div>
               <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>📋 料金プランを見る</div>
-              <div style={{ fontSize:10, color:"#3D5A85", marginTop:2 }}>無料〜¥2,490/月・4プラン比較</div>
+              <div style={{ fontSize:10, color:"#3D5A85", marginTop:2 }}>無料〜{jpyMonth("complete")}・4プラン比較</div>
             </div>
             <span style={{ fontSize:16, color:"#1E3A66" }}>→</span>
           </a>
@@ -144,9 +145,9 @@ export default async function Home({
               <span style={{ fontWeight:900, fontSize:13, color:"#0F1F36" }}>通知サービス</span>
             </div>
             <p style={{ fontSize:12, color:"#3D5A85", lineHeight:1.7, margin:"0 0 12px" }}>
-              上場日・BB・申込開始・ロックアップ解除を<strong style={{ color:"#0F1F36" }}>前週金曜日18時</strong>にまとめてお届けします。
+              上場日・価格決定・ロックアップ解除を<strong style={{ color:"#0F1F36" }}>前週金曜日18時</strong>にまとめてお届けします。
             </p>
-            {[{ label:"通知プラン", price:"¥890/月" }, { label:"コンプリートパック", price:"¥2,490/月" }].map(item => (
+            {[{ label:"通知プラン", price:jpyMonth("notify") }, { label:"コンプリートパック", price:jpyMonth("complete") }].map(item => (
               <div key={item.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderRadius:10, padding:"8px 12px", marginBottom:6, backgroundColor:"#F5F4EF", border:"1px solid #E3E8F0" }}>
                 <span style={{ fontSize:11, fontWeight:700, color:"#1E3A66" }}>{item.label}</span>
                 <span style={{ fontSize:11, fontWeight:900, color:"#1E3A66" }}>{item.price}</span>

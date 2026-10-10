@@ -47,7 +47,7 @@ export default function GuidePage() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
             {[
-              { icon: "📊", title: "AIスコアリング（A〜E評価）", body: "目論見書の財務データ・需給構造・成長性などを9軸で分析。初値狙い・短期・長期の3つの時間軸でそれぞれ評価します。" },
+              { icon: "📊", title: "AIスコアリング（A〜E評価）", body: "目論見書の財務データ・需給構造・成長性などを9軸で分析。初日狙い・短期・長期の3つの時間軸でそれぞれ評価します。" },
               { icon: "📈", title: "株価シナリオ（3パターン）", body: "「公募価格の1.8倍」「±10%」など、具体的な価格目標と確率・根拠をセットで提示。「なぜその評価なのか」が分かります。" },
               { icon: "📋", title: "目論見書の要点を自動抽出", body: "ロックアップ期間・流通比率・主要株主・資金使途など、IPO投資判断に直結する情報をまとめて確認できます。" },
             ].map((item, i) => (
@@ -108,10 +108,10 @@ export default function GuidePage() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[
-              { step: "01", icon: "🗓️", title: "カレンダーで上場スケジュールを確認", body: "毎月のIPO銘柄をカレンダー形式で一覧表示。BB開始日・申込開始日・上場日が一目でわかります。気になる銘柄の番号をタップするとそのまま詳細へジャンプできます。" },
+              { step: "01", icon: "🗓️", title: "カレンダーで上場スケジュールを確認", body: "毎月のIPO銘柄をカレンダー形式で一覧表示。価格決定日・上場日が一目でわかります。気になる銘柄の番号をタップするとそのまま詳細へジャンプできます。" },
               { step: "02", icon: "⚡", title: "AI要約で気になる銘柄をスクリーニング", body: "トップページのAI分析要約を読んで、興味を持った銘柄だけを深掘り。すべての銘柄を調べる必要はありません。時間をかけずに投資候補を絞り込めます。" },
               { step: "03", icon: "🔬", title: "9軸レポートで投資判断を深める", body: "「需給の軽さ」「ロックアップ」「バリュエーション」「成長性」など9つの視点から詳細レポートを確認。判断の根拠が数値と文章でセットになっているので、自分なりの結論を出しやすくなります。" },
-              { step: "04", icon: "🔔", title: "通知設定でBB開始を見逃さない", body: "BB（ブックビルディング）開始日を前週金曜日にメールでお知らせします。通知プランまたはコンプリートパックに登録することで、申込機会を逃さず投資行動に移れます。" },
+              { step: "04", icon: "🔔", title: "通知設定で価格決定日を見逃さない", body: "上場日・価格決定日・ロックアップ解除日を前週金曜日にメールでお知らせします。通知プランまたはコンプリートパックに登録することで、購入機会を逃さず投資行動に移れます。" },
             ].map((item, i) => (
               <div key={i} style={{ backgroundColor: "white", borderRadius: 16, border: `1px solid ${C.border}`, padding: "24px 24px", display: "flex", gap: 20, alignItems: "flex-start" }}>
                 <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: 14, backgroundColor: C.light, border: `2px solid ${C.teal}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>

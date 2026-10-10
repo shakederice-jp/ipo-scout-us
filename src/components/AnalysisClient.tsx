@@ -8,6 +8,8 @@ import {
 } from "@/components/VizTables";
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { fmtUsd, fmtJpyApprox, FX_NOTE } from "@/lib/fx";
+import { jpy, jpyMonth } from "@/lib/pricing";
 import { Zap, TrendingUp, Users, Shield, BarChart2, Star, ArrowUpRight, ArrowDownRight, Minus, Info, Clock, Calendar, ChevronRight, AlertTriangle } from "lucide-react";
 
 interface AxisItem { id:string;title:string;score:number;index:string;why_matters:string;description:string;verdict:string;doc_guide:string;grade?:string;label?:string; }
@@ -185,6 +187,32 @@ function parseNumbers(s?:string):number[] {
 function avg(nums:number[]):number {
   if(!nums.length) return 0;
   return nums.reduce((a,b)=>a+b,0)/nums.length;
+}
+
+// "公募価格の1.8倍" "1.5〜2倍" "±10%" "+200〜500%" "-20〜-50%" "▲20〜50%" → [低倍率, 高倍率]（公募価格＝1）
+function parseVsIpoMultiple(vsIpo:string):[number,number]|null {
+  const t=vsIpo.replace(/[−ー–]/g,"-");
+  const pm=t.match(/±\s*(\d+(?:\.\d+)?)\s*%/);
+  if(pm){const d=parseFloat(pm[1])/100;return[1-d,1+d];}
+  if(t.includes("倍")){
+    const ns=(t.match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+    if(!ns.length) return null;
+    const a=ns[0],b=ns[1]??ns[0];
+    return[Math.min(a,b),Math.max(a,b)];
+  }
+  if(t.includes("%")){
+    const toks=Array.from(t.matchAll(/([+\-▲△]?)\s*(\d+(?:\.\d+)?)/g));
+    if(!toks.length) return null;
+    const firstNeg=/[-▲△]/.test(toks[0][1]);
+    const vals=toks.map((m,i)=>{
+      const n=parseFloat(m[2]);
+      const neg=m[1]?/[-▲△]/.test(m[1]):(i>0&&firstNeg);
+      return neg?-n:n;
+    });
+    const a=1+vals[0]/100,b=1+(vals[1]??vals[0])/100;
+    return[Math.min(a,b),Math.max(a,b)];
+  }
+  return null;
 }
 
 function parseScenarioRange(vsIpo:string):[number,number] {
@@ -495,7 +523,7 @@ function NotifyModal({company,userId,onClose}:{company:IpoCompany;userId:string|
           <div style={{backgroundColor:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:12,marginBottom:12,fontSize:12,color:"#92400e"}}>
             {!userId
               ? <>通知機能を使うには<strong>ログイン</strong>が必要です。<a href="/auth" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>ログイン・新規登録 →</a></>
-              : <>通知機能は<strong>通知プラン（¥890/月）</strong>以上でご利用いただけます。<a href="/" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>プランを確認する →</a></>
+              : <>通知機能は<strong>通知プラン（{jpyMonth("notify")}）</strong>以上でご利用いただけます。<a href="/" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>プランを確認する →</a></>
             }
           </div>
         )}
@@ -507,7 +535,7 @@ function NotifyModal({company,userId,onClose}:{company:IpoCompany;userId:string|
         {status!=="needsPlan"&&status!=="done"&&(
           <>
             <div style={{fontSize:11,color:"#64748b",marginBottom:12}}>通知を受け取るイベントを選択してください（前週金曜18時送信）</div>
-            {([["notify_listing","🔴 上場日"],["notify_bb","🟦 BB開始日"],["notify_lockup_90","🔓 ロックアップ90日解除"],["notify_lockup_180","🔓 ロックアップ180日解除"]] as [keyof typeof settings,string][]).map(([k,label])=>(
+            {([["notify_listing","🔴 上場日"],["notify_bb","🟦 価格決定日"],["notify_lockup_90","🔓 ロックアップ90日解除"],["notify_lockup_180","🔓 ロックアップ180日解除"]] as [keyof typeof settings,string][]).map(([k,label])=>(
               <div key={k} onClick={()=>toggle(k)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid #f1f5f9",cursor:"pointer"}}>
                 <span style={{fontSize:12,color:DARK}}>{label}</span>
                 <div style={{width:36,height:20,borderRadius:10,backgroundColor:settings[k]?PRIMARY:"#e2e8f0",position:"relative",transition:"background 0.2s"}}>
@@ -594,7 +622,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
   });
 
   const GROUPS=[
-    {key:"ultra_short" as const,label:"超短期",sub:"初値売り・当日トレード",icon:"⚡",color:"#ef4444",bg:"#fee2e2",anchor:"ultra"},
+    {key:"ultra_short" as const,label:"超短期",sub:"初日売り・当日トレード",icon:"⚡",color:"#ef4444",bg:"#fee2e2",anchor:"ultra"},
     {key:"short"       as const,label:"短期",  sub:"数週間〜数ヶ月",        icon:"📈",color:"#d97706",bg:"#fef3c7",anchor:"short"},
     {key:"long"        as const,label:"長期",  sub:"数年〜",                icon:"🏛",color:"#7c3aed",bg:"#ede9fe",anchor:"long"},
   ];
@@ -665,24 +693,30 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
     const sd=(company as any).structured_data;
     const km=sd?.key_metrics;
     const latestKm=Array.isArray(km)&&km.length>0?km[km.length-1]:null;
-    const parseJpNum=(s:string|null|undefined)=>{
+    // key_metrics の文字列（例 "123,456千ドル" "(2.5)百万ドル" "-12.3百万ドル"）を「百万ドル」の数値に直す
+    const parseUsdM=(s:string|null|undefined)=>{
       if(!s) return null;
-      const neg=s.includes("△")||s.includes("-");
-      const n=parseFloat(s.replace(/[△▲\-,△円千万億]/g,"").replace(/,/g,""));
+      const str=String(s).trim();
+      const m=str.replace(/[,，\s]/g,"").match(/[\d.]+/);
+      if(!m) return null;
+      const n=parseFloat(m[0]);
       if(isNaN(n)) return null;
-      return neg?-n:n;
+      const neg=/^[-−ー(（△▲]/.test(str)||str.includes("△");
+      const mult=str.includes("百万")?1:str.includes("千")?0.001:str.includes("億")?100:str.includes("万")?0.01:0.000001;
+      const v=Math.round(n*mult*10)/10;
+      return neg?-v:v;
     };
-    const toOku=(sen:number|null)=>sen==null?null:Math.round(sen/10000)/10;
-    const ownRevenue=toOku(parseJpNum(latestKm?.revenue));
-    const ownProfit=toOku(parseJpNum(latestKm?.ordinary_profit));
-    const ownNetProfit=toOku(parseJpNum(latestKm?.net_profit));
+    const fmtM=(v:number|null|undefined)=>v==null?"–":`${v.toLocaleString("en-US",{maximumFractionDigits:1})}百万ドル`;
+    const ownRevenue=parseUsdM(latestKm?.revenue);
+    const ownProfit=parseUsdM(latestKm?.ordinary_profit);
+    const ownNetProfit=parseUsdM(latestKm?.net_profit);
     const ownFiscalYear=latestKm?.period??null;
     return (
       <Card>
         <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
           <BarChart2 size={14} color="#7c3aed"/>
           <span style={{fontWeight:900,fontSize:14,color:DARK}}>競合他社 財務比較</span>
-          <span style={{fontSize:9,color:"#94a3b8",backgroundColor:"#f1f5f9",padding:"2px 6px",borderRadius:10}}>有価証券報告書より</span>
+          <span style={{fontSize:9,color:"#94a3b8",backgroundColor:"#f1f5f9",padding:"2px 6px",borderRadius:10}}>SEC 10-K（XBRL）より</span>
         </div>
         <div style={{overflowX:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
@@ -690,37 +724,32 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
               <tr style={{backgroundColor:LIGHT}}>
                 <th style={{padding:"8px 10px",textAlign:"left",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>企業名</th>
                 <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>売上高</th>
-                <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>経常利益</th>
-                <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>当期純利益</th>
-                <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>PER</th>
+                <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>営業損益</th>
+                <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>純損益</th>
                 <th style={{padding:"8px 10px",textAlign:"right",fontWeight:900,color:TTEXT,fontSize:10,borderBottom:`1px solid ${BORDER}`}}>決算期</th>
               </tr>
             </thead>
             <tbody>
               <tr style={{borderBottom:`1px solid ${BORDER}`,backgroundColor:PRIMARY+"22"}}>
                 <td style={{padding:"8px 10px",fontWeight:900,color:DARK}}>🎯 {company.name}（IPO銘柄）</td>
-                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>{ownRevenue!=null?`${ownRevenue}億円`:"-"}</td>
-                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>{ownProfit!=null?`${ownProfit}億円`:"-"}</td>
-                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>{ownNetProfit!=null?`${ownNetProfit}億円`:"-"}</td>
-                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>
-                  {(()=>{const ipoPrice=(company as any).ipo_price;const eps=parseJpNum(latestKm?.eps);return ipoPrice&&eps&&eps>0?`${Math.round(ipoPrice/eps*10)/10}倍`:"-";})()}
-                </td>
+                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>{fmtM(ownRevenue)}</td>
+                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>{fmtM(ownProfit)}</td>
+                <td style={{padding:"8px 10px",textAlign:"right",fontWeight:700,color:"#1e293b"}}>{fmtM(ownNetProfit)}</td>
                 <td style={{padding:"8px 10px",textAlign:"right",color:"#64748b",fontSize:10}}>{ownFiscalYear||"目論見書参照"}</td>
               </tr>
               {valid.map((c:any,i:number)=>(
                 <tr key={i} style={{borderBottom:`1px solid ${BORDER}`,backgroundColor:i%2===0?"white":LIGHT}}>
                   <td style={{padding:"8px 10px",fontWeight:700,color:DARK}}>{c.name}</td>
-                  <td style={{padding:"8px 10px",textAlign:"right",color:"#1e293b"}}>{c.revenue!=null?`${c.revenue}億円`:"–"}</td>
-                  <td style={{padding:"8px 10px",textAlign:"right",color:c.operating_profit>=0?"#15803d":"#ef4444"}}>{c.operating_profit!=null?`${c.operating_profit}億円`:"–"}</td>
-                  <td style={{padding:"8px 10px",textAlign:"right",color:c.net_profit>=0?"#15803d":"#ef4444"}}>{c.net_profit!=null?`${c.net_profit}億円`:"–"}</td>
-                  <td style={{padding:"8px 10px",textAlign:"right",color:"#1e293b"}}>{c.per!=null?`${c.per}倍`:"–"}</td>
+                  <td style={{padding:"8px 10px",textAlign:"right",color:"#1e293b"}}>{fmtM(c.revenue)}</td>
+                  <td style={{padding:"8px 10px",textAlign:"right",color:(c.operating_profit??0)>=0?"#15803d":"#ef4444"}}>{fmtM(c.operating_profit)}</td>
+                  <td style={{padding:"8px 10px",textAlign:"right",color:(c.net_profit??0)>=0?"#15803d":"#ef4444"}}>{fmtM(c.net_profit)}</td>
                   <td style={{padding:"8px 10px",textAlign:"right",color:"#64748b",fontSize:10}}>{c.fiscal_year||"–"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p style={{fontSize:10,color:"#94a3b8",marginTop:8,lineHeight:1.6}}>※ EDINETの有価証券報告書から自動取得。単位：億円（百万円未満切り捨て）</p>
+        <p style={{fontSize:10,color:"#94a3b8",marginTop:8,lineHeight:1.6}}>※ 米国SEC（EDGAR）の年次報告書（10-K）のXBRLデータから自動取得。単位：百万ドル（ドル表示。円換算は行っていません）。営業損益・純損益はマイナスが赤字です。</p>
       </Card>
     );
   };
@@ -748,9 +777,9 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             onClick={() => {
               const grade = analysis?.grade ?? "B";
               const score = analysis?.total_score ?? 0;
-              const text = `📊【IPO分析】${company.name}（${company.ticker ?? ""}）\nAI総合評価：${grade}ランク ${score}点/100点\n\n目論見書をAIが解析した詳細レポートはこちら👇\n#IPO #新規上場 #IPO投資`;
+              const text = `📊【IPO分析】${company.name}（${company.ticker ?? ""}）\nAI総合評価：${grade}ランク ${score}点/100点\n\n目論見書をAIが解析した詳細レポートはこちら👇\n#米国IPO #IPO #米国株`;
               const shareId = company.ticker ?? company.id;
-              const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`https://ipo.finance-tower.com/analysis/${shareId}`)}`;
+              const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`https://ipo-us.finance-tower.com/analysis/${shareId}`)}`;
               window.open(url, "_blank");
             }}
             style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,backgroundColor:"#000000",border:"none",cursor:"pointer",color:"white",fontSize:14,fontWeight:700}}
@@ -874,7 +903,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           <div style={{borderRadius:14,padding:"20px",backgroundColor:"#1E3A66",color:"white",textAlign:"center"}}>
             <div style={{fontSize:15,fontWeight:900,marginBottom:6}}>🔒 ここから先は有料コンテンツです</div>
             <p style={{fontSize:12,color:"#C7D3E3",margin:"0 0 14px",lineHeight:1.7}}>
-            軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上へのご加入、またはこの銘柄の単品購入（¥500）が必要です。
+            軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上へのご加入、またはこの銘柄の単品購入（{jpy("single")}）が必要です。
             </p>
             <a href="/plans" style={{display:"inline-block",padding:"10px 24px",backgroundColor:"white",color:"#1E3A66",borderRadius:8,fontWeight:800,fontSize:13,textDecoration:"none"}}>
               料金プランを見る →
@@ -888,7 +917,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={{fontSize:20}}>🔔</span>
               <div>
-                <div style={{fontWeight:900,fontSize:13,color:"#0F1F36"}}>BB開始・上場日・公募価格確定をお知らせ</div>
+                <div style={{fontWeight:900,fontSize:13,color:"#0F1F36"}}>価格決定・上場日・公募価格確定をお知らせ</div>
                 <div style={{fontSize:11,color:"#92400e",marginTop:2}}>通知プランで前週金曜18時に自動配信</div>
               </div>
             </div>
@@ -964,7 +993,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                     <div style={{fontSize:28,marginBottom:8}}>📅</div>
                     <div style={{fontWeight:900,fontSize:14,color:"#0F1F36",marginBottom:8}}>公募価格確定後に自動表示されます</div>
                     <p style={{fontSize:12,color:"#64748b",lineHeight:1.8,marginBottom:16}}>
-                      {company.name}（{(company as any).ticker ?? ""}）の公募価格はブックビルディング期間終了後に決定されます。<br/>
+                      {company.name}（{(company as any).ticker ?? ""}）の公募価格は価格決定（プライシング）日に確定します。<br/>
                       価格決定後は当サイトに再度ご訪問いただくと、具体的な投資金額シミュレーションをご確認いただけます。
                     </p>
                     <button
@@ -979,12 +1008,14 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                     <div style={{display:"flex",gap:12,marginBottom:16,padding:"10px 14px",backgroundColor:"#f0fafa",borderRadius:10}}>
                       <div style={{textAlign:"center"}}>
                         <div style={{fontSize:10,color:"#6b9ea0"}}>公募価格</div>
-                        <div style={{fontWeight:900,fontSize:18,color:"#0F1F36"}}>¥{ipoPrice.toLocaleString()}</div>
+                        <div style={{fontWeight:900,fontSize:18,color:"#0F1F36"}}>{fmtUsd(ipoPrice)}</div>
+                        <div style={{fontSize:9,color:"#94a3b8"}}>{fmtJpyApprox(ipoPrice)}</div>
                       </div>
                       <div style={{width:1,backgroundColor:"#d0f0f0"}}/>
                       <div style={{textAlign:"center"}}>
                         <div style={{fontSize:10,color:"#6b9ea0"}}>最小投資額（100株）</div>
-                        <div style={{fontWeight:900,fontSize:18,color:"#0F1F36"}}>¥{(ipoPrice*100).toLocaleString()}</div>
+                        <div style={{fontWeight:900,fontSize:18,color:"#0F1F36"}}>{fmtUsd(ipoPrice*100)}</div>
+                        <div style={{fontSize:9,color:"#94a3b8"}}>{fmtJpyApprox(ipoPrice*100)}</div>
                       </div>
                     </div>
 
@@ -1005,26 +1036,19 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                             const bg=isUp?"#f0fdf4":isDown?"#fef2f2":"#fffbeb";
                             const col=isUp?"#15803d":isDown?"#b91c1c":"#92400e";
                             const icon=isUp?"🟢":isDown?"🔴":"🟡";
-                            const nums=s.vsIpo.match(/[\d.]+/g)?.map(Number)??[];
                             let loPrice=0,hiPrice=0,loVal=0,hiVal=0,loPnl=0,hiPnl=0;
                             const base=ipoPrice*100;
-                            if(s.vsIpo.includes("倍")&&nums.length>=1){
-                              const lo=nums[0],hi=nums[1]??nums[0];
-                              loPrice=Math.round(ipoPrice*lo);
-                              hiPrice=Math.round(ipoPrice*hi);
-                              loVal=loPrice*100; hiVal=hiPrice*100;
-                              loPnl=loVal-base; hiPnl=hiVal-base;
-                            } else if(s.vsIpo.includes("%")&&nums.length>=1){
-                              const lo=1+(nums[0]/100)*(s.vsIpo.includes("-")?-1:1);
-                              const hi=nums[1]?1+(nums[1]/100):lo;
-                              loPrice=Math.round(ipoPrice*lo);
-                              hiPrice=Math.round(ipoPrice*hi);
-                              loVal=loPrice*100; hiVal=hiPrice*100;
-                              loPnl=loVal-base; hiPnl=hiVal-base;
+                            const mult=parseVsIpoMultiple(s.vsIpo);
+                            if(mult){
+                              loPrice=Math.round(ipoPrice*mult[0]*100)/100;
+                              hiPrice=Math.round(ipoPrice*mult[1]*100)/100;
+                              loVal=Math.round(loPrice*10000)/100; hiVal=Math.round(hiPrice*10000)/100;
+                              loPnl=Math.round((loVal-base)*100)/100; hiPnl=Math.round((hiVal-base)*100)/100;
                             }
                             const samePrice=loPrice===hiPrice;
                             const samePnl=loPnl===hiPnl;
-                            const pnlStr=(v:number)=>`${v>=0?"+":""}¥${Math.abs(v).toLocaleString()}`;
+                            const pnlStr=(v:number)=>`${v>=0?"+":"-"}${fmtUsd(Math.abs(v))}`;
+                            const yenRange=(a:number,b:number)=>a===b?fmtJpyApprox(a):`${fmtJpyApprox(a)}〜${fmtJpyApprox(b)}`;
                             return (
                               <tr key={s.id} style={{backgroundColor:bg,borderBottom:"1px solid #f0fafa"}}>
                                 <td style={{padding:"10px 10px",fontWeight:900,color:col}}>
@@ -1032,13 +1056,15 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                                   <span style={{fontSize:9,fontWeight:400,color:"#94a3b8"}}>確率{s.prob}</span>
                                 </td>
                                 <td style={{padding:"10px 10px",textAlign:"right",color:"#0F1F36",fontWeight:700}}>
-                                  {loPrice>0?(samePrice?`¥${loPrice.toLocaleString()}`:`¥${loPrice.toLocaleString()}〜¥${hiPrice.toLocaleString()}`):"計算中"}
+                                  {loPrice>0?(samePrice?fmtUsd(loPrice):`${fmtUsd(loPrice)}〜${fmtUsd(hiPrice)}`):"計算中"}
                                 </td>
                                 <td style={{padding:"10px 10px",textAlign:"right",color:"#0F1F36",fontWeight:700}}>
-                                  {loVal>0?(loVal===hiVal?`¥${loVal.toLocaleString()}`:`¥${loVal.toLocaleString()}〜¥${hiVal.toLocaleString()}`):"計算中"}
+                                  {loVal>0?(loVal===hiVal?fmtUsd(loVal):`${fmtUsd(loVal)}〜${fmtUsd(hiVal)}`):"計算中"}
+                                  {loVal>0&&<div style={{fontSize:9,fontWeight:400,color:"#94a3b8"}}>（{yenRange(loVal,hiVal)}）</div>}
                                 </td>
                                 <td style={{padding:"10px 10px",textAlign:"right",fontWeight:900,color:loPnl>=0?"#15803d":"#b91c1c"}}>
                                   {loPnl!==0?(samePnl?pnlStr(loPnl):`${pnlStr(loPnl)}〜${pnlStr(hiPnl)}`):"計算中"}
+                                  {loPnl!==0&&<div style={{fontSize:9,fontWeight:400,color:"#94a3b8"}}>（{yenRange(loPnl,hiPnl)}）</div>}
                                 </td>
                               </tr>
                             );
@@ -1047,9 +1073,10 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                       </table>
                     </div>
 
+                    <p style={{fontSize:10,color:"#94a3b8",lineHeight:1.7,margin:"8px 0 0"}}>{FX_NOTE}</p>
                     <div style={{marginTop:12,padding:"10px 12px",backgroundColor:"#fffbeb",borderRadius:8,border:"1px solid #fde68a"}}>
                       <p style={{fontSize:10,color:"#92400e",lineHeight:1.8,margin:0}}>
-                        ⚠️ 【重要】本シミュレーションは、IPO企業が金融庁に提出した目論見書をAIが分析した結果に基づく試算値であり、実際の株価を保証するものではありません。実際の株価は市場環境・需給・業績等により大きく影響を受け、試算値より大幅に乖離することがあります。想定外の値動きが生じた場合は、ご自身の判断で躊躇なく損切り等の対応をご検討ください。投資判断および結果に対する責任は当サービスでは負いかねます。
+                        ⚠️ 【重要】本シミュレーションは、IPO企業が米国証券取引委員会（SEC）に提出した目論見書をAIが分析した結果に基づく試算値であり、実際の株価を保証するものではありません。実際の株価は市場環境・需給・業績等により大きく影響を受け、試算値より大幅に乖離することがあります。想定外の値動きが生じた場合は、ご自身の判断で躊躇なく損切り等の対応をご検討ください。投資判断および結果に対する責任は当サービスでは負いかねます。
                       </p>
                     </div>
                   </div>
@@ -1161,7 +1188,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
 {/* ===== ここから参考資料（超短期・短期・長期の3分類） ===== */}
 
 <ReferenceGroupHeader
-  icon="⚡" order="①" title="超短期投資家向け" subtitle="初値で勝つ：公募条件・需給・類似IPOの着地点を確認"
+  icon="⚡" order="①" title="超短期投資家向け" subtitle="初日で勝つ：公募条件・需給・類似IPOの着地点を確認"
   accent="#ef4444"
 />
         {visualizationData && <IpoSummaryTable vizData={visualizationData} />}

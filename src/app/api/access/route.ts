@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { syncPlanForUser } from "@/lib/plan-sync";
+
+// 分析レポートを読めるプラン（通知プランは通知だけで、分析レポートは含まない）
+const PAID_ANALYSIS_PLANS = ["report", "complete"];
 
 export async function GET(req: NextRequest) {
   const stockId  = req.nextUrl.searchParams.get("stock_id") ?? "";
@@ -18,7 +22,7 @@ export async function GET(req: NextRequest) {
   const supabaseUser = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get: (n) => cookieStore.get(n)?.value } }
+    { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } }
   );
   const { data: { user } } = await supabaseUser.auth.getUser();
 
@@ -32,24 +36,26 @@ export async function GET(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // サブスクプランを確認
+  // サブスクプランを確認（日本版・米国版共通のプラン。Stripeの契約に合わせて最新にしてから判定する）
   const { data: profile } = await supabase
     .from("user_profiles")
     .select("plan")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
+  const synced = await syncPlanForUser(user);
+  const plan = synced ?? profile?.plan;
 
-  if (profile?.plan && profile.plan !== "free") {
+  if (plan && PAID_ANALYSIS_PLANS.includes(plan)) {
     return NextResponse.json({ access: true, reason: "subscription" });
   }
 
-  // 単品購入を確認
+  // 単品購入を確認（購入した銘柄だけ）
   const { data: purchased } = await supabase
     .from("purchased_stocks")
     .select("id")
     .eq("user_id", user.id)
-    .eq("stock_id", stockId)
-    .single();
+    .eq("company_id", stockId)
+    .maybeSingle();
 
   if (purchased) {
     return NextResponse.json({ access: true, reason: "purchased" });

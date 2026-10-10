@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { jpy, jpyPerItem } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "料金プラン｜大手町調査室九課",
-  description: "IPO企業情報AI分析レポートの料金プラン一覧。無料・通知プラン・レポート無制限・コンプリートパックの4プランをご用意。",
+  description: "米国IPO企業情報AI分析レポートの料金プラン一覧。無料・通知プラン・レポート無制限・コンプリートパックの4プランをご用意。",
 };
 
 const C = {
@@ -24,35 +25,35 @@ const plans = [
     features: [
       { label: "AI分析レポート", value: "月2銘柄", ok: true },
       { label: "週次メール通知", value: "なし", ok: false },
-      { label: "BB・申込・上場日通知", value: "なし", ok: false },
+      { label: "価格決定・上場日通知", value: "なし", ok: false },
       { label: "ロックアップ解除通知", value: "なし", ok: false },
       { label: "カレンダー・メモ機能", value: "あり", ok: true },
-      { label: "シングル購入", value: "¥500/件", ok: true },
+      { label: "シングル購入", value: jpyPerItem("single"), ok: true },
     ],
   },
   {
     id: "notify",
     name: "通知プラン",
-    price: "¥890",
+    price: jpy("notify"),
     period: "/月",
     color: "#0369a1",
     bg: "#eff6ff",
     border: "#bfdbfe",
     badge: null,
-    target: "BB開始を絶対に見逃したくない方・通知重視の方",
+    target: "価格決定日・上場日を絶対に見逃したくない方・通知重視の方",
     features: [
       { label: "AI分析レポート", value: "月2銘柄", ok: true },
       { label: "週次メール通知", value: "あり", ok: true },
-      { label: "BB・申込・上場日通知", value: "あり", ok: true },
+      { label: "価格決定・上場日通知", value: "あり", ok: true },
       { label: "ロックアップ解除通知", value: "あり", ok: true },
       { label: "カレンダー・メモ機能", value: "あり", ok: true },
-      { label: "シングル購入", value: "¥500/件", ok: true },
+      { label: "シングル購入", value: jpyPerItem("single"), ok: true },
     ],
   },
   {
     id: "unlimited",
     name: "レポート無制限",
-    price: "¥1,890",
+    price: jpy("unlimited"),
     period: "/月",
     color: "#7c3aed",
     bg: "#f5f3ff",
@@ -62,7 +63,7 @@ const plans = [
     features: [
       { label: "AI分析レポート", value: "無制限", ok: true },
       { label: "週次メール通知", value: "なし", ok: false },
-      { label: "BB・申込・上場日通知", value: "なし", ok: false },
+      { label: "価格決定・上場日通知", value: "なし", ok: false },
       { label: "ロックアップ解除通知", value: "なし", ok: false },
       { label: "カレンダー・メモ機能", value: "あり", ok: true },
       { label: "シングル購入", value: "不要", ok: true },
@@ -71,7 +72,7 @@ const plans = [
   {
     id: "complete",
     name: "コンプリートパック",
-    price: "¥2,490",
+    price: jpy("complete"),
     period: "/月",
     color: C.nav,
     bg: "#E8EDF5",
@@ -81,7 +82,7 @@ const plans = [
     features: [
       { label: "AI分析レポート", value: "無制限", ok: true },
       { label: "週次メール通知", value: "あり", ok: true },
-      { label: "BB・申込・上場日通知", value: "あり", ok: true },
+      { label: "価格決定・上場日通知", value: "あり", ok: true },
       { label: "ロックアップ解除通知", value: "あり", ok: true },
       { label: "カレンダー・メモ機能", value: "あり", ok: true },
       { label: "シングル購入", value: "不要", ok: true },
@@ -94,7 +95,8 @@ const faqs = [
   { q: "無料プランに期限はありますか？", a: "ありません。登録不要でずっと無料でご利用いただけます。" },
   { q: "決済は安全ですか？", a: "はい。世界標準の決済サービス「Stripe」を使用しています。カード情報は当サービスでは保持しません。" },
   { q: "プランの変更はできますか？", a: "はい。マイページからいつでもプランの変更・アップグレードが可能です。" },
-  { q: "シングルレポートとは何ですか？", a: "サブスク不要で、気になる1銘柄だけを¥500で購入できるプランです。無料枠の2銘柄以外を読みたい場合にご利用ください。" },
+  { q: "日本版・米国版は別々の契約ですか？", a: "いいえ。料金は日本版と同じで、プランは日本版・米国版で共通です。同じメールアドレスで両方に登録していただくと、どちらか一方で加入したプラン（通知プラン・レポート無制限・コンプリートパック）が両方のサイトで有効になります。解約・変更も両方に反映されます。なおシングルレポートは、購入した銘柄だけが読めます。" },
+  { q: "シングルレポートとは何ですか？", a: "サブスク不要で、気になる1銘柄だけを" + jpy("single") + "で購入できるプランです。無料枠の2銘柄以外を読みたい場合にご利用ください。" },
 ];
 
 export default function PlansPage() {
@@ -104,7 +106,7 @@ export default function PlansPage() {
       {/* ヒーロー */}
       <div style={{ background: `linear-gradient(135deg, ${C.dark} 0%, ${C.nav} 100%)`, padding: "56px 24px 64px" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.teal, letterSpacing: "0.1em", marginBottom: 16 }}>PRICING</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#C7D3E3", letterSpacing: "0.1em", marginBottom: 16 }}>PRICING</div>
           <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 900, color: "white", lineHeight: 1.4, marginBottom: 12 }}>
             あなたのIPO投資スタイルに合わせて<br/>選べる4つのプラン
           </h1>
@@ -148,6 +150,10 @@ export default function PlansPage() {
           ))}
         </div>
 
+        <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.8, marginTop: 16, textAlign: "center" }}>
+          ※ 日本版と同じ料金です。日本版・米国版どちらで加入しても、同じメールアドレスで登録した両方のサイトで利用できます。
+        </p>
+
         {/* 比較表 */}
         <div style={{ marginTop: 56 }}>
           <h2 style={{ fontSize: 20, fontWeight: 900, color: C.dark, textAlign: "center", marginBottom: 24 }}>プラン比較表</h2>
@@ -170,10 +176,10 @@ export default function PlansPage() {
                   {[
                     { label: "AI分析レポート",      values: ["月2銘柄", "月2銘柄", "無制限", "無制限"] },
                     { label: "週次メール通知",       values: ["❌", "✅", "❌", "✅"] },
-                    { label: "BB・申込・上場日通知", values: ["❌", "✅", "❌", "✅"] },
+                    { label: "価格決定・上場日通知", values: ["❌", "✅", "❌", "✅"] },
                     { label: "ロックアップ解除通知", values: ["❌", "✅", "❌", "✅"] },
                     { label: "カレンダー・メモ",     values: ["✅", "✅", "✅", "✅"] },
-                    { label: "シングル購入",         values: ["¥500/件", "¥500/件", "不要", "不要"] },
+                    { label: "シングル購入",         values: [jpyPerItem("single"), jpyPerItem("single"), "不要", "不要"] },
                   ].map((row, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${C.border}`, backgroundColor: i % 2 === 0 ? "white" : C.light }}>
                       <td style={{ padding: "12px 16px", fontWeight: 600, color: C.dark, fontSize: 12 }}>{row.label}</td>
@@ -194,7 +200,7 @@ export default function PlansPage() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <h3 style={{ fontSize: 16, fontWeight: 900, color: C.dark, margin: 0 }}>シングルレポート</h3>
-              <span style={{ fontSize: 20, fontWeight: 900, color: "#d97706" }}>¥500/件</span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: "#d97706" }}>{jpyPerItem("single")}</span>
             </div>
             <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.9, margin: 0 }}>
               「この銘柄だけ読みたい」という方向け。サブスク不要で、気になる1銘柄だけを購入できます。<br/>

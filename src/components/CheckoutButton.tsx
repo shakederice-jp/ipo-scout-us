@@ -2,6 +2,7 @@
 
 import { CreditCard, Crown, Bell, BookOpen, Zap } from "lucide-react";
 import { useState } from "react";
+import { jpyMonth, jpyPerItem } from "@/lib/pricing";
 
 type Plan = "notify" | "report" | "complete" | "single";
 
@@ -15,28 +16,28 @@ const PLANS: {
   {
     id: "notify",
     label: "通知プラン",
-    price: "¥890/月",
+    price: jpyMonth("notify"),
     icon: <Bell className="h-3.5 w-3.5" aria-hidden />,
     description: "週末「次週戦略指令書」フル配信",
   },
   {
     id: "report",
     label: "レポート無制限",
-    price: "¥1,890/月",
+    price: jpyMonth("unlimited"),
     icon: <BookOpen className="h-3.5 w-3.5" aria-hidden />,
     description: "全IPO銘柄の超深度分析が読み放題",
   },
   {
     id: "complete",
     label: "コンプリートパック",
-    price: "¥2,490/月",
+    price: jpyMonth("complete"),
     icon: <Crown className="h-3.5 w-3.5" aria-hidden />,
     description: "通知フル＋レポート読み放題・全機能解放",
   },
   {
     id: "single",
     label: "シングルレポート",
-    price: "¥500/件",
+    price: jpyPerItem("single"),
     icon: <Zap className="h-3.5 w-3.5" aria-hidden />,
     description: "特定の1銘柄だけ・永続閲覧",
   },

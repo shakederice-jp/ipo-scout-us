@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { User, CreditCard, Gift, Bell, ShoppingBag, Calendar, Copy, Check, LogOut } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
+import { fmtUsd } from "@/lib/fx";
 
 const PRIMARY = "#1E3A66";
 const DARK = "#0F1F36";
@@ -257,9 +258,8 @@ export default function MyPage() {
         <Section icon={<Bell size={16} />} title="通知設定">
           <p style={{ fontSize: 11, color: "#64748b", marginBottom: 14 }}>毎週金曜18時に翌週のIPOイベントをメールでお知らせします。</p>
           {[
-            { key: "notify_bb",      label: "🟦 BB開始日" },
-            { key: "notify_apply",   label: "📝 申込開始日" },
-            { key: "notify_listing", label: "🔴 上場日" },
+            { key: "notify_bb",      label: "🟦 価格決定日" },
+                        { key: "notify_listing", label: "🔴 上場日" },
             { key: "notify_daily_reminder", label: "⏰ 前日リマインダー（毎日12時・翌日分のみ）" },
             { key: "notify_lockup_90",  label: "🔓 ロックアップ90日解除" },
             { key: "notify_lockup_180", label: "🔓 ロックアップ180日解除" },
@@ -315,7 +315,7 @@ export default function MyPage() {
                   <div key={month} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", backgroundColor: (pnl as number) >= 0 ? "#f0fdf4" : "#fef2f2", borderRadius: 8, border: `1px solid ${(pnl as number) >= 0 ? "#bbf7d0" : "#fecaca"}` }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: DARK }}>{month.replace("-", "年")}月</span>
                     <span style={{ fontSize: 14, fontWeight: 900, color: (pnl as number) >= 0 ? "#15803d" : "#b91c1c" }}>
-                      {(pnl as number) >= 0 ? "+" : ""}{(pnl as number).toLocaleString()}円
+                      {(pnl as number) >= 0 ? "+" : ""}{fmtUsd(pnl as number)}
                     </span>
                   </div>
                 ))}
@@ -329,7 +329,7 @@ export default function MyPage() {
                     </div>
                     {n.pnl != null && (
                       <span style={{ fontSize: 12, fontWeight: 900, color: n.pnl >= 0 ? "#15803d" : "#b91c1c", flexShrink: 0, marginLeft: 8 }}>
-                        {n.pnl >= 0 ? "+" : ""}{n.pnl.toLocaleString()}円
+                        {n.pnl >= 0 ? "+" : ""}{fmtUsd(n.pnl)}
                       </span>
                     )}
                   </div>

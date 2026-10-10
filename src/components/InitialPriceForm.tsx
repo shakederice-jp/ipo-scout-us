@@ -117,7 +117,7 @@ export default function InitialPriceForm() {
           fontSize: 12 }}>
           <strong>{selectedCompany.name}</strong>（{selectedCompany.ticker}）
           　上場日: {selectedCompany.listing_date}
-          　公募価格: {selectedCompany.ipo_price ? `¥${selectedCompany.ipo_price.toLocaleString()}` : "未入力"}
+          　公募価格: {selectedCompany.ipo_price ? `$${selectedCompany.ipo_price.toLocaleString()}` : "未入力"}
           {isPast && selectedCompany.status !== "上場済" && (
             <span style={{ color: "#d97706", fontWeight: 700, marginLeft: 8 }}>⚠️ 上場日を過ぎています</span>
           )}
@@ -137,8 +137,8 @@ export default function InitialPriceForm() {
 
       {/* 初値 */}
       <div style={{ marginBottom: 10 }}>
-        <label style={labelStyle}>初値（円）</label>
-        <input type="number" placeholder="例：1500" value={initPrice}
+        <label style={labelStyle}>初日終値（ドル）</label>
+        <input type="number" placeholder="例：15.50" value={initPrice}
           onChange={e => setInitPrice(e.target.value)} style={inputStyle} />
       </div>
 

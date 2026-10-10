@@ -138,7 +138,7 @@ function scorePrompt(co: any, dataNote: string) {
   const n = co.name ?? "unknown", sc = co.sector ?? "tech", ld = co.listing_date ?? "2026", ex = co.exchange ?? "NASDAQ/NYSE";
   return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
 ${n}（${sc}、${ex}、上場予定${ld}）のIPOを総合評価してください。
-金額は米ドル（USD）基準で扱い、円換算は行わないこと。S-1などSEC提出書類に基づく実データを根拠とすること。
+金額は米ドル（USD）基準で扱い、円換算は行わないこと。マイナス（損失・下落）は「-」で表し、「△」「▲」は使わないこと。S-1などSEC提出書類に基づく実データを根拠とすること。
 JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。文章はすべて「ですます調」で記述すること。
 
 ${dataNote}
@@ -244,7 +244,7 @@ ${dataNote}
   "scenarios_long": [
     {"id": "A", "verdict": "強気", "name": "長期強気シナリオ名", "vsIpo": "+200〜500%", "prob": "25%", "positives": ["好材料1", "好材料2"], "negatives": ["リスク1"], "conclusion": "長期（5〜10年）の要点を50字以内で。ですます調"},
     {"id": "B", "verdict": "中立", "name": "長期中立シナリオ名", "vsIpo": "+50〜150%", "prob": "45%", "positives": ["好材料1"], "negatives": ["リスク1", "リスク2"], "conclusion": "同上。ですます調"},
-    {"id": "C", "verdict": "弱気", "name": "長期弱気シナリオ名", "vsIpo": "▲20〜50%", "prob": "30%", "positives": ["好材料1"], "negatives": ["リスク1", "リスク2"], "conclusion": "同上。ですます調"}
+    {"id": "C", "verdict": "弱気", "name": "長期弱気シナリオ名", "vsIpo": "-20〜-50%", "prob": "30%", "positives": ["好材料1"], "negatives": ["リスク1", "リスク2"], "conclusion": "同上。ですます調"}
   ]
 }`;
 }

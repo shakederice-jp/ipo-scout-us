@@ -6,11 +6,11 @@ import { AppProvider } from "@/contexts/AppContext";
 
 export const metadata: Metadata = {
   title: {
-    default: "IPO Scout | AI駆動のIPO分析・投資判断支援サービス",
-    template: "%s | IPO Scout",
+    default: "IPO Scout US | AI駆動の米国IPO分析・投資判断支援サービス",
+    template: "%s | IPO Scout US",
   },
-  description: "AI分析で日本のIPO投資判断をサポート。初値予測・スコアリング・需給分析・財務分析を提供します。",
-  keywords: ["IPO", "新規上場", "投資", "分析", "初値予測", "日本株"],
+  description: "AI分析で米国のIPO投資判断をサポート。初日騰落率の見通し・スコアリング・需給分析・財務分析を提供します。",
+  keywords: ["IPO", "米国IPO", "新規上場", "投資", "分析", "米国株", "SEC", "S-1"],
   verification: {
     google: "zxV54LwwUEhL4EUHpiVivnO2KykbnhJ3CGS6w01bYH4",
   },

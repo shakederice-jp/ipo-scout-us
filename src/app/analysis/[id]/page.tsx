@@ -1,6 +1,7 @@
 import { fetchIpoCompanyById, fetchIpoCompanies, createSupabaseServerClient, createSupabaseRouteClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 import { createClient } from "@supabase/supabase-js";
+import { syncPlanForUser } from "@/lib/plan-sync";
 import AnalysisClient from "@/components/AnalysisClient";
 import { notFound } from "next/navigation";
 
@@ -26,8 +27,9 @@ async function checkAccess(companyId: string, isFreeCompany: boolean): Promise<b
 
   const routeClient = await createSupabaseRouteClient();
   if (!routeClient) return false;
-  const { data: { session } } = await routeClient.auth.getSession();
-  if (!session) return false;
+  // getSession() はクッキーを検証しないため、認証サーバーで確認する getUser() を使う
+  const { data: { user } } = await routeClient.auth.getUser();
+  if (!user) return false;
 
   const serviceSupabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,15 +39,18 @@ async function checkAccess(companyId: string, isFreeCompany: boolean): Promise<b
   const { data: profile } = await serviceSupabase
     .from("user_profiles")
     .select("plan")
-    .eq("id", session.user.id)
-    .single();
+    .eq("id", user.id)
+    .maybeSingle();
+  // 日本版・米国版は共通のプラン。Stripeの契約に合わせてプランを最新にしてから判定する(src/lib/plan-sync.ts)
+  const synced = await syncPlanForUser(user);
+  const plan = synced ?? profile?.plan;
 
-    if (profile?.plan && ["report", "complete"].includes(profile.plan)) return true;
+  if (plan && ["report", "complete"].includes(plan)) return true;
 
   const { data: purchase } = await serviceSupabase
     .from("purchased_stocks")
     .select("id")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .eq("company_id", companyId)
     .maybeSingle();
 

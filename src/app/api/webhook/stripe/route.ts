@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         user_id: userId,
         company_id: companyId,
         stripe_payment_intent_id: session.payment_intent as string ?? '',
-        amount: session.amount_total ?? 500,
+        amount: session.amount_total ?? 399,
       });
       if (error) console.error('DB insert error:', error);
     }

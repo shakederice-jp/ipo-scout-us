@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { fmtUsd, fmtJpyApprox, FX_LABEL } from "@/lib/fx";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, ReferenceLine, Legend, RadarChart, Radar, PolarGrid,
@@ -54,10 +55,10 @@ const radarData = [
 
 const checkItems = [
   { icon: "🎯", label: "流通比率20%以下", weight: "高", desc: "株数が少ないほど需給が引き締まる" },
-  { icon: "🏦", label: "大手主幹事(野村・大和等)", weight: "高", desc: "販売力が強く機関投資家への配分も厚い" },
+  { icon: "🏦", label: "大手主幹事(ゴールドマン・モルガン・スタンレー等)", weight: "高", desc: "販売力が強く機関投資家への配分も厚い" },
   { icon: "📈", label: "直近3期売上成長率20%以上", weight: "高", desc: "成長の裏付けが需要を呼ぶ" },
   { icon: "🔒", label: "VC保有比率50%以下", weight: "中", desc: "売り圧力の源泉。低いほど安心" },
-  { icon: "💰", label: "公募PER 市場平均以下", weight: "中", desc: "割安なほど初値プレミアムが乗りやすい" },
+  { icon: "💰", label: "公募PER 市場平均以下", weight: "中", desc: "割安なほど初日終値プレミアムが乗りやすい" },
   { icon: "🌊", label: "同セクター直近IPOが好調", weight: "中", desc: "テーマ性と市場の熱量を確認" },
 ];
 
@@ -91,7 +92,7 @@ export default function IpoGuidePage() {
           {/* アンカーリンクボタン */}
           <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
             {[
-              { id: "ultra", label: "⚡ 超短期（初値狙い）", color: C.gold },
+              { id: "ultra", label: "⚡ 超短期（初日終値狙い）", color: C.gold },
               { id: "short", label: "📈 短期（1〜3ヶ月）", color: C.teal },
               { id: "long", label: "🌱 長期（数年〜）", color: C.green },
             ].map(btn => (
@@ -113,7 +114,7 @@ export default function IpoGuidePage() {
           <h2 style={{ fontSize: 18, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>なぜIPO投資は有利なのか</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
             {[
-              { icon: "🎯", title: "公募価格という基準線", desc: "上場前に決まる「公募価格」を基準に初値が形成される。需要超過なら高値スタートが期待できる" },
+              { icon: "🎯", title: "公募価格という基準線", desc: "上場前に決まる「公募価格」を基準に初日終値が形成される。需要超過なら高値スタートが期待できる" },
               { icon: "📊", title: "情報の非対称性", desc: "目論見書という一次情報が公開される。AIで素早く分析できれば大きな優位性になる" },
               { icon: "🔒", title: "ロックアップ制度", desc: "主要株主の売却制限が一定期間かかる。需給が安定しやすい側面がある" },
             ].map((item, i) => (
@@ -130,23 +131,23 @@ export default function IpoGuidePage() {
         <div id="ultra" style={{ scrollMarginTop: 80 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "40px 0 20px" }}>
             <span style={{ background: C.gold, color: "white", fontWeight: 900, fontSize: 12, padding: "4px 12px", borderRadius: 20 }}>CHAPTER 1</span>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: C.nav, margin: 0 }}>⚡ 超短期戦略 — 初値で勝つ</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: C.nav, margin: 0 }}>⚡ 超短期戦略 — 初日終値で勝つ</h2>
           </div>
           <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.8, marginBottom: 24 }}>
-            上場初日の「初値」で売却するスキャルピング的戦略。需給分析が命。流通株数が少なく、人気が集中した銘柄は公募価格の2〜3倍になることも珍しくない。
+            上場初日の「初日終値」で売却するスキャルピング的戦略。需給分析が命。流通株数が少なく、人気が集中した銘柄は公募価格の2〜3倍になることも珍しくない。
           </p>
 
           {/* 流通比率と騰落率グラフ */}
           <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>流通比率と平均初値騰落率の関係</h3>
-            <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータによる例示。流通比率が低いほど初値上昇率が高い傾向がある</p>
+            <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>流通比率と平均初日終値騰落率の関係</h3>
+            <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータによる例示。流通比率が低いほど初日終値上昇率が高い傾向がある</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={initialReturnData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e0f0f0" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `+${v}%`} />
-                <Tooltip formatter={(v: any) => [`+${v}%`, "平均初値騰落率"]} />
-                <Bar dataKey="rate" name="平均初値騰落率" radius={[6, 6, 0, 0]}>
+                <Tooltip formatter={(v: any) => [`+${v}%`, "平均初日終値騰落率"]} />
+                <Bar dataKey="rate" name="平均初日終値騰落率" radius={[6, 6, 0, 0]}>
                   {initialReturnData.map((_, i) => (
                     <Cell key={i} fill={i === 0 ? C.gold : i === 1 ? C.teal : i === 2 ? "#94a3b8" : "#cbd5e1"} />
                   ))}
@@ -157,7 +158,7 @@ export default function IpoGuidePage() {
 
           {/* 勝率を上げる6つのチェックリスト */}
           <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>初値狙いの勝率チェックリスト</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>初日終値狙いの勝率チェックリスト</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {checkItems.map((item, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", background: C.bg, borderRadius: 10, border: "1px solid #e2e8f0" }}>
@@ -177,7 +178,7 @@ export default function IpoGuidePage() {
           {/* レーダーチャート */}
           <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
             <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 4px" }}>お宝銘柄のスコア例（6軸評価）</h3>
-            <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータ。全方位で高スコアの銘柄が初値買いの最良候補</p>
+            <p style={{ fontSize: 11, color: "#94a3b8", margin: "0 0 16px" }}>※サンプルデータ。全方位で高スコアの銘柄が初日終値買いの最良候補</p>
             <ResponsiveContainer width="100%" height={260}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="#e2e8f0" />
@@ -192,7 +193,7 @@ export default function IpoGuidePage() {
           <div style={{ background: `linear-gradient(135deg, #fef3c7, #fffbeb)`, borderRadius: 12, padding: "16px 20px", border: "1px solid #fde68a" }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#92400e", marginBottom: 8 }}>⚡ 超短期の核心</div>
             <p style={{ fontSize: 13, color: "#78350f", lineHeight: 1.7, margin: 0 }}>
-              流通比率・主幹事・需給の3点セットを見るだけで、初値勝率は大幅に上がる。当社のAI分析では9軸スコアで需給の強弱を数値化。目論見書を読む時間がなくても、お宝銘柄を素早く見極められる。
+              流通比率・主幹事・需給の3点セットを見るだけで、初日終値勝率は大幅に上がる。当社のAI分析では9軸スコアで需給の強弱を数値化。目論見書を読む時間がなくても、お宝銘柄を素早く見極められる。
             </p>
           </div>
         </div>
@@ -226,26 +227,26 @@ export default function IpoGuidePage() {
             </div>
           </div>
 
-          {/* 初値売り vs 保有比較表 */}
+          {/* 初日終値売り vs 保有比較表 */}
           <div style={{ background: "white", borderRadius: 16, padding: "24px", marginBottom: 20, border: "1px solid #C7D3E3" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>初値売り vs 短期保有 損益シミュレーション</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 900, color: C.nav, margin: "0 0 16px" }}>初日終値売り vs 短期保有 損益シミュレーション</h3>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: C.bg }}>
                     <th style={{ padding: "10px 12px", textAlign: "left", color: "#64748b", fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>銘柄タイプ</th>
-                    <th style={{ padding: "10px 12px", textAlign: "center", color: "#64748b", fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>初値騰落率</th>
-                    <th style={{ padding: "10px 12px", textAlign: "center", color: C.teal, fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>初値売り損益</th>
+                    <th style={{ padding: "10px 12px", textAlign: "center", color: "#64748b", fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>初日終値騰落率</th>
+                    <th style={{ padding: "10px 12px", textAlign: "center", color: C.teal, fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>初日終値売り損益</th>
                     <th style={{ padding: "10px 12px", textAlign: "center", color: C.gold, fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>3ヶ月後損益</th>
                     <th style={{ padding: "10px 12px", textAlign: "left", color: "#64748b", fontWeight: 700, borderBottom: "2px solid #e2e8f0" }}>推奨戦略</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { type: "高需給・成長株", first: "+80%", sell: "+80,000円", hold: "+120,000円", rec: "保有継続", recColor: C.green },
-                    { type: "高需給・割高株", first: "+60%", sell: "+60,000円", hold: "+20,000円", rec: "初値売り", recColor: C.teal },
-                    { type: "中需給・普通株", first: "+20%", sell: "+20,000円", hold: "+5,000円", rec: "初値売り", recColor: C.teal },
-                    { type: "低需給・公募割れ", first: "-10%", sell: "-10,000円", hold: "-25,000円", rec: "早期損切り", recColor: C.red },
+                    { type: "高需給・成長株", first: "+80%", sell: "+$800", hold: "+$1,200", rec: "保有継続", recColor: C.green },
+                    { type: "高需給・割高株", first: "+60%", sell: "+$600", hold: "+$200", rec: "初日終値売り", recColor: C.teal },
+                    { type: "中需給・普通株", first: "+20%", sell: "+$200", hold: "+$50", rec: "初日終値売り", recColor: C.teal },
+                    { type: "低需給・公募割れ", first: "-10%", sell: "-$100", hold: "-$250", rec: "早期損切り", recColor: C.red },
                   ].map((row, i) => (
                     <tr key={i} style={{ borderBottom: "1px solid #f0fafa" }}>
                       <td style={{ padding: "10px 12px", fontWeight: 700, color: C.nav }}>{row.type}</td>
@@ -260,13 +261,13 @@ export default function IpoGuidePage() {
                 </tbody>
               </table>
             </div>
-            <p style={{ fontSize: 10, color: "#94a3b8", margin: "12px 0 0" }}>※公募100株（10万円）を取得した場合のシミュレーション。手数料・税金は考慮外。</p>
+            <p style={{ fontSize: 10, color: "#94a3b8", margin: "12px 0 0" }}>※公募価格$10の銘柄を100株（{fmtUsd(1000)}・{fmtJpyApprox(1000)}・{FX_LABEL}）取得した場合のシミュレーション。手数料・税金は考慮外。</p>
           </div>
 
           <div style={{ background: `linear-gradient(135deg, #f0fdf4, #dcfce7)`, borderRadius: 12, padding: "16px 20px", border: "1px solid #bbf7d0" }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#166534", marginBottom: 8 }}>📈 短期の核心</div>
             <p style={{ fontSize: 13, color: "#14532d", lineHeight: 1.7, margin: 0 }}>
-              「成長株は保有、割高株は初値売り」が鉄則。AI分析の短期グレード（B以上）かつロックアップ解除まで90日以上あれば保有継続を検討する価値がある。
+              「成長株は保有、割高株は初日終値売り」が鉄則。AI分析の短期グレード（B以上）かつロックアップ解除まで90日以上あれば保有継続を検討する価値がある。
             </p>
           </div>
         </div>
