@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { notifyAdmin } from "@/lib/notify-admin";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 export const maxDuration = 60;
 
@@ -10,9 +11,7 @@ const getSupabase = () => createClient(
 );
 
 export async function GET(req: NextRequest) {
-    const authHeader = req.headers.get("authorization");
-    const adminPw = req.headers.get("x-admin-password");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && adminPw !== "otemachi9") {
+    if (!isAdminRequest(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

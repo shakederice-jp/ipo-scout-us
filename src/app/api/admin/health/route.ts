@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
+import { isAdminRequest } from "@/lib/admin-auth";
 
 export async function GET(req: NextRequest) {
-    const auth = req.headers.get("x-admin-password");
-    if (auth !== process.env.ADMIN_PASSWORD && auth !== "otemachi9") {
+    if (!isAdminRequest(req)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
