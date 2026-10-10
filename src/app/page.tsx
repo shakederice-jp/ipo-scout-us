@@ -83,9 +83,9 @@ export default async function Home({
           <a href="/trends" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#1E3A66", border:"2px solid #1E3A66", textDecoration:"none" }}>
             <div>
               <div style={{ fontSize:13, fontWeight:900, color:"white" }}>📡 大手町発マーケットトレンド</div>
-              <div style={{ fontSize:10, color:"#a0d4d6", marginTop:2 }}>IPO・スタートアップ・資金調達の最新動向</div>
+              <div style={{ fontSize:10, color:"#C7D3E3", marginTop:2 }}>IPO・スタートアップ・資金調達の最新動向</div>
             </div>
-            <span style={{ fontSize:16, color:"#1E3A66" }}>→</span>
+            <span style={{ fontSize:16, color:"#ffffff" }}>→</span>
           </a>
 
 {/* IPO投資ガイドへのリンク */}
@@ -123,10 +123,10 @@ export default async function Home({
           {/* 購入パネル */}
           <div style={cardStyle}>
             <div style={{ padding:"12px 16px", backgroundColor:"#1E3A66", display:"flex", alignItems:"center", gap:8 }}>
-              <Crown size={16} color="#0F1F36" />
+              <Crown size={16} color="#ffffff" />
               <div>
-                <div style={{ fontWeight:900, fontSize:13, color:"#0F1F36" }}>有料プランのお申込み</div>
-                <div style={{ fontSize:10, color:"#1E3A66" }}>Stripeで安全決済 🔒</div>
+                <div style={{ fontWeight:900, fontSize:13, color:"#ffffff" }}>有料プランのお申込み</div>
+                <div style={{ fontSize:10, color:"#C7D3E3" }}>Stripeで安全決済 🔒</div>
               </div>
             </div>
             <div style={{ padding:16, backgroundColor:"white" }}>

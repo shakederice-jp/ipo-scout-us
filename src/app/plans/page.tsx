@@ -121,7 +121,7 @@ export default function PlansPage() {
           {plans.map(plan => (
             <div key={plan.id} style={{ backgroundColor: "white", borderRadius: 20, border: `2px solid ${plan.border}`, overflow: "hidden", boxShadow: plan.badge ? "0 4px 24px rgba(102,195,198,0.2)" : "0 2px 8px rgba(0,0,0,0.06)", position: "relative" }}>
               {plan.badge && (
-                <div style={{ backgroundColor: C.teal, color: C.dark, fontSize: 11, fontWeight: 900, textAlign: "center", padding: "6px 0" }}>
+                <div style={{ backgroundColor: C.teal, color: "#ffffff", fontSize: 11, fontWeight: 900, textAlign: "center", padding: "6px 0" }}>
                   {plan.badge}
                 </div>
               )}
@@ -223,7 +223,7 @@ export default function PlansPage() {
             毎月最初の2銘柄は完全無料。登録不要ですぐ読めます。
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="/" style={{ padding: "12px 28px", backgroundColor: C.teal, color: C.dark, borderRadius: 10, fontWeight: 900, fontSize: 14, textDecoration: "none" }}>
+            <a href="/" style={{ padding: "12px 28px", backgroundColor: C.teal, color: "#ffffff", borderRadius: 10, fontWeight: 900, fontSize: 14, textDecoration: "none" }}>
               無料で始める →
             </a>
             <a href="/auth" style={{ padding: "12px 28px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", borderRadius: 10, fontWeight: 700, fontSize: 14, textDecoration: "none", border: "1px solid rgba(255,255,255,0.3)" }}>

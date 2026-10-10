@@ -2,7 +2,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine } from "recharts";
 
 const C = { teal: "#1E3A66", nav: "#1E3A66", bg: "#f0fafa" };
-const COLORS = ["#1E3A66","#1E3A66","#f59e0b","#6366f1","#10b981","#f43f5e","#8b5cf6","#ec4899"];
+const COLORS = ["#1E3A66","#8FB6EE","#f59e0b","#6366f1","#10b981","#f43f5e","#8b5cf6","#ec4899"];
 
 function CardShell({ children }: { children: React.ReactNode }) {
   return (
@@ -36,7 +36,7 @@ export function RevenueChart({ vizData }: { vizData: any }) {
           <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => Number(v).toLocaleString()} />
           <Tooltip formatter={(value: any) => [`${Number(value).toLocaleString()}百万ドル`]} />
           <Legend />
-          <Bar dataKey="revenue" name="売上高" fill={C.teal} radius={[4,4,0,0]} />
+          <Bar dataKey="revenue" name="売上高" fill="#8FB6EE" radius={[4,4,0,0]} />
           <Bar dataKey="profit" name="営業損益" fill={C.nav} radius={[4,4,0,0]} />
         </BarChart>
       </ResponsiveContainer>

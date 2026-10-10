@@ -2,7 +2,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const C = { teal: "#1E3A66", nav: "#1E3A66", bg: "#f0fafa" };
-const COLORS = ["#1E3A66","#1E3A66","#f59e0b","#6366f1","#10b981","#f43f5e","#8b5cf6","#ec4899"];
+const COLORS = ["#1E3A66","#8FB6EE","#f59e0b","#6366f1","#10b981","#f43f5e","#8b5cf6","#ec4899"];
 
 function CardShell({ children }: { children: React.ReactNode }) {
   return (

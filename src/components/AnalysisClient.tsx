@@ -537,8 +537,8 @@ function ReferenceGroupHeader({icon,order,title,subtitle,accent}:{icon:string;or
       </div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontWeight:900,fontSize:11,color:accent,letterSpacing:"0.02em",marginBottom:2}}>【参考資料{order}】</div>
-        <div style={{fontWeight:900,fontSize:15,color:DARK,lineHeight:1.3}}>{title}</div>
-        <div style={{fontSize:10,color:MID,marginTop:3}}>{subtitle}</div>
+        <div style={{fontWeight:900,fontSize:15,color:"white",lineHeight:1.3}}>{title}</div>
+        <div style={{fontSize:10,color:"#C7D3E3",marginTop:3}}>{subtitle}</div>
       </div>
       <a href="/ipo-guide" style={{fontSize:10,color:accent,textDecoration:"none",fontWeight:700,
         whiteSpace:"nowrap",flexShrink:0,border:`1px solid ${accent}`,borderRadius:20,padding:"4px 10px",
@@ -766,11 +766,11 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12}}>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:8}}>
-                  {company.exchange&&<span style={{fontWeight:900,fontSize:10,padding:"2px 8px",borderRadius:8,backgroundColor:"rgba(255,255,255,0.25)",color:DARK}}>{company.exchange}</span>}
-                  {company.ticker&&<span style={{fontWeight:700,fontSize:10,color:MID}}>{company.ticker}</span>}
+                  {company.exchange&&<span style={{fontWeight:900,fontSize:10,padding:"2px 8px",borderRadius:8,backgroundColor:"rgba(255,255,255,0.22)",color:"white"}}>{company.exchange}</span>}
+                  {company.ticker&&<span style={{fontWeight:700,fontSize:10,color:"#C7D3E3"}}>{company.ticker}</span>}
                 </div>
-                <h1 style={{fontWeight:900,fontSize:24,color:DARK,lineHeight:1.2,margin:"0 0 4px"}}>{company.name}</h1>
-                {company.sector&&<div style={{fontWeight:600,fontSize:12,color:MID,marginBottom:10}}>{company.sector}</div>}
+                <h1 style={{fontWeight:900,fontSize:24,color:"white",lineHeight:1.2,margin:"0 0 4px"}}>{company.name}</h1>
+                {company.sector&&<div style={{fontWeight:600,fontSize:12,color:"#C7D3E3",marginBottom:10}}>{company.sector}</div>}
                 <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                   {company.listing_date&&(
                     <div style={{backgroundColor:"rgba(255,255,255,0.85)",borderRadius:8,padding:"6px 10px"}}>
@@ -873,10 +873,10 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
         {!hasAccess && (
           <div style={{borderRadius:14,padding:"20px",backgroundColor:"#1E3A66",color:"white",textAlign:"center"}}>
             <div style={{fontSize:15,fontWeight:900,marginBottom:6}}>🔒 ここから先は有料コンテンツです</div>
-            <p style={{fontSize:12,color:"#a0d4d6",margin:"0 0 14px",lineHeight:1.7}}>
+            <p style={{fontSize:12,color:"#C7D3E3",margin:"0 0 14px",lineHeight:1.7}}>
             軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上へのご加入、またはこの銘柄の単品購入（¥500）が必要です。
             </p>
-            <a href="/plans" style={{display:"inline-block",padding:"10px 24px",backgroundColor:"#1E3A66",color:"#0F1F36",borderRadius:8,fontWeight:800,fontSize:13,textDecoration:"none"}}>
+            <a href="/plans" style={{display:"inline-block",padding:"10px 24px",backgroundColor:"white",color:"#1E3A66",borderRadius:8,fontWeight:800,fontSize:13,textDecoration:"none"}}>
               料金プランを見る →
             </a>
           </div>
@@ -1065,8 +1065,8 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,marginBottom:12}}>
               <div>
                 <span style={{fontWeight:900,fontSize:9,letterSpacing:"0.1em",padding:"2px 8px",borderRadius:4,backgroundColor:DARK,color:"white",display:"inline-block",marginBottom:6}}>DEEP ANALYSIS</span>
-                <h2 style={{fontWeight:900,fontSize:18,color:DARK,margin:"0 0 2px"}}>詳細分析 深掘りレポート</h2>
-                <p style={{fontSize:10,color:MID,margin:"0 0 8px"}}>投資時間軸（超短期・短期・長期）で整理した9軸分析</p>
+                <h2 style={{fontWeight:900,fontSize:18,color:"white",margin:"0 0 2px"}}>詳細分析 深掘りレポート</h2>
+                <p style={{fontSize:10,color:"#C7D3E3",margin:"0 0 8px"}}>投資時間軸（超短期・短期・長期）で整理した9軸分析</p>
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:4}}>
                   {(()=>{
                     const shareId=(company as any).ticker??company.id;

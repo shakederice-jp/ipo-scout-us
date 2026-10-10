@@ -22,13 +22,13 @@ export default function ReferralSection({ userId }: { userId: string }) {
     <div className="rounded-2xl overflow-hidden" style={{ border: "2px solid #C7D3E3" }}>
       <div className="px-4 py-3" style={{ backgroundColor: "#1E3A66" }}>
         <div className="flex items-center gap-2">
-          <Gift size={16} style={{ color: "#0F1F36" }} />
-          <span className="font-black text-sm" style={{ color: "#0F1F36" }}>
+          <Gift size={16} style={{ color: "#ffffff" }} />
+          <span className="font-black text-sm" style={{ color: "#ffffff" }}>
             友達招待プログラム
           </span>
           
         </div>
-        <p style={{ fontSize: "10px", marginTop: "2px", color: "#1E3A66" }}>
+        <p style={{ fontSize: "10px", marginTop: "2px", color: "#C7D3E3" }}>
           🎁 今だけ・期間限定（予告なく終了）
         </p>
       </div>

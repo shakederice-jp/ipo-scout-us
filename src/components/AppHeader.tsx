@@ -25,7 +25,7 @@ export default function AppHeader({ slot }: { slot?: React.ReactNode }) {
             <span style={{ fontSize: 12, fontWeight: 900, color: "#ffffff", letterSpacing: "0.3px", lineHeight: 1.3 }}>
               {lang === "ja" ? "IPO企業情報AI分析レポート" : "IPO Analysis AI Report"}
             </span>
-            <span style={{ fontSize: 10, fontWeight: 500, color: "#a0d4d6", lineHeight: 1.3 }}>
+            <span style={{ fontSize: 10, fontWeight: 500, color: "#C7D3E3", lineHeight: 1.3 }}>
               {lang === "ja" ? "担当：大手町調査室九課" : "by Otemachi Research Lab"}
             </span>
           </div>
@@ -36,29 +36,29 @@ export default function AppHeader({ slot }: { slot?: React.ReactNode }) {
               <button key={s} onClick={() => setFontSize(s)} style={{
                 fontSize: s === "sm" ? 13 : s === "md" ? 15 : 17,
                 fontWeight: fontSize === s ? 700 : 400,
-                color: fontSize === s ? C.teal : "#a0d4d6",
+                color: fontSize === s ? "#ffffff" : "#C7D3E3",
                 background: "none", border: "none", cursor: "pointer", padding: "2px 5px", borderRadius: 4,
-                backgroundColor: fontSize === s ? "rgba(102,195,198,0.2)" : "transparent",
+                backgroundColor: fontSize === s ? "rgba(255,255,255,0.22)" : "transparent",
               }}>A</button>
             ))}
           </div>
           <Link href="/trends" style={{
-            fontSize: 11, fontWeight: 600, color: "#1E3A66",
-            backgroundColor: "rgba(102,195,198,0.15)", border: "1px solid rgba(102,195,198,0.3)",
+            fontSize: 11, fontWeight: 600, color: "#ffffff",
+            backgroundColor: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.35)",
             borderRadius: 6, padding: "3px 8px", cursor: "pointer", textDecoration: "none",
           }}>📡 トレンド</Link>
                  </div>
       </div>
       {crumbs.length > 0 && (
-        <div style={{ backgroundColor: "rgba(0,0,0,0.2)", borderTop: "1px solid rgba(102,195,198,0.15)" }}>
+        <div style={{ backgroundColor: "rgba(0,0,0,0.2)", borderTop: "1px solid rgba(255,255,255,0.12)" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               {crumbs.map((c, i) => (
                 <span key={c.href} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  {i > 0 && <span style={{ color: "#a0d4d6", fontSize: 10 }}>›</span>}
+                  {i > 0 && <span style={{ color: "#C7D3E3", fontSize: 10 }}>›</span>}
                   {c.link
-                    ? <Link href={c.href} style={{ fontSize: 11, color: "#a0d4d6", textDecoration: "none" }}>{c.label}</Link>
-                    : <span style={{ fontSize: 11, color: C.teal, fontWeight: 600 }}>{c.label}</span>}
+                    ? <Link href={c.href} style={{ fontSize: 11, color: "#C7D3E3", textDecoration: "none" }}>{c.label}</Link>
+                    : <span style={{ fontSize: 11, color: "#ffffff", fontWeight: 600 }}>{c.label}</span>}
                 </span>
               ))}
             </div>
