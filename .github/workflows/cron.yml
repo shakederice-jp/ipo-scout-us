@@ -14,3 +14,6 @@ jobs:
       - name: Run SEC Track
         if: always()
         run: "curl -fsS -X GET https://ipo-us.finance-tower.com/api/cron/sec-track -H 'Authorization: Bearer ${{ secrets.CRON_SECRET }}'"
+      - name: Run US Price Track
+        if: always()
+        run: "curl -fsS -X GET https://ipo-us.finance-tower.com/api/cron/us-price-track -H 'Authorization: Bearer ${{ secrets.CRON_SECRET }}'"

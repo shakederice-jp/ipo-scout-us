@@ -2,6 +2,19 @@
 import { useState, useEffect } from "react";
 import InitialPriceForm from "@/components/InitialPriceForm";
 
+// 2026/10追加: SEC書類の進み具合(sec-track が毎日更新する sec_stage)の表示用
+const STAGE_INFO: Record<string, { label: string; color: string; bg: string; rank: number }> = {
+  priced:    { label: "価格決定・上場", color: "#166534", bg: "#dcfce7", rank: 4 },
+  launched:  { label: "価格帯発表",     color: "#92400e", bg: "#fef3c7", rank: 3 },
+  amended:   { label: "修正版提出",     color: "#1e40af", bg: "#dbeafe", rank: 2 },
+  filed:     { label: "上場申請(S-1)",  color: "#475569", bg: "#e2e8f0", rank: 1 },
+  withdrawn: { label: "撤回",           color: "#991b1b", bg: "#fee2e2", rank: 0 },
+};
+const stageOf = (c: any) =>
+  STAGE_INFO[c?.sec_stage ?? ""] ?? { label: c?.cik ? "未確認" : "手動登録", color: "#64748b", bg: "#f1f5f9", rank: -1 };
+const fmtUsd = (lo: any, hi: any) =>
+  lo == null || hi == null ? null : Number(lo) === Number(hi) ? `$${lo}` : `$${lo}〜$${hi}`;
+
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
@@ -605,6 +618,47 @@ export default function AdminPage() {
           <div className="admin-col" style={{ width:"50%", display:"flex", flexDirection:"column", gap:12 }}>
 
 
+            {/* SEC書類の進み具合(2026/10追加) */}
+            <div style={sectionStyle}>
+              <h2 style={{ fontSize:"15px", fontWeight:900, color:"#0F1F36", marginBottom:4 }}>📡 SEC書類の進み具合</h2>
+              <p style={{ fontSize:11, color:"#64748b", marginBottom:10, lineHeight:1.6 }}>毎日自動で更新されます。行をクリックすると、下の「銘柄分析」でその銘柄が選択されます。</p>
+              {companies.length === 0 ? (
+                <p style={{ fontSize:12, color:"#94a3b8" }}>登録された銘柄がありません</p>
+              ) : (
+                <>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+                    {Object.entries(STAGE_INFO).sort((a,b)=>b[1].rank-a[1].rank).map(([key,info])=>{
+                      const n = companies.filter(c=>c.sec_stage===key).length;
+                      return <span key={key} style={{ fontSize:10, fontWeight:800, padding:"3px 10px", borderRadius:999, color:info.color, background:info.bg }}>{info.label} {n}</span>;
+                    })}
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:360, overflowY:"auto" }}>
+                    {[...companies].sort((a,b)=>stageOf(b).rank-stageOf(a).rank || String(b.sec_last_filed??"").localeCompare(String(a.sec_last_filed??""))).map(c=>{
+                      const st = stageOf(c);
+                      const range = fmtUsd(c.price_range_min, c.price_range_max);
+                      return (
+                        <button key={c.id} onClick={()=>handleSelectCompany(c)}
+                          style={{ textAlign:"left" as const, cursor:"pointer", padding:"8px 10px", borderRadius:8, border:selectedCompany?.id===c.id?"2px solid #1E3A66":"1px solid #e2e8f0", background:selectedCompany?.id===c.id?"#f0f5ff":"#fff" }}>
+                          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" as const }}>
+                            <span style={{ fontSize:12, fontWeight:800, color:"#0F1F36" }}>{c.name}</span>
+                            <span style={{ fontSize:10, fontWeight:800, padding:"2px 8px", borderRadius:999, color:st.color, background:st.bg }}>{st.label}</span>
+                          </div>
+                          <div style={{ fontSize:10.5, color:"#64748b", marginTop:3, lineHeight:1.6 }}>
+                            {c.sec_last_form ? `最新書類: ${c.sec_last_form}（${c.sec_last_filed ?? "-"}）` : "最新書類: 未確認"}
+                            {c.ticker ? `　${c.exchange ?? ""} ${c.ticker}` : ""}
+                            {range ? `　価格帯 ${range}` : ""}
+                            {`　上場日 ${c.listing_date ?? "未定"}`}
+                            {c.price_track?.day1?.ret_close_pct != null ? `　初日終値 ${c.price_track.day1.ret_close_pct >= 0 ? "+" : ""}${c.price_track.day1.ret_close_pct}%` : ""}
+                            {c.price_track?.latest?.ret_pct != null ? `　最新 ${c.price_track.latest.ret_pct >= 0 ? "+" : ""}${c.price_track.latest.ret_pct}%` : ""}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* 銘柄分析 */}
             <div style={sectionStyle}>
               <h2 style={{ fontSize:"15px", fontWeight:900, color:"#0F1F36", marginBottom:4 }}>🔬 銘柄分析（手動作業）</h2>
@@ -614,7 +668,7 @@ export default function AdminPage() {
                 <label style={labelStyle}>📌 分析する銘柄を選択 *</label>
                 <select onChange={e=>{ const c=companies.find(x=>x.id===e.target.value); if(c) handleSelectCompany(c); }} style={inputStyle} value={selectedCompany?.id??""}>
                   <option value="">-- 銘柄を選択してください --</option>
-                  {companies.map(c=><option key={c.id} value={c.id}>{c.name}（{c.listing_date}）</option>)}
+                  {companies.map(c=><option key={c.id} value={c.id}>{c.name}（{c.listing_date ?? "上場日未定"}）［{stageOf(c).label}］</option>)}
                 </select>
               </div>
 
@@ -622,6 +676,7 @@ export default function AdminPage() {
                 <>
                   <div style={{ background:"#f0fdf4", borderRadius:8, padding:"8px 12px", marginBottom:14, fontSize:12, color:"#166534" }}>
                     ✅ 選択中：<strong>{selectedCompany.name}</strong>
+                    <span style={{ marginLeft:8, fontSize:10, fontWeight:800, padding:"2px 8px", borderRadius:999, color:stageOf(selectedCompany).color, background:stageOf(selectedCompany).bg }}>{stageOf(selectedCompany).label}</span>
                   </div>
                   <div style={{ background:"#fffbeb", borderRadius:8, padding:12, marginBottom:14, border:"1px solid #fde68a" }}>
                     <label style={{ ...labelStyle, color:"#92400e" }}>💵 公募価格（ドル）※価格決定後に入力</label>

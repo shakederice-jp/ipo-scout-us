@@ -578,6 +578,64 @@ function ReferenceGroupHeader({icon,order,title,subtitle,accent}:{icon:string;or
   );
 }
 
+// 2026/10追加: 上場後の値動き(us-price-trackが毎日計算して ipo_companies.price_track に保存したもの)の表示
+function PriceTrackCard({track}:{track:any}) {
+  const d1=track?.day1;
+  if(!d1) return null;
+  const ipo:number|null=track.ipo_price??null;
+  const series:[string,number][]=Array.isArray(track.series)?track.series:[];
+  const fmt=(n:number|null|undefined)=>n==null?"—":`${n>=0?"+":""}${n.toFixed(1)}%`;
+  const col=(n:number|null|undefined)=>n==null?"#64748b":n>=0?"#16a34a":"#dc2626";
+  const W=300,H=84,PAD=6;
+  const vals=series.map(p=>p[1]);
+  const lo=Math.min(...vals,...(ipo!=null?[ipo]:[])),hi=Math.max(...vals,...(ipo!=null?[ipo]:[]));
+  const span=hi-lo||1;
+  const X=(i:number)=>series.length<=1?W/2:PAD+(i/(series.length-1))*(W-PAD*2);
+  const Y=(v:number)=>H-PAD-((v-lo)/span)*(H-PAD*2);
+  const line=series.map((p,i)=>`${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(" ");
+  const tiles:{label:string;price:number|null;ret:number|null|undefined;sub?:string}[]=[
+    {label:"公募価格",price:ipo,ret:null},
+    {label:"初値(始値)",price:d1.open,ret:d1.ret_open_pct,sub:d1.date},
+    {label:"初日終値",price:d1.close,ret:d1.ret_close_pct},
+    {label:"直近の終値",price:track.latest?.close??null,ret:track.latest?.ret_pct,sub:track.latest?.date},
+  ];
+  const miles:[string,any][]=[["1週間後",track.w1],["1か月後",track.m1],["3か月後",track.m3],["6か月後",track.m6]];
+  return (
+    <Card>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+        <TrendingUp size={14} color={PRIMARY}/>
+        <span style={{fontWeight:900,fontSize:14,color:DARK}}>上場後の値動き</span>
+        <span style={{fontSize:10,color:"#94a3b8"}}>公募価格との比較・終値ベース</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:8,marginBottom:10}}>
+        {tiles.map(t=>(
+          <div key={t.label} style={{backgroundColor:LIGHT,borderRadius:10,padding:"8px 10px"}}>
+            <div style={{fontSize:9,fontWeight:700,color:MID}}>{t.label}{t.sub?`（${t.sub}）`:""}</div>
+            <div style={{fontWeight:900,fontSize:15,color:DARK}}>{t.price!=null?`$${t.price}`:"—"}</div>
+            {t.ret!==null&&<div style={{fontWeight:800,fontSize:11,color:col(t.ret)}}>{fmt(t.ret)}</div>}
+          </div>
+        ))}
+      </div>
+      {series.length>=2&&(
+        <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto",display:"block",marginBottom:8}} role="img" aria-label="上場後の終値の推移">
+          {ipo!=null&&<line x1={PAD} x2={W-PAD} y1={Y(ipo)} y2={Y(ipo)} stroke="#94a3b8" strokeDasharray="4 3" strokeWidth={1}/>}
+          <polyline points={line} fill="none" stroke={PRIMARY} strokeWidth={2} strokeLinejoin="round"/>
+        </svg>
+      )}
+      {ipo!=null&&series.length>=2&&<div style={{fontSize:9,color:"#94a3b8",marginBottom:8}}>破線は公募価格（${ipo}）</div>}
+      <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+        {miles.filter(([,m])=>m).map(([label,m])=>(
+          <span key={label} style={{fontSize:11,padding:"3px 10px",borderRadius:999,backgroundColor:"white",border:`1px solid ${BORDER}`,color:TTEXT}}>
+            {label} <strong style={{color:col(m.ret_pct)}}>{fmt(m.ret_pct)}</strong>
+          </span>
+        ))}
+      </div>
+      {track.quiet_end&&<div style={{fontSize:10,color:"#64748b",marginTop:8,lineHeight:1.7}}>引受証券会社のアナリスト評価が出始める目安：{track.quiet_end}（上場の約25日後）</div>}
+      <div style={{fontSize:9,color:"#94a3b8",marginTop:6,lineHeight:1.7}}>株価はYahoo Financeから自動取得しています（最終更新：{track.updated}）。投資の判断はご自身の責任でお願いします。</div>
+    </Card>
+  );
+}
+
 export default function AnalysisClient({company,initialAnalysis,visualizationData,allCompanies,hasAccess=true,level="expert"}:{company:IpoCompany;initialAnalysis:Analysis|null;visualizationData?:any;allCompanies?:any[];hasAccess?:boolean;level?:"expert"|"beginner"}) {
   const [analysis]=useState<Analysis|null>(initialAnalysis);
   const [scenTab,setScenTab]=useState<"short"|"long">("short");
@@ -824,6 +882,8 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             </div>
           </div>
         </div>
+
+        {(company as any).price_track?.day1&&<PriceTrackCard track={(company as any).price_track}/>}
 
         {/* このレポートの読み方（総論→各論→参考資料という設計思想の案内） */}
         <div style={{display:"flex",alignItems:"flex-start",gap:8,padding:"10px 14px",borderRadius:10,
