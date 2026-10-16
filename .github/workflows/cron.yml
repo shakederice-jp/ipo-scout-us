@@ -11,3 +11,6 @@ jobs:
     steps:
       - name: Run SEC Scan
         run: "curl -fsS -X GET https://ipo-us.finance-tower.com/api/cron/sec-scan -H 'Authorization: Bearer ${{ secrets.CRON_SECRET }}'"
+      - name: Run SEC Track
+        if: always()
+        run: "curl -fsS -X GET https://ipo-us.finance-tower.com/api/cron/sec-track -H 'Authorization: Bearer ${{ secrets.CRON_SECRET }}'"

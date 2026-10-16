@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { notifyAdmin } from "@/lib/notify-admin";
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  SEC_USER_AGENT, fetchSubmissions, fetchDocText, extractBusinessExcerpt, extractTerms, sleep,
+} from "@/lib/sec-edgar";
+import { xDraftBlock } from "@/lib/x-link";
+
+// 事業内容の要約に使うモデル(Haiku 4.5。将来Haiku 5.5へ変える場合はここだけ変更)
+const SUMMARY_MODEL = "claude-haiku-4-5";
 
 // 1回の実行で複数社を処理するため、最大実行時間を60秒に延ばす
 export const maxDuration = 60;
@@ -10,9 +17,6 @@ const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-// SECのフェアアクセスポリシーに従い、組織名+連絡先を名乗るUser-Agentを付与する
-const SEC_USER_AGENT = "ipo-scout-us shakederice@gmail.com";
 
 type IdxRow = {
   formType: string;
@@ -58,27 +62,16 @@ async function fetchDailyIndex(date: Date): Promise<IdxRow[]> {
   return rows;
 }
 
-// 新規上場の登録届出書(S-1、修正版のS-1/Aは除外)のみを対象にする
+// 新規上場の登録届出書(S-1、外国企業向けのF-1。修正版のS-1/A・F-1/Aは除外)のみを対象にする
+// (2026/10追加: 外国企業の上場=F-1も拾うようにした)
 function isNewRegistration(row: IdxRow): boolean {
-  return row.formType === "S-1";
+  return row.formType === "S-1" || row.formType === "F-1";
 }
 
-// 既にティッカーシンボルを持っている(=既上場企業)かどうかをSEC公式APIで確認する
-// 日本版のEDINET secCode チェックに相当する処理
-async function isAlreadyListed(cik: string): Promise<boolean> {
-  try {
-    const paddedCik = cik.padStart(10, "0");
-    const res = await fetch(`https://data.sec.gov/submissions/CIK${paddedCik}.json`, {
-      headers: { "User-Agent": SEC_USER_AGENT },
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!res.ok) return false; // 情報が取れない場合は「新規の可能性あり」として扱う
-    const data = await res.json();
-    const tickers: string[] = data?.tickers ?? [];
-    return tickers.length > 0;
-  } catch {
-    return false; // 通信エラー時は誤って除外しないよう安全側に倒す
-  }
+// 日次インデックスのファイル名(例: edgar/data/1234567/0001234567-26-000123.txt)から書類番号を取り出す
+function accessionFromFileName(fileName: string): string | null {
+  const m = fileName.match(/(\d{10}-\d{2}-\d{6})\.txt$/);
+  return m ? m[1] : null;
 }
 
 export async function GET(req: NextRequest) {
@@ -89,6 +82,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = getSupabase();
   const results: string[] = [];
+  const startedAt = Date.now();
 
   // 直近5日分(土日を含む)をスキャン。土日はファイルが無いだけなので空配列が返る
   const dates: Date[] = [];
@@ -115,7 +109,7 @@ export async function GET(req: NextRequest) {
 
     for (const row of newRegs) {
       // 秒間10リクエストのSEC制限を守るため軽くウェイトを入れる
-      await new Promise(r => setTimeout(r, 150));
+      await sleep(150);
 
       const already = (existing ?? []).find(c => c.cik === row.cik);
       if (already) {
@@ -123,9 +117,16 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
+      // 関数の制限時間(60秒)に収める。時間切れで見送った会社は、翌日以降のスキャンで再び見つかる
+      if (Date.now() - startedAt > 38000) {
+        results.push(`持ち越し(時間切れ): ${row.companyName}（CIK:${row.cik}）`);
+        continue;
+      }
+
       // 既上場企業(ティッカーシンボルを既に持っている)は新規IPOではないため除外
-      const listedAlready = await isAlreadyListed(row.cik);
-      if (listedAlready) {
+      // 情報が取れない場合は「新規の可能性あり」として扱う(誤って除外しないよう安全側)
+      const sub = await fetchSubmissions(row.cik);
+      if (sub && sub.tickers.length > 0) {
         results.push(`スキップ(既上場企業): ${row.companyName}（CIK:${row.cik}）`);
         continue;
       }
@@ -135,32 +136,63 @@ export async function GET(req: NextRequest) {
       const docUrl = `https://www.sec.gov/Archives/${row.fileName}`;
 
       try {
-        const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        const analysisMsg = await claude.messages.create({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 512,
-          messages: [{
-            role: "user",
-            content: `米国の新規上場(IPO)候補企業「${row.companyName}」(SEC CIK: ${row.cik})について、一般的な知識をもとに事業内容を推定してください。JSON形式のみで回答してください（前後の説明文は不要）。\n\n{"sector":"業種名(日本語)","biz_type":"事業内容の一言説明(日本語)","ai_summary":"150文字程度の事業概要説明(日本語)"}`
-          }],
-        });
-        const rawAnalysis = (analysisMsg.content[0] as any).text;
-        const jsonMatch = rawAnalysis.match(/\{[\s\S]*\}/);
-        const analysisText = jsonMatch ? jsonMatch[0] : rawAnalysis.replace(/```json|```/g, "").trim();
-        let analysis: any;
-        try {
-          analysis = JSON.parse(analysisText);
-        } catch {
-          analysis = { sector: "不明", biz_type: "不明", ai_summary: "自動検出のため詳細情報は後日更新されます" };
+        // 2026/10変更: 会社名だけでAIに事業内容を推測させるのをやめ、S-1の本文(目論見書要約)から要約する。
+        // (無名の上場前企業はAIが知らず、もっともらしい作り話が入るおそれがあったため)
+        const acc = accessionFromFileName(row.fileName);
+        const filing = acc ? sub?.filings.find((f) => f.accession === acc) : undefined;
+        const docText = filing?.url ? await fetchDocText(filing.url, 20000) : null;
+        const terms = docText ? extractTerms(docText, false) : null;
+
+        let analysis: any = {
+          sector: "不明",
+          biz_type: "不明",
+          ai_summary: "自動検出のためS-1本文を取得できていません。管理画面のSTEP 1(SEC書類の取得)の後に、事業内容が反映されます。",
+        };
+        let fromDoc = false;
+
+        if (docText) {
+          const excerpt = extractBusinessExcerpt(docText, 6000);
+          const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+          const analysisMsg = await claude.messages.create({
+            model: SUMMARY_MODEL,
+            max_tokens: 700,
+            messages: [{
+              role: "user",
+              content:
+                `次は、米国の新規上場(IPO)候補企業「${row.companyName}」がSECに提出したS-1(登録届出書)の冒頭の要約部分です。` +
+                `この文章に書かれている内容だけを根拠に、事業内容を日本語でまとめてください。` +
+                `書かれていないことは推測せず、分からない項目は「不明」としてください。` +
+                `JSON形式のみで回答してください(前後の説明文は不要)。\n\n` +
+                `{"sector":"業種名(日本語)","biz_type":"事業内容の一言説明(日本語・30字程度)","ai_summary":"150文字程度の事業概要説明(日本語)"}\n\n` +
+                `--- S-1の本文(抜粋) ---\n${excerpt}`,
+            }],
+          });
+          const rawAnalysis = (analysisMsg.content[0] as any).text ?? "";
+          const jsonMatch = rawAnalysis.match(/\{[\s\S]*\}/);
+          try {
+            analysis = JSON.parse(jsonMatch ? jsonMatch[0] : rawAnalysis.replace(/```json|```/g, "").trim());
+            fromDoc = true;
+          } catch {
+            analysis = {
+              sector: "不明",
+              biz_type: "不明",
+              ai_summary: "S-1の要約に失敗しました。管理画面のSTEP 1の後に、事業内容が反映されます。",
+            };
+          }
         }
+
+        const docUrlToSave = filing?.url || docUrl;
 
         const { error: insertError } = await supabase
           .from("ipo_companies")
           .insert({
             name: row.companyName,
             cik: row.cik,
-            sec_doc_url: docUrl,
-            exchange: "NASDAQ/NYSE(要確認)",
+            sec_doc_url: docUrlToSave,
+            exchange: terms?.exchange ?? "NASDAQ/NYSE(要確認)",
+            ticker: terms?.ticker ?? null,
+            price_range_min: terms?.priceLow ?? null,
+            price_range_max: terms?.priceHigh ?? null,
             sector: analysis.sector,
             biz_type: analysis.biz_type,
             ai_summary: analysis.ai_summary,
@@ -171,16 +203,22 @@ export async function GET(req: NextRequest) {
           results.push(`❌ 新規登録失敗: ${row.companyName} - ${insertError.message}`);
         } else {
           results.push(`🆕 新規IPO候補として自動登録: ${row.companyName}（CIK:${row.cik}）`);
+          const xDraft =
+            `【米国IPO】${row.companyName}がSECに上場申請(${row.formType})\n\n` +
+            `${analysis.biz_type && analysis.biz_type !== "不明" ? analysis.biz_type + "\n\n" : ""}` +
+            `詳しい分析は準備ができ次第お届けします。\n\n#米国IPO #IPO`;
           await notifyAdmin(
             `🆕 米国新規IPO発見: ${row.companyName}`,
-            `SEC EDGARで新規上場候補(S-1提出)を発見し、自動登録しました。\n\n` +
+            `SEC EDGARで新規上場候補(${row.formType}提出)を発見し、自動登録しました。\n\n` +
             `会社名: ${row.companyName}\n` +
             `CIK: ${row.cik}\n` +
             `提出日: ${row.dateFiled}\n` +
-            `書類URL: ${docUrl}\n` +
-            `業種: ${analysis.sector}\n\n` +
+            `書類URL: ${docUrlToSave}\n` +
+            `業種: ${analysis.sector}\n` +
+            `事業内容: ${analysis.biz_type}${fromDoc ? "" : "(S-1本文から取得できていません)"}\n\n` +
             `管理画面から分析を進めてください。\n` +
-            `https://ipo-us.finance-tower.com/admin`,
+            `https://ipo-us.finance-tower.com/admin\n\n` +
+            xDraftBlock(xDraft),
             "info"
           );
         }
