@@ -17,13 +17,13 @@ export default function GuidePage() {
       {/* ① ヒーローセクション */}
       <div style={{ background: `linear-gradient(135deg, ${C.dark} 0%, ${C.nav} 100%)`, padding: "72px 24px 80px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: C.teal, backgroundColor: "rgba(102,195,198,0.15)", border: "1px solid rgba(102,195,198,0.3)", borderRadius: 20, padding: "4px 14px", marginBottom: 24, letterSpacing: "0.08em" }}>
+          <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: "#C7D3E3", backgroundColor: "rgba(199,211,227,0.12)", border: "1px solid rgba(199,211,227,0.4)", borderRadius: 20, padding: "4px 14px", marginBottom: 24, letterSpacing: "0.08em" }}>
             大手町調査室九課 | IPO企業情報AI分析レポート
           </div>
           <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 900, color: "white", lineHeight: 1.4, marginBottom: 20 }}>
             目論見書を、<br/>読む必要はありません。
           </h1>
-          <p style={{ fontSize: "clamp(14px, 2.5vw, 18px)", color: C.teal, fontWeight: 700, lineHeight: 1.7, marginBottom: 16 }}>
+          <p style={{ fontSize: "clamp(14px, 2.5vw, 18px)", color: "#A9C1E8", fontWeight: 700, lineHeight: 1.7, marginBottom: 16 }}>
             AIが何百ページを読んで、あなたに届けます。
           </p>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 2, maxWidth: 560, margin: "0 auto 36px" }}>
@@ -31,7 +31,7 @@ export default function GuidePage() {
             でも、それを読み解くのは専門家でも時間がかかる作業です。<br/>
             大手町調査室九課のAI分析レポートは、その作業を自動化しました。
           </p>
-          <a href="/" style={{ display: "inline-block", padding: "14px 36px", backgroundColor: C.teal, color: "#ffffff", borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
+          <a href="/" style={{ display: "inline-block", padding: "14px 36px", backgroundColor: "#ffffff", color: C.nav, borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
             まず無料で試してみる →
           </a>
         </div>
@@ -159,7 +159,7 @@ export default function GuidePage() {
             毎月、日付順で最初の2銘柄の分析レポートは完全無料。<br/>
             登録不要で、今すぐお読みいただけます。
           </p>
-          <a href="/" style={{ display: "inline-block", padding: "14px 40px", backgroundColor: C.teal, color: "#ffffff", borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
+          <a href="/" style={{ display: "inline-block", padding: "14px 40px", backgroundColor: "#ffffff", color: C.nav, borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
             IPO銘柄一覧を見る →
           </a>
         </div>
