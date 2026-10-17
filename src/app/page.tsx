@@ -69,6 +69,29 @@ export default async function Home({
       )}
 
 
+      {/* 2026/10追加: サイトの仕組みを伝えるリード文(誇大にならないよう、事実の説明にとどめる) */}
+      <div style={{ maxWidth:1200, margin:"0 auto", padding:"16px 16px 0" }}>
+        <div style={{ background:"linear-gradient(135deg, #0F1F36 0%, #1E3A66 100%)", borderRadius:16, padding:"22px 22px 18px" }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"#C7D3E3", letterSpacing:"0.08em", marginBottom:8 }}>このサイトの仕組み</div>
+          <h2 style={{ fontSize:"clamp(17px, 3.2vw, 22px)", fontWeight:900, color:"#ffffff", lineHeight:1.5, margin:"0 0 10px" }}>
+            米国の目論見書を、AIが日本語で読み解きます
+          </h2>
+          <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", lineHeight:1.9, margin:"0 0 14px", maxWidth:820 }}>
+            米国のIPOでは、日本の目論見書にあたる書類（S-1／F-1）が、SEC（米国証券取引委員会）の電子開示システム「EDGAR」で公開されます。
+            当サイトでは、この英語の書類をAIが読み込み、IPOの判断材料になる部分を要約して、日本語でお届けします。
+          </p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:12 }}>
+            {["① EDGARから書類を読み込み", "② IPOに参考になる部分を要約", "③ 日本語に翻訳"].map((s) => (
+              <span key={s} style={{ fontSize:12, fontWeight:700, color:"#0F1F36", backgroundColor:"#E8EDF5", borderRadius:20, padding:"5px 14px" }}>{s}</span>
+            ))}
+          </div>
+          <p style={{ fontSize:10.5, color:"#A9C1E8", lineHeight:1.7, margin:0 }}>
+            ※ 要約・翻訳はAIによる自動生成です。投資判断の前には、EDGARの原文もあわせてご確認ください。
+            <a href="/guide" style={{ color:"#ffffff", marginLeft:10, textDecoration:"underline" }}>このサイトの使い方</a>
+          </p>
+        </div>
+      </div>
+
       {/* メインレイアウト */}
       <div style={{ maxWidth:1200, margin:"0 auto", padding:"16px 16px 40px", display:"flex", flexWrap:"wrap", gap:16, alignItems:"flex-start" }}>
 
