@@ -141,6 +141,15 @@ export default function GuidePage() {
           </p>
         </div>
 
+        {/* 日本から参加する方法 */}
+        <div style={{ marginTop: 40, backgroundColor: "white", borderRadius: 16, border: `1px solid ${C.border}`, padding: "20px 22px" }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: C.dark, marginBottom: 6 }}>日本の証券会社で米国IPOに参加できる？</div>
+          <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.9, margin: "0 0 10px" }}>
+            楽天証券・SBI証券の取り扱い状況と、上場後に買う方法の違いをまとめました。
+          </p>
+          <a href="/how-to-buy" style={{ fontSize: 13, fontWeight: 800, color: C.nav, textDecoration: "none" }}>参加する方法を見る →</a>
+        </div>
+
         {/* ⑥ CTA */}
         <div style={{ marginTop: 64, background: `linear-gradient(135deg, ${C.dark} 0%, ${C.nav} 100%)`, borderRadius: 20, padding: "48px 32px", textAlign: "center" }}>
           <h2 style={{ fontSize: 22, fontWeight: 900, color: "white", marginBottom: 12 }}>
