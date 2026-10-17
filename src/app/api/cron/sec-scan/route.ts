@@ -7,6 +7,7 @@ import {
   isExcludedByName, isBlankCheckText,
 } from "@/lib/sec-edgar";
 import { xDraftBlock } from "@/lib/x-link";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 // 事業内容の要約に使うモデル(Haiku 4.5。将来Haiku 5.5へ変える場合はここだけ変更)
 const SUMMARY_MODEL = "claude-haiku-4-5";
@@ -177,7 +178,7 @@ export async function GET(req: NextRequest) {
                 `書かれていないことは推測せず、分からない項目は「不明」としてください。` +
                 `JSON形式のみで回答してください(前後の説明文は不要)。\n\n` +
                 `{"sector":"業種名(日本語)","biz_type":"事業内容の一言説明(日本語・30字程度)","ai_summary":"150文字程度の事業概要説明(日本語)"}\n\n` +
-                `--- S-1の本文(抜粋) ---\n${excerpt}`,
+                STYLE_RULE.trimStart() + `\n--- S-1の本文(抜粋) ---\n${excerpt}`,
             }],
           });
           const rawAnalysis = (analysisMsg.content[0] as any).text ?? "";

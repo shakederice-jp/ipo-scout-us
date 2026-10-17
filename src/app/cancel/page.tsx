@@ -100,7 +100,7 @@ export default function CancelPage() {
         )}
 
         <div style={{ marginTop: 24, padding: "12px 14px", backgroundColor: LIGHT, borderRadius: 10, fontSize: 11, color: MID, lineHeight: 1.7 }}>
-          💡 ログインしていない場合や、まだプランにご加入されていない場合は、お手続きを進めることができません。ご不明な点は
+          💡 ログインしていない場合や未加入の場合は、お手続きを進められません。ご不明な点は
           <a href="/contact" style={{ color: PRIMARY, fontWeight: 700 }}>お問い合わせ</a>
           からご連絡ください。
         </div>

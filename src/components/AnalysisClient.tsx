@@ -944,7 +944,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 </div>
               ))}
               <p style={{fontSize:10,color:"#92400e",marginTop:8,paddingTop:8,borderTop:"1px solid #fde68a",lineHeight:1.6}}>
-                ※これらの項目は目論見書に記載がなく判断材料に欠けるため、AIをもってしても分析できていない点、あらかじめご了承ください。
+                ※これらの項目は目論見書に記載がありません。判断材料に欠けるため、AIでも分析できていない点をご了承ください。
               </p>
             </div>
           )}
@@ -964,7 +964,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           <div style={{borderRadius:14,padding:"20px",backgroundColor:"#1E3A66",color:"white",textAlign:"center"}}>
             <div style={{fontSize:15,fontWeight:900,marginBottom:6}}>🔒 ここから先は有料コンテンツです</div>
             <p style={{fontSize:12,color:"#C7D3E3",margin:"0 0 14px",lineHeight:1.7}}>
-            軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上へのご加入、またはこの銘柄の単品購入（{jpy("single")}）が必要です。
+            軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上への加入が必要です。この銘柄だけ読む場合は、単品購入（{jpy("single")}）もご利用いただけます。
             </p>
             <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:380,margin:"0 auto"}}>
               <PlanButton plan="single" stockId={company.id} label={`この銘柄だけ読む（${jpy("single")}・買い切り）`}
@@ -1143,7 +1143,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                     <p style={{fontSize:10,color:"#94a3b8",lineHeight:1.7,margin:"8px 0 0"}}>{FX_NOTE}</p>
                     <div style={{marginTop:12,padding:"10px 12px",backgroundColor:"#fffbeb",borderRadius:8,border:"1px solid #fde68a"}}>
                       <p style={{fontSize:10,color:"#92400e",lineHeight:1.8,margin:0}}>
-                        ⚠️ 【重要】本シミュレーションは、IPO企業が米国証券取引委員会（SEC）に提出した目論見書をAIが分析した結果に基づく試算値であり、実際の株価を保証するものではありません。実際の株価は市場環境・需給・業績等により大きく影響を受け、試算値より大幅に乖離することがあります。想定外の値動きが生じた場合は、ご自身の判断で躊躇なく損切り等の対応をご検討ください。投資判断および結果に対する責任は当サービスでは負いかねます。
+                        ⚠️ 【重要】本シミュレーションは、IPO企業が米国証券取引委員会（SEC）に提出した目論見書をAIが分析した試算値です。実際の株価を保証するものではありません。実際の株価は市場環境・需給・業績等により大きく影響を受け、試算値より大幅に乖離することがあります。想定外の値動きが生じた場合は、ご自身の判断で躊躇なく損切り等の対応をご検討ください。投資判断および結果に対する責任は当サービスでは負いかねます。
                       </p>
                     </div>
                   </div>

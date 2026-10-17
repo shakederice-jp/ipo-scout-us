@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 const anthropic = new Anthropic();
 export const maxDuration = 60;
@@ -304,7 +305,7 @@ export async function POST(req: NextRequest) {
     try {
       const prompt = buildPrompt("market_structure_chart", (co as any).name, sd, market);
       const message = await anthropic.messages.create(
-        { model: "claude-haiku-4-5", max_tokens: MAX_TOKENS["market_structure_chart"], messages: [{ role: "user", content: prompt }] },
+        { model: "claude-haiku-4-5", max_tokens: MAX_TOKENS["market_structure_chart"], messages: [{ role: "user", content: prompt + STYLE_RULE }] },
         { timeout: 55000 }
       );
       const text = (message.content[0] as any).text;
@@ -450,7 +451,7 @@ if (chart_type === "key_metrics_table") {
   const prompt = buildPrompt(chart_type as ChartType, (co as any).name, sd, market);
   try {
     const message = await anthropic.messages.create(
-      { model: "claude-haiku-4-5", max_tokens: MAX_TOKENS[chart_type as ChartType] ?? 2000, messages: [{ role: "user", content: prompt }] },
+      { model: "claude-haiku-4-5", max_tokens: MAX_TOKENS[chart_type as ChartType] ?? 2000, messages: [{ role: "user", content: prompt + STYLE_RULE }] },
       { timeout: 55000 }
     );
     const text = (message.content[0] as any).text;

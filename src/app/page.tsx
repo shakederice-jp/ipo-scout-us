@@ -77,8 +77,8 @@ export default async function Home({
             米国の目論見書を、AIが日本語で読み解きます
           </h2>
           <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", lineHeight:1.9, margin:"0 0 14px", maxWidth:820 }}>
-            米国のIPOでは、日本の目論見書にあたる書類（S-1／F-1）が、SEC（米国証券取引委員会）の電子開示システム「EDGAR」で公開されます。
-            当サイトでは、この英語の書類をAIが読み込み、IPOの判断材料になる部分を要約して、日本語でお届けします。
+            米国のIPOでは、日本の目論見書にあたる書類（S-1／F-1）が公開されます。公開される場所は、SEC（米国証券取引委員会）の電子開示システム「EDGAR」です。
+            当サイトでは、この英語の書類をAIが読み込みます。そしてIPOの判断材料になる部分だけを要約し、日本語でお届けします。
           </p>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:12 }}>
             {["① EDGARから書類を読み込み", "② IPOに参考になる部分を要約", "③ 日本語に翻訳"].map((s) => (
@@ -157,7 +157,7 @@ export default async function Home({
 <div style={{ ...cardStyle, padding:"12px 14px", backgroundColor:"#f8fefe", display:"flex", alignItems:"flex-start", gap:8 }}>
             <span style={{ fontSize:13, flexShrink:0 }}>📋</span>
             <p style={{ fontSize:10, color:"#3D5A85", lineHeight:1.8, margin:0 }}>
-              本サービスは、IPO銘柄が米国証券取引委員会（SEC）に提出する目論見書（S-1 / 424B4）をAIが解析・要約し、投資判断に役立つ情報を抽出することを目的としています。目論見書に記載のない情報は「不明」「データ不足」と表示されます。AIによる試算・評価であり、投資勧誘ではありません。
+              本サービスは、IPO銘柄が米国証券取引委員会（SEC）に提出する目論見書（S-1 / 424B4）をAIが解析・要約します。目的は、投資判断に役立つ情報の抽出です。目論見書に記載のない情報は「不明」「データ不足」と表示されます。AIによる試算・評価であり、投資勧誘ではありません。
             </p>
           </div>
 

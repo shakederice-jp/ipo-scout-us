@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 export const maxDuration = 60;
 
@@ -148,7 +149,7 @@ ${rawText}
     const msg = await claude.messages.create({
       model: STRUCTURE_MODEL,
       max_tokens: 7000,
-      messages: [{ role: "user", content: prompt + JSON_ONLY_NOTE }]
+      messages: [{ role: "user", content: prompt + STYLE_RULE + JSON_ONLY_NOTE }]
     } as any);
 
     const text = fromFirstBrace(textOf(msg));

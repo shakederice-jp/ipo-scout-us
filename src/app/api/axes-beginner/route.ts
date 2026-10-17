@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 export const maxDuration = 60;
 
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 3000,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: prompt + STYLE_RULE }],
       }),
       signal: AbortSignal.timeout(55000),
     });

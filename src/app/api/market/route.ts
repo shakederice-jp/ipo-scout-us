@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { STYLE_RULE } from "@/lib/writing-style";
 
 export const maxDuration = 60;
 
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 2500,
       messages: [{
         role: 'user',
-        content: `以下の情報を元に、JSONのみで出力してください。マークダウン不要。日本語で記述すること。
+        content: STYLE_RULE.trim() + '\n\n' + `以下の情報を元に、JSONのみで出力してください。マークダウン不要。日本語で記述すること。
 
 収集情報：
 ${searchText}

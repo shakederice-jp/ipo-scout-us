@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 import { notifyAdmin } from "@/lib/notify-admin";
 import { postToX } from "@/lib/post-to-x";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -31,7 +32,7 @@ function buildSonnetParams(prompt: string, maxTokens: number): any {
   const params: any = {
     model: SONNET_MODEL,
     max_tokens: maxTokens,
-    messages: [{ role: "user", content: prompt + JSON_ONLY_NOTE }],
+    messages: [{ role: "user", content: prompt + STYLE_RULE + JSON_ONLY_NOTE }],
   };
   if (thinkingControlWorks) params.thinking = { type: "between_tools" };
   return params;

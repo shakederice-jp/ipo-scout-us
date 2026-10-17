@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
 import { Resend } from "resend";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,7 +74,7 @@ async function analyzeWithClaude(items: { title: string; source: string }[]): Pr
     const msg = await claude.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 3000,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: prompt + STYLE_RULE }],
     });
     const text = (msg.content[0] as any).text ?? "";
     const jsonStart = text.indexOf("{");

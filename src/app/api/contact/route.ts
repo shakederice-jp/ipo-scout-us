@@ -61,14 +61,14 @@ export async function POST(req: NextRequest) {
 
               <div style="background:#f0fafa;border-left:4px solid #1E3A66;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
                 <p style="color:#1E3A66;font-size:13px;line-height:1.8;margin:0">
-                  なお、いただいたご意見・ご提案はサービス改善の重要な参考とさせていただきますが、
-                  すべてのご要望にお応えすることや、ご意見の内容がそのまま反映されることをお約束するものではございません。
+                  いただいたご意見・ご提案は、サービス改善の重要な参考とさせていただきます。
+                  ただし、すべてのご要望にお応えできるとは限りません。また、ご意見がそのまま反映されることもお約束いたしかねます。
                   何卒ご理解いただけますと幸いです。
                 </p>
               </div>
 
               <p style="color:#374151;font-size:14px;line-height:1.9;margin:16px 0">
-                引き続き、IPO投資の判断にお役立ていただけるよう、
+                引き続きIPO投資の判断にお役立ていただけるよう、
                 コンテンツの充実とサービス品質の向上に努めてまいります。<br/>
                 今後ともどうぞよろしくお願いいたします。
               </p>
