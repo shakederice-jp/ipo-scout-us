@@ -1,4 +1,4 @@
-﻿export const maxDuration = 90;
+﻿export const maxDuration = 120;
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
@@ -54,7 +54,7 @@ async function callClaudeWithRetry(prompt: string, maxRetries: number = 1): Prom
   let lastError: any;
   for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
     try {
-      const msg = await claude.messages.create(buildSonnetParams(prompt, 3000));
+      const msg = await claude.messages.create(buildSonnetParams(prompt, 4500));
       return msg;
     } catch (e: any) {
       lastError = e;
@@ -152,11 +152,16 @@ ${dataNote}
    想定公募価格レンジ／配当方針／株主別の具体的な保有比率／流通株式比率の具体的な数値／主幹事（引受会社）名／類似上場企業とのバリュエーション比較／黒字化・収益化の見込み時期／ロックアップの解除条件／種類株（議決権の差）の有無／代表者の同業界での実績年数
    ※このリストは例示であり、他にも実データに記載がなく投資判断上重要と思われる項目があれば追加してよい
 5. 記載がなかった項目が無い場合はmissing_data_pointsを空配列[]にすること
+6. learning_point(今日の見方)は、この銘柄の目論見書で最も特徴的な点に合わせて、投資の見方を1つ選ぶこと。どの銘柄でも同じテーマにしないこと
 
 【出力形式】必ず以下の構造のみで完結させること:
 {
-  "summary": "300字以内。必ず実データの具体的数値を2つ以上引用して記述。1文目で結論を端的に述べ、改行(\\n\\n)を1つ挟んでから詳細説明を続ける2段落構成にすること。ですます調",
-  "summary_beginner": "同じ内容を、投資初心者にも分かるように書き直したもの。300〜400字程度。専門用語（営業利益率、営業CF、流通比率、ロックアップ、希薄化など）が出てきたら都度かんたんな説明を一言添えること。1文目で結論、改行(\\n\\n)を挟んで詳細、という2段落構成。ですます調",
+  "summary": "400字以内。必ず実データの具体的数値を2つ以上引用して記述。1文目で結論を端的に述べ、改行(\\n\\n)を1つ挟んでから詳細説明を続ける2段落構成にすること。ですます調",
+  "summary_beginner": "同じ内容を、投資初心者にも分かるように書き直したもの。400〜500字程度。専門用語（営業利益率、営業CF、流通比率、ロックアップ、希薄化など）が出てきたら都度かんたんな説明を一言添えること。1文目で結論、改行(\\n\\n)を挟んで詳細、という2段落構成。ですます調",
+  "learning_point": {
+    "title": "今日の見方の見出し(20字以内)。例:「手元資金は何か月もつか」",
+    "body": "150〜250字。(1)その見方は何を確かめるものか (2)この銘柄では実データの数値から何が分かるか (3)他の銘柄を読むときにも使える一言、の順に、流れのある文章で書く。ですます調"
+  },
   "data_citations": ["引用根拠1", "引用根拠2", "引用根拠3"],
   "data_confidence": "high（実データあり）/ medium（一部推定）/ low（データ不足）のいずれか",
   "missing_data_points": ["記載がなかった項目1（15字以内、体言止め）", "記載がなかった項目2（15字以内、体言止め）"],
@@ -195,9 +200,9 @@ ${dataNote}
 【出力形式】必ず以下の構造のみで完結させること:
 {
   "insights": [
-    {"title": "インサイトタイトル1（20字以内）", "body": "カード折りたたみ時に見える短い要約（100字以内）。ですます調", "detail": "カードを開いた時に表示する詳しい解説。200〜350字程度。1文目で結論・要点を端的に述べ、そのあと改行(\\n\\n)を1つ挟んでから、実データの数値を交えた背景・理由の説明、さらに改行(\\n\\n)を挟んで投資判断への影響、という2〜3段落構成にすること。ですます調"},
-    {"title": "インサイトタイトル2（20字以内）", "body": "同上（100字以内）。ですます調", "detail": "同上の形式で200〜350字程度。ですます調"},
-    {"title": "インサイトタイトル3（20字以内）", "body": "同上（100字以内）。ですます調", "detail": "同上の形式で200〜350字程度。ですます調"}
+    {"title": "インサイトタイトル1（20字以内）", "body": "カード折りたたみ時に見える短い要約（100字以内）。ですます調", "detail": "カードを開いた時に表示する詳しい解説。250〜400字程度。1文目で結論・要点を端的に述べ、そのあと改行(\\n\\n)を1つ挟んでから、実データの数値を交えた背景・理由の説明、さらに改行(\\n\\n)を挟んで投資判断への影響、という2〜3段落構成にすること。ですます調"},
+    {"title": "インサイトタイトル2（20字以内）", "body": "同上（100字以内）。ですます調", "detail": "同上の形式で250〜400字程度。ですます調"},
+    {"title": "インサイトタイトル3（20字以内）", "body": "同上（100字以内）。ですます調", "detail": "同上の形式で250〜400字程度。ですます調"}
   ],
   "tweet_summary": "40字以内の要約文（ですます調）"
 }`;
@@ -264,6 +269,7 @@ export async function POST(req: NextRequest) {
       const summary = {
         summary:             r.summary ?? `${co.name}IPO分析`,
         summary_beginner:    r.summary_beginner ?? "",
+        learning_point:      (r.learning_point && typeof r.learning_point === "object") ? r.learning_point : null,
         data_citations:      Array.isArray(r.data_citations) ? r.data_citations : [],
         data_confidence:     r.data_confidence ?? "low",
         missing_data_points: Array.isArray(r.missing_data_points) ? r.missing_data_points.slice(0,8) : [],
@@ -340,7 +346,7 @@ export async function POST(req: NextRequest) {
       console.warn(`analyze(${part}) parse failed, retrying once...`);
       await sleep(5000);
       try {
-        const retryMsg = await claude.messages.create(buildSonnetParams(prompt, 3000));
+        const retryMsg = await claude.messages.create(buildSonnetParams(prompt, 4500));
         parsed = repairJson(fromFirstBrace(textOf(retryMsg)));
       } catch (e) {
         console.error(`analyze(${part}) retry failed:`, e);

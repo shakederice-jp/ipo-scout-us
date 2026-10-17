@@ -935,6 +935,17 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
               </>
             );
           })()}
+          {(analysis as any).learning_point?.body && (
+            <div style={{marginTop:12,padding:"12px 14px",backgroundColor:"#E8EDF5",borderRadius:10,border:"1px solid #C7D3E3"}}>
+              <div style={{fontSize:10,fontWeight:800,color:"#3D5A85",letterSpacing:"0.06em",marginBottom:4}}>💡 今日の見方 ── 他の銘柄でも使えます</div>
+              {(analysis as any).learning_point?.title && (
+                <div style={{fontSize:14,fontWeight:900,color:"#1E3A66",marginBottom:6,lineHeight:1.5}}>{(analysis as any).learning_point.title}</div>
+              )}
+              {String((analysis as any).learning_point.body).split(/\n\n+/).map((para:string,i:number)=>(
+                <p key={i} style={{fontSize:13,color:"#334155",lineHeight:1.9,margin:i===0?0:"8px 0 0"}}>{para}</p>
+              ))}
+            </div>
+          )}
           {(analysis as any).missing_data_points?.length > 0 && (
             <div style={{marginTop:10,padding:"10px 12px",backgroundColor:"#fffbeb",borderRadius:8,border:"1px solid #fde68a"}}>
               <div style={{fontSize:10,fontWeight:700,color:"#92400e",marginBottom:6}}>📭 目論見書に記載がなかった項目</div>
