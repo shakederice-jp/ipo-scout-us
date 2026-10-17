@@ -8,9 +8,11 @@ import { nextBusinessDay, normalizeExchange } from "@/lib/sec-edgar";
 //  ・カレンダーに載るのは、価格帯が決まってロードショーに入った案件(上場の1〜2週間前ごろ)から
 // という性質がある。取得できなかった場合も、他の自動処理(SEC書類の追跡)は止まらない作りにしている。
 
-// Nasdaqカレンダーの日付は「価格決定日」(米国は決定の翌営業日の朝から取引開始)として扱う。
-// 実際の上場日と1日ずれると分かった場合は、ここを false にすると「カレンダーの日付=取引開始日」として扱う。
-export const NASDAQ_DATE_IS_PRICING_DATE = true;
+// Nasdaqカレンダーの日付が「取引開始日」か「価格決定日」かの切り替え。
+// 2026/10/17に実データで確認: TRexBio(価格決定10/8木・取引開始10/9金)とIambic(取引開始10/15)で、
+// カレンダーの日付は「取引開始日」と一致した。そのため false(=日付をそのまま上場日として使う)にしている。
+// もし将来ずれると分かった場合は true にすると「価格決定日の翌営業日=上場日」として扱う。
+export const NASDAQ_DATE_IS_PRICING_DATE = false;
 
 export type CalRow = {
   kind: "upcoming" | "priced" | "filed" | "withdrawn";
