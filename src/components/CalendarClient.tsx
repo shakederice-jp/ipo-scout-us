@@ -12,9 +12,10 @@ type Company = {
   ticker?: string;
   sector?: string;
   exchange?: string;
-  listing_date: string;
+  listing_date: string | null;
   ai_summary?: string;
   is_free?: boolean;
+  has_analysis?: boolean;
 };
 
 type CalendarNote = {
@@ -166,7 +167,7 @@ export default function CalendarClient() {
   });
 
   const sorted = [...companies].sort(
-    (a, b) => new Date(a.listing_date).getTime() - new Date(b.listing_date).getTime()
+    (a, b) => new Date(a.listing_date ?? 0).getTime() - new Date(b.listing_date ?? 0).getTime()
   );
 
   const monthIndexMap: { [id: string]: number } = {};
@@ -176,6 +177,9 @@ export default function CalendarClient() {
     monthCounter[mk] = (monthCounter[mk] ?? 0) + 1;
     monthIndexMap[c.id] = monthCounter[mk] - 1;
   });
+
+  // 上場日がまだ決まっていない銘柄(分析があるものだけ)
+  const undated = sorted.filter(c => !c.listing_date && (c.has_analysis || c.ai_summary));
 
   const currentMonthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
   const monthSorted = sorted.filter(c => c.listing_date?.startsWith(currentMonthKey));
@@ -411,7 +415,7 @@ export default function CalendarClient() {
           {loading && <div style={{ textAlign:"center", padding:"40px 0", color:C.muted, fontSize:13 }}>データを読み込み中...</div>}
 
           {!loading && monthSorted.map((company, i) => {
-            const d = new Date(company.listing_date);
+            const d = new Date(company.listing_date as string);
             const weekStr = "日月火水木金土"[d.getDay()];
             const dateStr = `${d.getMonth()+1}月${d.getDate()}日（${weekStr}）`;
             const isFree = company.is_free ?? i < 2;
@@ -433,7 +437,7 @@ export default function CalendarClient() {
                   <div style={{ textAlign:"right", flexShrink:0, marginLeft:8 }}>
                     {(() => {
                       const today2 = new Date(); today2.setHours(0,0,0,0);
-                      const ld = new Date(company.listing_date); ld.setHours(0,0,0,0);
+                      const ld = new Date(company.listing_date as string); ld.setHours(0,0,0,0);
                       const diff = ld.getTime() - today2.getTime();
                       if (diff < 0) return (
                         <>
@@ -481,6 +485,40 @@ export default function CalendarClient() {
               </div>
             );
           })}
+
+
+          {/* 上場日が未定の銘柄(上場日の確定を待たず、分析を先に公開する) */}
+          {!loading && undated.length > 0 && (
+            <div style={{ marginTop:20 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                <h2 style={{ fontSize:15, fontWeight:900, color:C.nav, margin:0 }}>🗓 上場日が未定の銘柄</h2>
+                <span style={{ fontSize:11, color:C.muted }}>（{undated.length}社）</span>
+              </div>
+              <p style={{ fontSize:11, color:C.muted, lineHeight:1.7, margin:"0 0 10px" }}>
+                SECへの提出書類はそろっていますが、上場日はまだ決まっていません。決まり次第、カレンダーに反映されます。
+              </p>
+              {undated.map(company => (
+                <div key={company.id} style={{ backgroundColor:C.white, borderRadius:14, border:"1px solid #fde68a", marginBottom:12, overflow:"hidden" }}>
+                  <div style={{ padding:"12px 16px", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 }}>
+                    <div>
+                      <div style={{ fontSize:16, fontWeight:900, color:C.text }}>{company.name}</div>
+                      <div style={{ fontSize:11, color:C.muted }}>{[company.exchange, company.sector, company.ticker].filter(Boolean).join("・")}</div>
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:700, color:"#92400e", backgroundColor:"#fef3c7", borderRadius:4, padding:"2px 8px", flexShrink:0 }}>上場日 未定</span>
+                  </div>
+                  <div style={{ padding:"10px 16px 14px", borderTop:`1px solid ${C.border}` }}>
+                    {company.ai_summary && (
+                      <p style={{ fontSize:12, color:"#374151", lineHeight:1.9, margin:"0 0 12px" }}>{company.ai_summary}</p>
+                    )}
+                    <div style={{ display:"flex", justifyContent:"flex-end", gap:8, flexWrap:"wrap" }}>
+                      <a href={`/analysis/${company.id}/beginner`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"white", color:"#92400e", border:"1.5px solid #f59e0b" }}>📖 初心者向け分析</a>
+                      <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"#f59e0b", color:"white" }}>🎓 中・上級者向け分析</a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {!loading && sorted.length === 0 && (
             <div style={{ textAlign:"center", padding:"40px 0", fontSize:13, color:C.muted }}>現在登録されている銘柄はありません</div>

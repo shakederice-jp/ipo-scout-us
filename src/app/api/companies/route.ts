@@ -24,12 +24,18 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabase
     .from("ipo_companies")
-    .select("*")
+    // 公開APIなので、分析本文(analysis_*)・目論見書データは返さない(有料部分の流出防止)。
+    // 分析があるかどうかだけ、has_analysis として返す。
+    .select("id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary")
     .order("listing_date", { ascending: true });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  const safe = (data ?? []).map((row: any) => {
+    const { analysis_summary, ...rest } = row;
+    return { ...rest, has_analysis: !!analysis_summary };
+  });
+  return NextResponse.json(safe);
 }
