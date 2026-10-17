@@ -184,6 +184,84 @@ ${dataNote}
 グレードはA〜Eの5段階（A=強気(上位20%) 〜 E=弱気(下位20%)）`;
 }
 
+function addDays(dateStr: string | null | undefined, days: number): string {
+  if (!dateStr) return "";
+  const d = new Date(`${dateStr}T00:00:00Z`);
+  if (isNaN(d.getTime())) return "";
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// 2026/10新設: 「買うか見送るか・いつ売るか・その根拠」を示す part=action 用プロンプト。
+// 先に作った総合スコア・シナリオの結果(prior)を渡して、評価がちぐはぐにならないようにする。
+function actionPrompt(co: any, dataNote: string, prior: any) {
+  const n = co.name ?? "unknown";
+  const ld = co.listing_date ?? "";
+  const confirmed = (co as any).listing_date_confirmed ? "確定" : "予定(未確定)";
+  const quietEnd = addDays(ld, 25);
+  const lock90 = (co as any).lockup_90_date ?? "";
+  const lock180 = (co as any).lockup_180_date ?? "";
+  const schedule = [
+    `上場日: ${ld || "未定"}(${confirmed})`,
+    `静穏期間の終了(引受証券会社のアナリストが評価を出せるようになる目安・上場から25日後): ${quietEnd || "上場日の確定後"}`,
+    `ロックアップ解除日(90日): ${lock90 || "記載なし・不明"}`,
+    `ロックアップ解除日(180日): ${lock180 || "記載なし・不明"}`,
+  ].join("\n");
+  const p = prior ?? {};
+  const scen = (arr: any) => (Array.isArray(arr) ? arr : []).map((s: any) => `${s.verdict}:${s.name}(公募価格比:${s.vsIpo}・確率:${s.prob})`).join(" / ");
+  const priorText = [
+    `総合: ${p.total_score ?? "?"}点(${p.grade ?? "?"})`,
+    `超短期: ${p.ultra_short_grade ?? "?"}評価 / 短期: ${p.short_grade ?? "?"}評価 / 長期: ${p.long_grade ?? "?"}評価`,
+    `超短期の理由: ${p.grade_reason?.ultra_short ?? ""}`,
+    `短期の理由: ${p.grade_reason?.short ?? ""}`,
+    `長期の理由: ${p.grade_reason?.long ?? ""}`,
+    `短期シナリオ: ${scen(p.scenarios_short)}`,
+    `長期シナリオ: ${scen(p.scenarios_long)}`,
+  ].join("\n");
+  return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
+読者は「IPOで利益を上げたい」と考えています。${n}のIPOについて、次の3点をはっきり示してください。
+(1) この銘柄は買うのを控えたほうがよい(リスクが大きい)のか、検討に値するのか
+(2) 買うと決めた場合、超短期(上場初日)・短期(1〜3ヶ月)・長期(数年〜)のどの期間が向いているのか
+(3) その場合の買う根拠・売る時期の目安・売る根拠・見直しの目安
+JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。文章はすべて「ですます調」で記述すること。
+
+${dataNote}
+
+【日程(実データ)】
+${schedule}
+
+【すでに作成済みの評価(これと矛盾しないこと)】
+${priorText}
+
+【絶対ルール】
+1. 数値・事実・日付は、上記【実データ】【日程】【作成済みの評価】にあるものだけを使う。ないものは作らない。日付が不明なときは「ロックアップ解除日の確定後」のように、時期の条件で書く。
+2. 危険な銘柄は、遠慮せずに「見送りを検討する材料が多い」とはっきり書く。良い銘柄も、買う根拠と同時に、売る条件を必ず示す。
+3. 「必ず儲かる」「確実」「絶対」「損しない」など、利益を保証・断定する表現は使わない。売り時は「〜になったら」「〜の時点で」という条件と時期の目安で書く。
+4. 買う根拠・売る根拠は、必ず目論見書の数字や日程と結びつけて書く。
+5. 公募価格や株価の水準に触れるときは、シナリオの公募価格比(例:公募価格の1.8倍)を使い、自分で新しい目標株価を作らない。
+6. 「見直しの目安」は、前提が崩れたと判断する条件(例:成長率の鈍化・ロックアップ解除・大株主の売却開示)を具体的に書く。
+7. これは投資助言ではなく、公開資料にもとづくAIの分析であることを前提に、読み手に命令せず「〜と考えられます」「〜を検討する材料です」の形で書く。
+
+【出力形式】必ず以下の構造のみで完結させること:
+{
+  "action_guide": {
+    "stance": "見送りを検討 / 様子見 / 条件付きで検討 / 前向きに検討 のいずれか1つ",
+    "risk_level": "高 / 中 / 低 のいずれか1つ",
+    "headline": "結論を一言で。40字以内。ですます調",
+    "stance_reason": "そう判断した理由。200字以内。結論、根拠の数字、だからどう考えるか、の流れで書く。ですます調",
+    "danger_flags": ["この銘柄の危険材料1(30字以内・体言止め)", "危険材料2"],
+    "check_before_buy": ["買う前に確認したい点1(40字以内)", "確認したい点2", "確認したい点3"],
+    "best_horizon": "ultra_short / short / long / none のいずれか1つ(noneは、どの期間も向かないとき)",
+    "horizons": [
+      {"id": "ultra_short", "label": "超短期(上場初日)", "fit": "向いている / 条件付き / 向いていない のいずれか", "buy_basis": "買う根拠。120字以内", "sell_timing": "売る時期の目安。80字以内", "sell_basis": "売る根拠。120字以内", "review_line": "見直し・撤退の目安。80字以内"},
+      {"id": "short", "label": "短期(1〜3ヶ月)", "fit": "同上", "buy_basis": "同上", "sell_timing": "同上", "sell_basis": "同上", "review_line": "同上"},
+      {"id": "long", "label": "長期(数年〜)", "fit": "同上", "buy_basis": "同上", "sell_timing": "同上", "sell_basis": "同上", "review_line": "同上"}
+    ]
+  }
+}
+danger_flagsは、危険材料が見当たらなければ空配列[]にすること。`;
+}
+
 function insightsPrompt(co: any, dataNote: string) {
   const n = co.name ?? "unknown";
   return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
@@ -269,6 +347,7 @@ export async function POST(req: NextRequest) {
       const summary = {
         summary:             r.summary ?? `${co.name}IPO分析`,
         summary_beginner:    r.summary_beginner ?? "",
+        action_guide:        (r.action_guide && typeof r.action_guide === "object") ? r.action_guide : null,
         learning_point:      (r.learning_point && typeof r.learning_point === "object") ? r.learning_point : null,
         data_citations:      Array.isArray(r.data_citations) ? r.data_citations : [],
         data_confidence:     r.data_confidence ?? "low",
@@ -336,6 +415,7 @@ export async function POST(req: NextRequest) {
     const prompt =
       part === "insights"  ? insightsPrompt(co, dataNote) :
       part === "scenarios" ? scenariosPrompt(co, dataNote) :
+      part === "action"    ? actionPrompt(co, dataNote, body.prior) :
       scorePrompt(co, dataNote);
 
     const msg = await callClaudeWithRetry(prompt);

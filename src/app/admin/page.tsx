@@ -140,20 +140,21 @@ export default function AdminPage() {
       { key:"score",     label:"①総合スコア" },
       { key:"insights",  label:"②まずここに注目" },
       { key:"scenarios", label:"③株価シナリオ" },
+      { key:"action",    label:"④買い方・売り方ガイド" },
     ];
     const merged: Record<string, any> = {};
     for (let i = 0; i < parts.length; i++) {
       const p = parts[i];
       setStepResult(prev => ({...prev, "3": `⏳ ${p.label} 生成中 (${i+1}/${parts.length+1})...`}));
       try {
-        const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:p.key }) });
+        const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:p.key, ...(p.key === "action" ? { prior: merged } : {}) }) });
         const data = await res.json();
         if (data.error) { setStep("3", false, `❌ ${p.label}: ${data.error}`); return; }
         Object.assign(merged, data);
       } catch { setStep("3", false, `❌ ${p.label}: 通信エラー`); return; }
     }
     // ④まずここに注目・初心者向けリライト（別呼び出しにして負荷分散）
-    setStepResult(prev => ({...prev, "3": `⏳ ④まずここに注目（初心者向け）生成中 (4/4)...`}));
+    setStepResult(prev => ({...prev, "3": `⏳ ⑤まずここに注目（初心者向け）生成中 (5/5)...`}));
     try {
       const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:"insights_beginner", insights:merged.insights ?? [] }) });
       const data = await res.json();
@@ -450,10 +451,10 @@ export default function AdminPage() {
               <h2 style={{ fontSize:"13px", fontWeight:900, color:"white", margin:"0 0 12px" }}>📅 週次ルーティン</h2>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {[
-                  { day:"毎日", label:"SEC書類の確認(新規S-1の発見・価格帯/ティッカー/上場日の自動入力)・上場後の株価追跡", auto:true },
+                  { day:"毎日", label:"EDINET取得・ニュース収集", auto:true },
                   { day:"月曜", label:"DB整合性チェック結果をメールで確認", auto:true },
                   { day:"随時", label:"新規IPO銘柄を登録 → AI分析を生成", auto:false },
-                  { day:"随時", label:"公募価格が自動で入らなかった銘柄だけ、手入力", auto:false },
+                  { day:"随時", label:"公募価格が決定したら入力", auto:false },
                   { day:"木曜", label:"翌週分の銘柄データが揃っているか確認", auto:false },
                   { day:"金曜", label:"週次通知メールが送信されたか確認", auto:true },
                 ].map((item, i) => (

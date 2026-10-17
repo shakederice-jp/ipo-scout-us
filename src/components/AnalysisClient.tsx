@@ -1019,6 +1019,74 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           </Card>
         )}
 
+        {/* 🧭 この銘柄をどう考えるか(買う・見送る/売り時の目安) */}
+        {(analysis as any).action_guide?.stance&&(()=>{
+          const ag:any=(analysis as any).action_guide;
+          const stanceColor:Record<string,{bg:string;fg:string}>={
+            "見送りを検討":{bg:"#fee2e2",fg:"#b91c1c"},
+            "様子見":{bg:"#fef3c7",fg:"#92400e"},
+            "条件付きで検討":{bg:"#dbeafe",fg:"#1d4ed8"},
+            "前向きに検討":{bg:"#dcfce7",fg:"#15803d"},
+          };
+          const sc=stanceColor[ag.stance]??{bg:"#e2e8f0",fg:"#334155"};
+          const fitColor=(f:string)=>f==="向いている"?{bg:"#dcfce7",fg:"#15803d"}:f==="条件付き"?{bg:"#fef3c7",fg:"#92400e"}:{bg:"#f1f5f9",fg:"#64748b"};
+          const hz:any[]=Array.isArray(ag.horizons)?ag.horizons:[];
+          const hzIcon:Record<string,string>={ultra_short:"⚡",short:"📈",long:"🌱"};
+          return (
+            <Card>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+                <span style={{fontSize:14}}>🧭</span>
+                <span style={{fontWeight:900,fontSize:14,color:"#1e293b"}}>この銘柄をどう考えるか</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:8}}>
+                <span style={{fontSize:13,fontWeight:900,color:sc.fg,backgroundColor:sc.bg,borderRadius:20,padding:"4px 14px"}}>{ag.stance}</span>
+                {ag.risk_level&&<span style={{fontSize:11,fontWeight:700,color:"#475569",backgroundColor:"#f1f5f9",borderRadius:20,padding:"3px 10px"}}>リスク {ag.risk_level}</span>}
+              </div>
+              {ag.headline&&<div style={{fontSize:15,fontWeight:900,color:"#0F1F36",lineHeight:1.6,marginBottom:6}}>{ag.headline}</div>}
+              {ag.stance_reason&&<p style={{fontSize:13,color:"#475569",lineHeight:1.9,margin:"0 0 10px"}}>{ag.stance_reason}</p>}
+              {Array.isArray(ag.danger_flags)&&ag.danger_flags.length>0&&(
+                <div style={{padding:"10px 12px",backgroundColor:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:800,color:"#b91c1c",marginBottom:4}}>⚠️ 注意したい点</div>
+                  {ag.danger_flags.map((f:string,i:number)=>(<div key={i} style={{fontSize:12,color:"#7f1d1d",lineHeight:1.7}}>・{f}</div>))}
+                </div>
+              )}
+              {hz.length>0&&(
+                <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:800,color:"#3D5A85"}}>買うと決めた場合の考え方（期間別）</div>
+                  {hz.map((h:any,i:number)=>{
+                    const fc=fitColor(h.fit);
+                    const isBest=ag.best_horizon===h.id;
+                    return (
+                      <div key={i} style={{border:isBest?"2px solid #1E3A66":"1px solid #C7D3E3",borderRadius:12,padding:"12px 14px",backgroundColor:"#ffffff"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:8}}>
+                          <span style={{fontSize:13,fontWeight:900,color:"#0F1F36"}}>{hzIcon[h.id]??""} {h.label}</span>
+                          <span style={{fontSize:11,fontWeight:800,color:fc.fg,backgroundColor:fc.bg,borderRadius:20,padding:"2px 10px"}}>{h.fit}</span>
+                          {isBest&&<span style={{fontSize:10,fontWeight:800,color:"#ffffff",backgroundColor:"#1E3A66",borderRadius:20,padding:"2px 8px"}}>この銘柄で最も向く期間</span>}
+                        </div>
+                        {([["買う根拠",h.buy_basis],["売る時期の目安",h.sell_timing],["売る根拠",h.sell_basis],["見直しの目安",h.review_line]] as [string,string][]).filter(([,v])=>v).map(([k,v])=>(
+                          <div key={k} style={{display:"grid",gridTemplateColumns:"92px 1fr",gap:8,marginBottom:5}}>
+                            <div style={{fontSize:11,fontWeight:800,color:"#3D5A85"}}>{k}</div>
+                            <div style={{fontSize:12.5,color:"#334155",lineHeight:1.8}}>{v}</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {Array.isArray(ag.check_before_buy)&&ag.check_before_buy.length>0&&(
+                <div style={{padding:"10px 12px",backgroundColor:"#E8EDF5",borderRadius:10,marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:800,color:"#3D5A85",marginBottom:4}}>✅ 買う前に確認したい点</div>
+                  {ag.check_before_buy.map((f:string,i:number)=>(<div key={i} style={{fontSize:12,color:"#334155",lineHeight:1.7}}>・{f}</div>))}
+                </div>
+              )}
+              <p style={{fontSize:10,color:"#94a3b8",lineHeight:1.7,margin:0}}>
+                ※公開資料をもとにしたAIの分析です。投資助言ではなく、値上がりや利益を保証するものでもありません。売買の判断と結果は、ご自身の責任でお願いします。
+              </p>
+            </Card>
+          );
+        })()}
+
         {/* ⑫⑬ 株価シナリオ分析＋投資シミュレーション */}
         <Card>
           <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
