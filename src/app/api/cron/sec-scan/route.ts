@@ -7,6 +7,7 @@ import {
   isExcludedByName, isBlankCheckText,
 } from "@/lib/sec-edgar";
 import { xDraftBlock } from "@/lib/x-link";
+import { STYLE_RULE } from "@/lib/writing-style";
 
 // 事業内容の要約に使うモデル(Haiku 4.5。将来Haiku 5.5へ変える場合はここだけ変更)
 const SUMMARY_MODEL = "claude-haiku-4-5";
@@ -72,8 +73,11 @@ const CANDIDATE_FORMS = new Set(["S-1", "S-1/A", "F-1", "F-1/A", "424B4"]);
 function isCandidate(row: IdxRow): boolean {
   return CANDIDATE_FORMS.has(row.formType);
 }
-// すでに上場している会社(年次・四半期報告書などを出している)の増資は、新規IPOではない
-const SEASONED_FORMS = new Set(["10-K", "10-Q", "20-F", "40-F", "8-K", "6-K"]);
+// すでに上場している会社の増資は、新規IPOではない。見分け方:
+//   ・年次・四半期報告書(10-K・10-Q・20-F・40-F)を、この書類より前に出している
+//   ・この書類より30日以上前に、すでに最終目論見書(424B4など)を出している
+// (8-K・6-Kは、上場前後にも出るため、見分けには使わない)
+const REPORT_FORMS = new Set(["10-K", "10-Q", "20-F", "40-F"]);
 
 // 日次インデックスのファイル名(例: edgar/data/1234567/0001234567-26-000123.txt)から書類番号を取り出す
 function accessionFromFileName(fileName: string): string | null {
@@ -156,7 +160,11 @@ export async function GET(req: NextRequest) {
         results.push(`スキップ(既上場企業): ${row.companyName}（CIK:${row.cik}）`);
         continue;
       }
-      if (sub && sub.filings.some((f) => SEASONED_FORMS.has(f.form) && f.filed < row.dateFiled)) {
+      const earlierDay = (d: string) => { const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() - 30); return t.toISOString().slice(0, 10); };
+      if (sub && sub.filings.some((f) =>
+        (REPORT_FORMS.has(f.form) && f.filed < row.dateFiled) ||
+        ((f.form === "424B4" || f.form === "424B1") && f.filed < earlierDay(row.dateFiled))
+      )) {
         results.push(`スキップ(既上場企業・増資など): ${row.companyName}（CIK:${row.cik}）`);
         continue;
       }
@@ -204,7 +212,7 @@ export async function GET(req: NextRequest) {
                 `書かれていないことは推測せず、分からない項目は「不明」としてください。` +
                 `JSON形式のみで回答してください(前後の説明文は不要)。\n\n` +
                 `{"sector":"業種名(日本語)","biz_type":"事業内容の一言説明(日本語・30字程度)","ai_summary":"150文字程度の事業概要説明(日本語)"}\n\n` +
-                `--- S-1の本文(抜粋) ---\n${excerpt}`,
+                STYLE_RULE.trimStart() + `\n--- S-1の本文(抜粋) ---\n${excerpt}`,
             }],
           });
           const rawAnalysis = (analysisMsg.content[0] as any).text ?? "";

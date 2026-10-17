@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { notifyAdmin } from "@/lib/notify-admin";
+import Anthropic from "@anthropic-ai/sdk";
 import {
   fetchSubmissions, fetchDocText, extractTerms, normalizeExchange, addDays, nextBusinessDay, sleep,
   type Filing,
 } from "@/lib/sec-edgar";
 import { xDraftBlock } from "@/lib/x-link";
-import { fetchNasdaqCalendar, matchCalendar, NASDAQ_DATE_IS_PRICING_DATE } from "@/lib/ipo-calendar";
+import { fetchNasdaqCalendar, matchCalendar, normName, NASDAQ_DATE_IS_PRICING_DATE, type CalRow } from "@/lib/ipo-calendar";
+import { secFetch, extractBusinessExcerpt, isExcludedByName, isBlankCheckText } from "@/lib/sec-edgar";
 
 // 2026/10追加: SEC提出書類の進み具合の追跡(sec-track)
 //
@@ -81,11 +83,11 @@ async function syncFromNasdaqCalendar(
   supabase: ReturnType<typeof getSupabase>,
   targets: Company[],
   results: string[]
-) {
+): Promise<CalRow[]> {
   const cal = await fetchNasdaqCalendar();
   if (cal.rows.length === 0) {
     results.push(`⚠️ Nasdaq IPOカレンダーを取得できませんでした: ${cal.error ?? "原因不明"}（SEC書類の追跡は続けます。上場日は、必要なら管理画面で手入力してください）`);
-    return;
+    return [];
   }
   const count = (k: string) => cal.rows.filter((r) => r.kind === k).length;
   results.push(
@@ -156,6 +158,120 @@ async function syncFromNasdaqCalendar(
       );
     }
   }
+  return cal.rows;
+}
+
+// 2026/10追加: Nasdaq公式カレンダーに載った「上場が決まった銘柄」のうち、まだDBにない実在企業を自動登録する。
+// ・SPAC・ファンド等は対象外(会社名と、目論見書の本文の両方で判定)
+// ・上場日が「今月1日以降」のものだけ登録する(今月すでに上場した銘柄も含む。それ以前の古い銘柄は登録しない)
+// ・SECの会社番号(CIK)は、SEC公式の一覧(ティッカー→CIK)から探す。見つからない銘柄は見送り、翌日以降に再確認する
+// ・1回の実行で登録するのは最大3社(関数の制限時間に収めるため)。残りは翌日以降に登録する
+const SUMMARY_MODEL = "claude-haiku-4-5";
+const REGISTER_MAX_PER_RUN = 3;
+
+async function registerFromCalendar(
+  supabase: ReturnType<typeof getSupabase>,
+  rows: CalRow[],
+  results: string[],
+  startedAt: number
+) {
+  const monthStart = new Date().toISOString().slice(0, 7) + "-01";
+  const cands = rows.filter(
+    (r) => (r.kind === "priced" || r.kind === "upcoming") && !!r.date && r.date >= monthStart && !isExcludedByName(r.name)
+  );
+  if (cands.length === 0) return;
+
+  const { data: all } = await supabase.from("ipo_companies").select("id, name, ticker, cik");
+  const existing = (all ?? []) as { id: string; name: string; ticker: string | null; cik: string | null }[];
+  const todo = cands.filter((r) => !existing.some((c) => matchCalendar([r], c) !== null));
+  if (todo.length === 0) return;
+  results.push(`🆕 カレンダーにあってDBにない案件: ${todo.map((r) => `${r.name}${r.ticker ? "(" + r.ticker + ")" : ""}`).join(" ／ ")}`);
+
+  // SEC公式のティッカー→会社番号の一覧
+  let tickerMap: { cik: string; ticker: string; title: string }[] = [];
+  try {
+    const res = await secFetch("https://www.sec.gov/files/company_tickers.json", 20000);
+    if (res.ok) {
+      const json: any = await res.json();
+      tickerMap = Object.values(json).map((v: any) => ({ cik: String(v.cik_str), ticker: String(v.ticker).toUpperCase(), title: String(v.title) }));
+    }
+  } catch { /* 取得できなければ、下で「見送り」になる */ }
+
+  let registered = 0;
+  for (const r of todo) {
+    if (registered >= REGISTER_MAX_PER_RUN) { results.push("登録は1回3社までのため、残りは次回に回します"); break; }
+    if (Date.now() - startedAt > 30000) { results.push("時間切れのため、残りの登録は次回に回します"); break; }
+    await sleep(150);
+
+    const hit =
+      (r.ticker ? tickerMap.find((t) => t.ticker === r.ticker) : undefined) ??
+      tickerMap.find((t) => normName(t.title) === normName(r.name));
+    if (!hit) { results.push(`見送り(SECで会社番号が見つかりません・翌日以降に再確認): ${r.name}${r.ticker ? "(" + r.ticker + ")" : ""}`); continue; }
+    if (existing.some((c) => c.cik === hit.cik)) continue; // 別の名前ですでに登録済み
+
+    try {
+      const sub = await fetchSubmissions(hit.cik);
+      const relevant = (sub?.filings ?? []).filter((f) => FINAL_FORMS.has(f.form) || AMEND_FORMS.has(f.form) || REG_FORMS.has(f.form));
+      const doc = relevant.find((f) => FINAL_FORMS.has(f.form) && f.url) ?? relevant.find((f) => AMEND_FORMS.has(f.form) && f.url) ?? relevant.find((f) => f.url);
+      const docText = doc?.url ? await fetchDocText(doc.url, 20000) : null;
+      if (docText && isBlankCheckText(docText)) { results.push(`スキップ(SPAC): ${r.name}`); continue; }
+      const terms = docText ? extractTerms(docText, !!doc && FINAL_FORMS.has(doc.form)) : null;
+
+      let analysis: any = { sector: "不明", biz_type: "不明", ai_summary: "目論見書の本文を取得できていません。管理画面のSTEP 1(SEC書類の取得)の後に、事業内容が反映されます。" };
+      if (docText) {
+        try {
+          const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+          const msg = await claude.messages.create({
+            model: SUMMARY_MODEL,
+            max_tokens: 700,
+            messages: [{
+              role: "user",
+              content:
+                `次は、米国の新規上場(IPO)企業「${r.name}」の目論見書の冒頭の要約部分です。` +
+                `この文章に書かれている内容だけを根拠に、事業内容を日本語でまとめてください。` +
+                `書かれていないことは推測せず、分からない項目は「不明」としてください。` +
+                `JSON形式のみで回答してください(前後の説明文は不要)。\n\n` +
+                `{"sector":"業種名(日本語)","biz_type":"事業内容の一言説明(日本語・30字程度)","ai_summary":"150文字程度の事業概要説明(日本語)"}\n\n` +
+                `--- 目論見書の本文(抜粋) ---\n${extractBusinessExcerpt(docText, 6000)}`,
+            }],
+          });
+          const raw = (msg.content[0] as any).text ?? "";
+          const m = raw.match(/\{[\s\S]*\}/);
+          analysis = JSON.parse(m ? m[0] : raw.replace(/```json|```/g, "").trim());
+        } catch { /* 要約に失敗しても、登録は続ける(初期文言のまま) */ }
+      }
+
+      const { error: insErr } = await supabase.from("ipo_companies").insert({
+        name: r.name,
+        cik: hit.cik,
+        sec_doc_url: doc?.url ?? null,
+        exchange: r.exchange ?? terms?.exchange ?? "NASDAQ/NYSE(要確認)",
+        ticker: r.ticker ?? terms?.ticker ?? null,
+        price_range_min: r.priceLow ?? terms?.priceLow ?? null,
+        price_range_max: r.priceHigh ?? terms?.priceHigh ?? null,
+        listing_date: r.date,
+        listing_date_confirmed: false,
+        sector: analysis.sector,
+        biz_type: analysis.biz_type,
+        ai_summary: analysis.ai_summary,
+        status: "自動検出・要確認",
+      });
+      if (insErr) { results.push(`❌ カレンダーからの登録失敗: ${r.name} - ${insErr.message}`); continue; }
+      registered++;
+      existing.push({ id: "", name: r.name, ticker: r.ticker, cik: hit.cik });
+      results.push(`🆕 Nasdaqカレンダーから自動登録: ${r.name}${r.ticker ? "(" + r.ticker + ")" : ""}・上場日 ${r.date}`);
+      await notifyAdmin(
+        `🆕 米国IPO銘柄を自動登録: ${r.name}`,
+        `Nasdaq公式のIPOカレンダーに載った案件を、自動登録しました。\n\n` +
+        `会社名: ${r.name}\nティッカー: ${r.ticker ?? "不明"}  上場先: ${r.exchange ?? "不明"}\n` +
+        `上場日: ${r.date}(${r.kind === "priced" ? "価格決定済み" : "予定"})\n事業内容: ${analysis.biz_type}\n\n` +
+        `管理画面から分析を進めてください。\nhttps://ipo-us.finance-tower.com/admin`,
+        "info"
+      );
+    } catch (e: any) {
+      results.push(`❌ カレンダーからの登録エラー: ${r.name} - ${String(e?.message ?? e)}`);
+    }
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -193,10 +309,17 @@ export async function GET(req: NextRequest) {
   });
 
   // SEC書類を見に行く前に、Nasdaqカレンダーから日付などを補う(失敗しても先へ進む)
+  let calRows: CalRow[] = [];
   try {
-    await syncFromNasdaqCalendar(supabase, targets, results);
+    calRows = await syncFromNasdaqCalendar(supabase, targets, results);
   } catch (e: any) {
     results.push(`⚠️ Nasdaqカレンダーの処理でエラー: ${String(e?.message ?? e)}`);
+  }
+  // カレンダーに載った「上場が決まった銘柄」で、まだDBにないものを登録する(今月上場分。上場済みも含む)
+  try {
+    await registerFromCalendar(supabase, calRows, results, startedAt);
+  } catch (e: any) {
+    results.push(`⚠️ カレンダーからの自動登録でエラー: ${String(e?.message ?? e)}`);
   }
 
   let docFetches = 0;
