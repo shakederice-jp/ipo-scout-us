@@ -146,20 +146,21 @@ export default function AdminPage() {
       { key:"insights",  label:"②まずここに注目" },
       { key:"scenarios", label:"③株価シナリオ" },
       { key:"action",    label:"④買い方・売り方ガイド" },
+      { key:"highlights", label:"⑤魅力と注意点" },
     ];
     const merged: Record<string, any> = {};
     for (let i = 0; i < parts.length; i++) {
       const p = parts[i];
       setStepResult(prev => ({...prev, "3": `⏳ ${p.label} 生成中 (${i+1}/${parts.length+1})...`}));
       try {
-        const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:p.key, ...(p.key === "action" ? { prior: merged } : {}) }) });
+        const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:p.key, ...((p.key === "action" || p.key === "highlights") ? { prior: merged } : {}) }) });
         const data = await res.json();
         if (data.error) { setStep("3", false, `❌ ${p.label}: ${data.error}`); return; }
         Object.assign(merged, data);
       } catch { setStep("3", false, `❌ ${p.label}: 通信エラー`); return; }
     }
     // ④まずここに注目・初心者向けリライト（別呼び出しにして負荷分散）
-    setStepResult(prev => ({...prev, "3": `⏳ ⑤まずここに注目（初心者向け）生成中 (5/5)...`}));
+    setStepResult(prev => ({...prev, "3": `⏳ ⑥まずここに注目（初心者向け）生成中 (6/6)...`}));
     try {
       const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:"insights_beginner", insights:merged.insights ?? [] }) });
       const data = await res.json();

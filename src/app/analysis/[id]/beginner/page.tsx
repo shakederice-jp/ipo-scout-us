@@ -129,6 +129,14 @@ export default async function AnalysisBeginnerPage({ params }: { params: Promise
       short_grade: initialAnalysis.short_grade,
       long_grade: initialAnalysis.long_grade,
       is_new_format: initialAnalysis.is_new_format,
+      // 「魅力」は最初の1件だけ無料で見せる(残りと、売り時・注意点は有料)
+      highlights: initialAnalysis.highlights?.charms?.length
+        ? {
+            tagline: initialAnalysis.highlights.tagline ?? "",
+            charms: initialAnalysis.highlights.charms.slice(0, 1),
+            charms_total: initialAnalysis.highlights.charms.length,
+          }
+        : null,
     };
   }
 
@@ -157,7 +165,12 @@ export default async function AnalysisBeginnerPage({ params }: { params: Promise
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <AnalysisClient
-        company={company as any}
+        company={(hasAccess ? company : {
+          ...co,
+          analysis_detail: null, analysis_summary: null,
+          analysis_axes_short: null, analysis_axes_mid: null, analysis_axes_long: null,
+          analysis_market: null, structured_data: null, raw_prospectus: null, visualization_data: null,
+        }) as any}
         initialAnalysis={initialAnalysis}
         visualizationData={hasAccess ? visualizationData : null}
         allCompanies={allCompanies as any[]}

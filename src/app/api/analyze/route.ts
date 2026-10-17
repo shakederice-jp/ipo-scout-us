@@ -342,6 +342,49 @@ ${dataNote}
 }`;
 }
 
+// 2026/10追加: 「魅力」と「注意点」を、数字つきのカード用に作るパート
+function highlightsPrompt(co: any, dataNote: string, prior: any) {
+  const n = co.name ?? "unknown";
+  const p = prior ?? {};
+  const priorText = [
+    `総合: ${p.total_score ?? "?"}点(${p.grade ?? "?"})`,
+    `超短期: ${p.ultra_short_grade ?? "?"}評価 / 短期: ${p.short_grade ?? "?"}評価 / 長期: ${p.long_grade ?? "?"}評価`,
+    `要約: ${String(p.summary ?? "").slice(0, 300)}`,
+  ].join("\n");
+  return `あなたは米国IPO（NYSE・Nasdaq上場）を専門とする投資アナリストで、読者は日本の個人投資家です。
+${n}のIPOについて、「投資したいと思える魅力」と「買ったあとの注意点」を、カード表示用に整理してください。
+読者は、まず魅力を知り、そのあと売り時と注意点を知りたいと考えています。魅力は魅力として具体的に書き、注意点は同じ重みで正直に書いてください。
+JSONのみで返答してください。マークダウン・コードブロック・余分なテキスト一切不要。文章はすべて「ですます調」で記述すること。
+
+${dataNote}
+
+【すでに作成済みの評価(これと矛盾しないこと)】
+${priorText}
+
+【絶対ルール】
+1. 数値・事実は、上記【実データ】にあるものだけを使う。ないものは作らない。
+2. big_number には、実データにある数字を1つだけ、短く入れる(例:「+45%」「$120M」「3.2倍」)。該当する数字がなければ空文字にする。数字を推測で作らない。
+3. 「最高」「業界No.1」「画期的」「必ず」「確実」「絶対」「間違いなく」など、断定や最上級の表現は使わない。「〜と考えられます」「〜が強みです」の形で書く。
+4. 魅力は、会社のほめ言葉ではなく、投資家にとっての意味(なぜ株価や評価にプラスになりうるか)で書く。
+5. 魅力が少ない銘柄は、無理に増やさず2〜3件でよい。注意点が多い銘柄は、遠慮せず4件書き、重大度を正直に付ける。
+6. 注意点には、買ったあとに何を見ればよいか(決算の指標・ロックアップ解除日・大株主の売却開示など)を必ず書く。
+7. これは投資助言ではなく、公開資料にもとづくAIの分析であることを前提に、読み手に命令しない。
+
+【出力形式】必ず以下の構造のみで完結させること:
+{
+  "highlights": {
+    "tagline": "この銘柄の魅力をひとことで。40字以内。ですます調ではなく体言止めでもよい",
+    "charms": [
+      {"title": "魅力の見出し。20字以内・体言止め", "big_number": "実データにある数字1つ。なければ空文字", "big_label": "その数字が何か。20字以内。big_numberが空なら空文字", "why": "投資家にとってなぜ魅力か。100字以内。ですます調", "evidence": "目論見書のどの記述・数字が根拠か。80字以内", "horizon": "ultra_short / short / long / all のいずれか1つ"}
+    ],
+    "cautions": [
+      {"title": "注意点の見出し。20字以内・体言止め", "severity": "高 / 中 / 低 のいずれか1つ", "detail": "何が問題で、なぜ気をつけるのか。100字以内。ですます調", "watch": "買ったあとに見るところ。60字以内"}
+    ]
+  }
+}
+charms は2〜4件、cautions は3〜4件にしてください。`;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -358,6 +401,7 @@ export async function POST(req: NextRequest) {
         summary_beginner:    r.summary_beginner ?? "",
         action_guide:        (r.action_guide && typeof r.action_guide === "object") ? r.action_guide : null,
         learning_point:      (r.learning_point && typeof r.learning_point === "object") ? r.learning_point : null,
+        highlights:          (r.highlights && typeof r.highlights === "object") ? r.highlights : null,
         data_citations:      Array.isArray(r.data_citations) ? r.data_citations : [],
         data_confidence:     r.data_confidence ?? "low",
         missing_data_points: Array.isArray(r.missing_data_points) ? r.missing_data_points.slice(0,8) : [],
@@ -425,6 +469,7 @@ export async function POST(req: NextRequest) {
       part === "insights"  ? insightsPrompt(co, dataNote) :
       part === "scenarios" ? scenariosPrompt(co, dataNote) :
       part === "action"    ? actionPrompt(co, dataNote, body.prior) :
+      part === "highlights" ? highlightsPrompt(co, dataNote, body.prior) :
       scorePrompt(co, dataNote);
 
     const msg = await callClaudeWithRetry(prompt);

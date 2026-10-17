@@ -8,6 +8,7 @@ import {
 } from "@/components/VizTables";
 import { useState, useEffect } from "react";
 import { JpBuyCard, BrokerLinks } from "@/components/JpBuyInfo";
+import { SectionBand, CharmSection, SellTimeline, CautionSection } from "@/components/HighlightsView";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { PlanButton } from "@/components/PlanButton";
 import { fmtUsd, fmtJpyApprox, FX_NOTE } from "@/lib/fx";
@@ -975,6 +976,19 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           )}
         </Card>
 
+        {/* ① この銘柄の魅力(無料では最初の1件だけ表示) */}
+        {(analysis as any).highlights?.charms?.length>0&&(()=>{
+          const hl:any=(analysis as any).highlights;
+          const shown=hl.charms.length;
+          const total=Number(hl.charms_total)||shown;
+          return (
+            <>
+              <SectionBand no="1" title="この銘柄の魅力" sub="まず、投資したいと思える理由を、目論見書の数字から整理しました"/>
+              <CharmSection highlights={hl} lockedCount={hasAccess?0:Math.max(0,total-shown)}/>
+            </>
+          );
+        })()}
+
         {!hasAccess && (
           <div style={{borderRadius:14,padding:"20px",backgroundColor:"#1E3A66",color:"white",textAlign:"center"}}>
             <div style={{fontSize:15,fontWeight:900,marginBottom:6}}>🔒 ここから先は有料コンテンツです</div>
@@ -1010,17 +1024,12 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           </div>
         )}
 
-        {/* ⑨ まずここに注目！ */}
-        {insights.length>0&&(
-          <Card>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
-              <Star size={14} color="#f59e0b"/>
-              <span style={{fontWeight:900,fontSize:14,color:"#1e293b"}}>まずここに注目！</span>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:6}}>
-              {insights.map((ins,i)=><InsightCard key={i} ins={ins} idx={i} level={level}/>)}
-            </div>
-          </Card>
+        {/* ② 売り時(売り時カレンダー＋買い方・売り方ガイド) */}
+        {hasAccess&&(
+          <>
+            <SectionBand no={!!(analysis as any).highlights?.charms?.length?"2":"1"} title="売り時と、買い方・売り方" sub="買うと決めた場合に、いつ・何を見て売るかの目安です" color="#3D5A85"/>
+            <SellTimeline company={company as any} bestHorizon={(analysis as any).action_guide?.best_horizon}/>
+          </>
         )}
 
         {/* 🧭 この銘柄をどう考えるか(買う・見送る/売り時の目安) */}
@@ -1094,6 +1103,27 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             </Card>
           );
         })()}
+
+        {/* ③ 買ったあとの注意点 */}
+        {hasAccess&&(analysis as any).highlights?.cautions?.length>0&&(
+          <>
+            <SectionBand no={!!(analysis as any).highlights?.charms?.length?"3":"2"} title="買ったあとの注意点" sub="魅力と同じ重みで読んでください。気をつける点と、見るところをまとめました" color="#b45309"/>
+            <CautionSection highlights={(analysis as any).highlights}/>
+          </>
+        )}
+
+        {/* ⑨ まずここに注目！ */}
+        {insights.length>0&&(
+          <Card>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+              <Star size={14} color="#f59e0b"/>
+              <span style={{fontWeight:900,fontSize:14,color:"#1e293b"}}>まずここに注目！</span>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              {insights.map((ins,i)=><InsightCard key={i} ins={ins} idx={i} level={level}/>)}
+            </div>
+          </Card>
+        )}
 
         {/* ⑫⑬ 株価シナリオ分析＋投資シミュレーション */}
         <Card>
