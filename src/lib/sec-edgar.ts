@@ -227,6 +227,21 @@ export function extractTerms(text: string, isFinal: boolean): Terms {
 }
 
 // ---------------------------------------------------------------------------
+// 通常のIPOではない登録(SPAC・ファンド等)の判定
+// ---------------------------------------------------------------------------
+// 会社名による判定(Acquisition Corp / SPAC / ETF / Fund / Trust など)
+export function isExcludedByName(name: string): boolean {
+  return /\b(acquisition|spac|etf|fund|trust)\b/i.test(name);
+}
+
+// 書類本文による判定: SPAC(ブランクチェック会社=上場して資金を集め、後から事業会社と合併する「空箱」)の目論見書には
+// "blank check company" や "initial business combination" が必ず出てくる(会社名に Acquisition と入らない例もあるため、本文でも見る)
+export function isBlankCheckText(text: string): boolean {
+  const head = text.slice(0, 60000);
+  return /blank check company/i.test(head) || /initial business combination/i.test(head);
+}
+
+// ---------------------------------------------------------------------------
 // 日付の計算(すべてUTCで扱い、時差によるずれを防ぐ)
 // ---------------------------------------------------------------------------
 export function addDays(ymd: string, days: number): string {

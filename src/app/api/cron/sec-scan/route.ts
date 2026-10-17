@@ -4,6 +4,7 @@ import { notifyAdmin } from "@/lib/notify-admin";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   SEC_USER_AGENT, fetchSubmissions, fetchDocText, extractBusinessExcerpt, extractTerms, sleep,
+  isExcludedByName, isBlankCheckText,
 } from "@/lib/sec-edgar";
 import { xDraftBlock } from "@/lib/x-link";
 
@@ -111,6 +112,13 @@ export async function GET(req: NextRequest) {
       // 秒間10リクエストのSEC制限を守るため軽くウェイトを入れる
       await sleep(150);
 
+      // 2026/10追加: SPAC・ファンド・ETF等は、通常のIPO銘柄ではないため自動登録しない
+      // (登録済みのものより先に判定する。手動で登録したい場合は管理画面から追加できる)
+      if (isExcludedByName(row.companyName)) {
+        results.push(`スキップ(SPAC・ファンド等): ${row.companyName}`);
+        continue;
+      }
+
       const already = (existing ?? []).find(c => c.cik === row.cik);
       if (already) {
         results.push(`スキップ(登録済み): ${row.companyName}`);
@@ -141,6 +149,11 @@ export async function GET(req: NextRequest) {
         const acc = accessionFromFileName(row.fileName);
         const filing = acc ? sub?.filings.find((f) => f.accession === acc) : undefined;
         const docText = filing?.url ? await fetchDocText(filing.url, 20000) : null;
+        // 会社名にAcquisition等が入っていないSPACも、本文(blank check company等の記載)で見分けて除外する
+        if (docText && isBlankCheckText(docText)) {
+          results.push(`スキップ(SPAC): ${row.companyName}（CIK:${row.cik}）`);
+          continue;
+        }
         const terms = docText ? extractTerms(docText, false) : null;
 
         let analysis: any = {

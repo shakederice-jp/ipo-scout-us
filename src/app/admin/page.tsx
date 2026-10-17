@@ -450,10 +450,10 @@ export default function AdminPage() {
               <h2 style={{ fontSize:"13px", fontWeight:900, color:"white", margin:"0 0 12px" }}>📅 週次ルーティン</h2>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {[
-                  { day:"毎日", label:"EDINET取得・ニュース収集", auto:true },
+                  { day:"毎日", label:"SEC書類の確認(新規S-1の発見・価格帯/ティッカー/上場日の自動入力)・上場後の株価追跡", auto:true },
                   { day:"月曜", label:"DB整合性チェック結果をメールで確認", auto:true },
                   { day:"随時", label:"新規IPO銘柄を登録 → AI分析を生成", auto:false },
-                  { day:"随時", label:"公募価格が決定したら入力", auto:false },
+                  { day:"随時", label:"公募価格が自動で入らなかった銘柄だけ、手入力", auto:false },
                   { day:"木曜", label:"翌週分の銘柄データが揃っているか確認", auto:false },
                   { day:"金曜", label:"週次通知メールが送信されたか確認", auto:true },
                 ].map((item, i) => (
