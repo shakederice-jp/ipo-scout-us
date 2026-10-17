@@ -55,7 +55,9 @@ async function fetchDailyIndex(date: Date): Promise<IdxRow[]> {
     const formType = line.slice(0, 12).trim();
     const companyName = line.slice(12, 74).trim();
     const cik = line.slice(74, 86).trim();
-    const dateFiled = line.slice(86, 98).trim();
+    // 日次インデックスの日付は「20261015」の形式。SECの提出書類一覧と比べられるよう「2026-10-15」に直す
+    const rawDate = line.slice(86, 98).trim();
+    const dateFiled = /^\d{8}$/.test(rawDate) ? `${rawDate.slice(0, 4)}-${rawDate.slice(4, 6)}-${rawDate.slice(6, 8)}` : rawDate;
     const fileName = line.slice(98).trim();
     if (formType && cik && fileName) {
       rows.push({ formType, companyName, cik, dateFiled, fileName });
@@ -160,10 +162,15 @@ export async function GET(req: NextRequest) {
         results.push(`スキップ(既上場企業): ${row.companyName}（CIK:${row.cik}）`);
         continue;
       }
-      const earlierDay = (d: string) => { const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() - 30); return t.toISOString().slice(0, 10); };
+      const earlierDay = (d: string) => {
+        const t = new Date(d + "T00:00:00Z");
+        if (isNaN(t.getTime())) return ""; // 日付を読めなければ、この判定は行わない
+        t.setUTCDate(t.getUTCDate() - 30);
+        return t.toISOString().slice(0, 10);
+      };
       if (sub && sub.filings.some((f) =>
         (REPORT_FORMS.has(f.form) && f.filed < row.dateFiled) ||
-        ((f.form === "424B4" || f.form === "424B1") && f.filed < earlierDay(row.dateFiled))
+        ((f.form === "424B4" || f.form === "424B1") && !!earlierDay(row.dateFiled) && f.filed < earlierDay(row.dateFiled))
       )) {
         results.push(`スキップ(既上場企業・増資など): ${row.companyName}（CIK:${row.cik}）`);
         continue;
