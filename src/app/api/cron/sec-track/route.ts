@@ -6,6 +6,7 @@ import {
   type Filing,
 } from "@/lib/sec-edgar";
 import { xDraftBlock } from "@/lib/x-link";
+import { fetchNasdaqCalendar, matchCalendar, NASDAQ_DATE_IS_PRICING_DATE } from "@/lib/ipo-calendar";
 
 // 2026/10追加: SEC提出書類の進み具合の追跡(sec-track)
 //
@@ -72,6 +73,86 @@ async function safeUpdate(
 
 const fmtPrice = (lo: number, hi: number) => (lo === hi ? `$${lo}` : `$${lo}〜$${hi}`);
 
+// 2026/10追加: Nasdaq公式のIPOカレンダーから、上場予定日・ティッカー・上場先・価格帯を補う。
+// ・SEC書類で確定した日付(listing_date_confirmed=true)は上書きしない
+// ・カレンダーに載るのは、価格帯が決まって公募が始まった案件から(上場の1〜2週間前ごろ)
+// ・取得できなくても、SEC書類の追跡はそのまま続ける
+async function syncFromNasdaqCalendar(
+  supabase: ReturnType<typeof getSupabase>,
+  targets: Company[],
+  results: string[]
+) {
+  const cal = await fetchNasdaqCalendar();
+  if (cal.rows.length === 0) {
+    results.push(`⚠️ Nasdaq IPOカレンダーを取得できませんでした: ${cal.error ?? "原因不明"}（SEC書類の追跡は続けます。上場日は、必要なら管理画面で手入力してください）`);
+    return;
+  }
+  const count = (k: string) => cal.rows.filter((r) => r.kind === k).length;
+  results.push(
+    `📅 Nasdaq IPOカレンダーを確認(${cal.months.join("・")}): 予定${count("upcoming")}件・決定済み${count("priced")}件・申請${count("filed")}件${cal.error ? "／一部取得失敗: " + cal.error : ""}`
+  );
+  const todayYmd = new Date().toISOString().slice(0, 10);
+
+  for (const c of targets) {
+    const m = matchCalendar(cal.rows, c);
+    if (!m) continue;
+    if (m.kind === "withdrawn") {
+      if (c.sec_stage !== "withdrawn") results.push(`⚠️ Nasdaqカレンダーで「取り下げ」に載っています: ${c.name}（SEC書類でも確認してください）`);
+      continue;
+    }
+
+    const patch: Record<string, any> = {};
+    const notes: string[] = [];
+
+    if (!c.ticker && m.ticker) patch.ticker = m.ticker;
+    if ((!c.exchange || c.exchange.includes("要確認")) && m.exchange) patch.exchange = m.exchange;
+    if (c.price_range_min === null && m.priceLow !== null && m.priceHigh !== null) {
+      patch.price_range_min = m.priceLow;
+      patch.price_range_max = m.priceHigh;
+    }
+
+    let dateChanged = false;
+    if (m.date && c.listing_date_confirmed !== true && c.listing_date !== m.date && m.date >= addDays(todayYmd, -14)) {
+      patch.listing_date = m.date;
+      patch.listing_date_confirmed = false;
+      dateChanged = true;
+    }
+    if (Object.keys(patch).length === 0) continue;
+
+    await safeUpdate(supabase, c.id, patch, notes, c.name);
+    Object.assign(c, patch);
+    const parts = [
+      patch.listing_date ? `上場日 ${patch.listing_date}` : "",
+      patch.ticker ? `ティッカー ${patch.ticker}` : "",
+      patch.exchange ? `上場先 ${patch.exchange}` : "",
+      patch.price_range_min !== undefined ? `価格帯 ${fmtPrice(patch.price_range_min, patch.price_range_max)}` : "",
+    ].filter(Boolean);
+    results.push(`📅 Nasdaqカレンダーから補完: ${c.name} → ${parts.join("・")}`);
+    results.push(...notes);
+
+    if (dateChanged) {
+      const analysisUrl = `${SITE}/analysis/${c.id}`;
+      const tickerNow = c.ticker ?? "";
+      const priceNow = c.price_range_min !== null && c.price_range_max !== null ? fmtPrice(c.price_range_min, c.price_range_max) : "";
+      const draft =
+        `【米国IPO】${c.name}${tickerNow ? "(" + tickerNow + ")" : ""}の上場予定日が見えてきました\n\n` +
+        `上場予定日: ${patch.listing_date}\n` +
+        `${c.exchange ? "上場先: " + c.exchange + "\n" : ""}` +
+        `${priceNow ? "想定価格: " + priceNow + "/株\n" : ""}\n` +
+        `詳しい分析はこちら👇\n${analysisUrl}\n\n#米国IPO #IPO`;
+      await notifyAdmin(
+        `📅 上場予定日を取得: ${c.name}（${patch.listing_date}）`,
+        `Nasdaq公式のIPOカレンダーから、上場予定日を自動で取得してDBに反映しました。\n\n` +
+        `会社名: ${c.name}\n上場予定日: ${patch.listing_date}（予定・未確定）\n` +
+        `${c.exchange ? "上場先: " + c.exchange + "  " : ""}${tickerNow ? "ティッカー: " + tickerNow : ""}\n${priceNow ? "想定価格: " + priceNow + "/株\n" : ""}\n` +
+        `※ カレンダーの日付は${NASDAQ_DATE_IS_PRICING_DATE ? "価格決定日として扱い、その翌営業日を上場日にしています" : "取引開始日として扱っています"}。1日ずれることがあるため、公開前に Nasdaq のカレンダー(https://www.nasdaq.com/market-activity/ipos)でもご確認ください。\n` +
+        `最終目論見書(424B4)が出ると、日付は書類の内容で自動的に確定します。\n\n` + xDraftBlock(draft),
+        "info"
+      );
+    }
+  }
+}
+
 export async function GET(req: NextRequest) {
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -105,6 +186,13 @@ export async function GET(req: NextRequest) {
     if (c.sec_stage === "priced" && c.listing_date && c.listing_date < addDays(today, -220)) return false;
     return true;
   });
+
+  // SEC書類を見に行く前に、Nasdaqカレンダーから日付などを補う(失敗しても先へ進む)
+  try {
+    await syncFromNasdaqCalendar(supabase, targets, results);
+  } catch (e: any) {
+    results.push(`⚠️ Nasdaqカレンダーの処理でエラー: ${String(e?.message ?? e)}`);
+  }
 
   let docFetches = 0;
 
