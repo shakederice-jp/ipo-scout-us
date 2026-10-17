@@ -95,7 +95,8 @@ async function fetchMonth(ym: string): Promise<{ rows: CalRow[]; error?: string;
     const pr = findRows(d?.priced);
     const fi = findRows(d?.filed);
     const wd = findRows(d?.withdrawn);
-    const diag = `${ym} 項目=[${Object.keys(d).join(",")}] 予定${up.length}/決定済み${pr.length}/申請${fi.length}/取下げ${wd.length}`;
+    const diag = `${ym} 項目=[${Object.keys(d).join(",")}] 予定${up.length}/決定済み${pr.length}/申請${fi.length}/取下げ${wd.length}` +
+      (up.length === 0 ? ` 〔予定欄の生データ: ${JSON.stringify(d?.upcoming ?? null).slice(0, 300)}〕` : "");
     return {
       rows: [
         ...toRows("upcoming", up, "expectedPriceDate"),

@@ -94,6 +94,8 @@ async function syncFromNasdaqCalendar(
   results.push(`🔎 カレンダーの中身(確認用): ${cal.diag.join(" ／ ")}`);
   const upcomingNames = cal.rows.filter((r) => r.kind === "upcoming").map((r) => `${r.name}${r.ticker ? "(" + r.ticker + ")" : ""}${r.exchange ? "・" + r.exchange : ""}${r.date ? "・" + r.date : ""}`);
   if (upcomingNames.length > 0) results.push(`🔎 上場予定の案件: ${upcomingNames.slice(0, 15).join(" ／ ")}`);
+  const pricedNames = cal.rows.filter((r) => r.kind === "priced").map((r) => `${r.name}${r.ticker ? "(" + r.ticker + ")" : ""}${r.exchange ? "・" + r.exchange : ""}${r.date ? "・上場" + r.date : ""}`);
+  if (pricedNames.length > 0) results.push(`🔎 決定済みの案件(上場先の確認用): ${pricedNames.slice(0, 12).join(" ／ ")}`);
   const todayYmd = new Date().toISOString().slice(0, 10);
 
   for (const c of targets) {
