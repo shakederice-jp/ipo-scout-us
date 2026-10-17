@@ -7,6 +7,7 @@ import {
   IpoSummaryTable, UseOfProceedsTable, ShareholdersLockupTable, RiskTable,
 } from "@/components/VizTables";
 import { useState, useEffect } from "react";
+import { JpBuyCard, BrokerLinks } from "@/components/JpBuyInfo";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { PlanButton } from "@/components/PlanButton";
 import { fmtUsd, fmtJpyApprox, FX_NOTE } from "@/lib/fx";
@@ -885,6 +886,9 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
 
         {(company as any).price_track?.day1&&<PriceTrackCard track={(company as any).price_track}/>}
 
+        {/* 🇯🇵 日本での買い方(抽選の取扱い状況と、証券会社の公式ページへのリンク) */}
+        <JpBuyCard company={company as any}/>
+
         {/* このレポートの読み方（総論→各論→参考資料という設計思想の案内） */}
         <div style={{display:"flex",alignItems:"flex-start",gap:8,padding:"10px 14px",borderRadius:10,
           backgroundColor:"white",border:`1px dashed ${BORDER}`}}>
@@ -1080,6 +1084,10 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                   {ag.check_before_buy.map((f:string,i:number)=>(<div key={i} style={{fontSize:12,color:"#334155",lineHeight:1.7}}>・{f}</div>))}
                 </div>
               )}
+              <div style={{padding:"10px 12px",backgroundColor:"#F5F4EF",border:"1px solid #C7D3E3",borderRadius:10,marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:800,color:"#3D5A85",marginBottom:6}}>🇯🇵 日本から買うときは</div>
+                <BrokerLinks title="取扱いの有無・締切は、各社の公式ページで再確認してください"/>
+              </div>
               <p style={{fontSize:10,color:"#94a3b8",lineHeight:1.7,margin:0}}>
                 ※公開資料をもとにしたAIの分析です。投資助言ではなく、値上がりや利益を保証するものでもありません。売買の判断と結果は、ご自身の責任でお願いします。
               </p>

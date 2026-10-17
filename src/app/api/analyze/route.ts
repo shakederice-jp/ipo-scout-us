@@ -207,6 +207,12 @@ function actionPrompt(co: any, dataNote: string, prior: any) {
     `ロックアップ解除日(90日): ${lock90 || "記載なし・不明"}`,
     `ロックアップ解除日(180日): ${lock180 || "記載なし・不明"}`,
   ].join("\n");
+  // 日本の証券会社での公募(抽選)の取扱い(管理画面で登録)。未登録なら「取扱い未定」として扱う。
+  const jpNames: Record<string, string> = { rakuten: "楽天証券", sbi: "SBI証券" };
+  const jpList: string[] = (Array.isArray((co as any).jp_brokers) ? (co as any).jp_brokers : []).map((k: string) => jpNames[k]).filter(Boolean);
+  const buyRoute = jpList.length > 0
+    ? `日本の${jpList.join("・")}で、公募(抽選)の取扱いがあります。当選すれば公募価格で買えますが、当選は抽選のため、外れた場合は上場後に市場価格で買うことになります。買う根拠は「公募価格で買えた場合」と「上場後に市場価格で買う場合」の両方を意識して書いてください。`
+    : `日本の主要な証券会社での公募(抽選)の取扱いは確認できていません。そのため、読者は公募価格では買えず、上場初日の寄り付き付近(始値あたり)から買うことを出発点として考えてください。買う根拠・売る根拠は、公募価格ではなく「上場初日の始値あたりで買った場合」を前提に書き、公募価格と始値の差が大きくなりうる点(すでに値上がりしたあとに買う形になる点)にも触れてください。`;
   const p = prior ?? {};
   const scen = (arr: any) => (Array.isArray(arr) ? arr : []).map((s: any) => `${s.verdict}:${s.name}(公募価格比:${s.vsIpo}・確率:${s.prob})`).join(" / ");
   const priorText = [
@@ -229,6 +235,9 @@ ${dataNote}
 
 【日程(実データ)】
 ${schedule}
+
+【日本での買い方(この前提で、買う根拠を書くこと)】
+${buyRoute}
 
 【すでに作成済みの評価(これと矛盾しないこと)】
 ${priorText}

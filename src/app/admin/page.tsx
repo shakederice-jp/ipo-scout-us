@@ -41,6 +41,9 @@ export default function AdminPage() {
   const [vizLoading, setVizLoading] = useState(false);
   const [vizResult, setVizResult] = useState<string | null>(null);
   const [ipoPriceInput, setIpoPriceInput] = useState("");
+  const [jpBrokers, setJpBrokers] = useState<string[]>([]);
+  const [jpBrokersLoading, setJpBrokersLoading] = useState(false);
+  const [jpBrokersResult, setJpBrokersResult] = useState<string | null>(null);
   const [ipoPriceLoading, setIpoPriceLoading] = useState(false);
   const [ipoPriceResult, setIpoPriceResult] = useState<string | null>(null);
   const [allAxesLoading, setAllAxesLoading] = useState(false);
@@ -101,6 +104,8 @@ export default function AdminPage() {
     setVizResult(null);
     setIpoPriceInput(c.ipo_price != null ? String(c.ipo_price) : "");
     setIpoPriceResult(null);
+    setJpBrokers(Array.isArray(c.jp_brokers) ? c.jp_brokers : []);
+    setJpBrokersResult(null);
   };
 
   const handleStep1 = async () => {
@@ -269,6 +274,22 @@ export default function AdminPage() {
       setVizResult(saveData.success ? "✅ 視覚化データ生成完了" : `❌ 保存エラー: ${saveData.error}`);
     } catch { setVizResult("❌ 保存通信エラー"); }
     finally { setVizLoading(false); }
+  };
+
+  const handleSaveJpBrokers = async () => {
+    if (!selectedCompany) return;
+    setJpBrokersLoading(true); setJpBrokersResult(null);
+    try {
+      const res = await fetch("/api/admin/jp-brokers", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ company_id:selectedCompany.id, brokers:jpBrokers }) });
+      const data = await res.json();
+      if (data.error) { setJpBrokersResult(`❌ ${data.error}`); }
+      else {
+        setJpBrokersResult("✅ 保存しました");
+        setSelectedCompany((prev:any)=>prev?{...prev,jp_brokers:data.brokers}:prev);
+        setCompanies((prev:any[])=>prev.map((x:any)=>x.id===selectedCompany.id?{...x,jp_brokers:data.brokers}:x));
+      }
+    } catch { setJpBrokersResult("❌ 通信エラー"); }
+    setJpBrokersLoading(false);
   };
 
   const handleSetIpoPrice = async () => {
@@ -688,6 +709,22 @@ export default function AdminPage() {
                       </button>
                     </div>
                     {ipoPriceResult && <p style={{ marginTop:6, fontSize:11, color:ipoPriceResult.startsWith("❌")?"#dc2626":"#166534" }}>{ipoPriceResult}</p>}
+                  </div>
+                  <div style={{ background:"#eff6ff", borderRadius:8, padding:12, marginBottom:14, border:"1px solid #bfdbfe" }}>
+                    <label style={{ ...labelStyle, color:"#1d4ed8" }}>🇯🇵 日本の証券会社での公募（抽選）の取扱い ※各社のページで確認してチェック</label>
+                    <div style={{ display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
+                      {([["rakuten","楽天証券"],["sbi","SBI証券"]] as [string,string][]).map(([k,n])=>(
+                        <label key={k} style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, color:"#1e3a8a", cursor:"pointer" }}>
+                          <input type="checkbox" checked={jpBrokers.includes(k)} onChange={e=>setJpBrokers(prev=>e.target.checked?Array.from(new Set([...prev,k])):prev.filter(x=>x!==k))}/>
+                          {n}で抽選あり
+                        </label>
+                      ))}
+                      <button onClick={handleSaveJpBrokers} disabled={jpBrokersLoading} style={{ padding:"8px 14px", backgroundColor:jpBrokersLoading?"#94a3b8":"#1d4ed8", color:"white", border:"none", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:12 }}>
+                        {jpBrokersLoading?"保存中...":"保存"}
+                      </button>
+                    </div>
+                    <p style={{ marginTop:6, fontSize:10, color:"#64748b", lineHeight:1.7 }}>どちらもチェックしないと「取扱い未定」と表示され、買い方・売り方ガイドは「上場初日の寄り付き付近で買う」前提で書かれます。</p>
+                    {jpBrokersResult && <p style={{ marginTop:6, fontSize:11, color:jpBrokersResult.startsWith("❌")?"#dc2626":"#166534" }}>{jpBrokersResult}</p>}
                   </div>
                   <div style={{ marginBottom:14 }}>
                     <label style={labelStyle}>SEC書類のURL（空白で自動検索。通常は入力不要）</label>

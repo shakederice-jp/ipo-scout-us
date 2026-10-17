@@ -14,6 +14,7 @@ export interface IpoCompany {
   lockup_180_date: string | null;
   status: string;
   highlight: boolean;
+  jp_brokers?: string[] | null;
   ai_score: number | null;
   ai_summary: string | null;
   created_at?: string;

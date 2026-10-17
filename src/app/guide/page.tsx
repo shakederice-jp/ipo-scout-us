@@ -147,6 +147,10 @@ export default function GuidePage() {
           <p style={{ fontSize: 13, color: "#475569", lineHeight: 1.9, margin: "0 0 10px" }}>
             楽天証券・SBI証券の取り扱い状況と、上場後に買う方法の違いをまとめました。
           </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            <a href="https://www.rakuten-sec.co.jp/web/us/ipo/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 800, color: C.nav, backgroundColor: "#E8EDF5", border: `1px solid ${C.border}`, borderRadius: 999, padding: "5px 14px", textDecoration: "none" }}>楽天証券の公式ページ ↗</a>
+            <a href="https://www.sbisec.co.jp/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 800, color: C.nav, backgroundColor: "#E8EDF5", border: `1px solid ${C.border}`, borderRadius: 999, padding: "5px 14px", textDecoration: "none" }}>SBI証券の公式ページ ↗</a>
+          </div>
           <a href="/how-to-buy" style={{ fontSize: 13, fontWeight: 800, color: C.nav, textDecoration: "none" }}>参加する方法を見る →</a>
         </div>
 

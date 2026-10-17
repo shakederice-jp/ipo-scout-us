@@ -138,6 +138,17 @@ export default async function Home({
             <span style={{ fontSize:16, color:"#ffffff" }}>→</span>
           </a>
 
+{/* 日本から買うには(楽天証券・SBI証券の公式ページへのリンク付き) */}
+<div style={{ ...cardStyle, padding:"12px 16px", backgroundColor:"#F5F4EF", border:"1.5px solid #C7D3E3" }}>
+            <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36", marginBottom:4 }}>🇯🇵 日本から米国IPOを買うには</div>
+            <div style={{ fontSize:10, color:"#3D5A85", lineHeight:1.7, marginBottom:8 }}>取扱いのある証券会社は限られています。最新の状況は各社の公式ページで確認してください。</div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
+              <a href="https://www.rakuten-sec.co.jp/web/us/ipo/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, fontWeight:800, color:"#1E3A66", backgroundColor:"#E8EDF5", border:"1px solid #C7D3E3", borderRadius:999, padding:"4px 12px", textDecoration:"none" }}>楽天証券 ↗</a>
+              <a href="https://www.sbisec.co.jp/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, fontWeight:800, color:"#1E3A66", backgroundColor:"#E8EDF5", border:"1px solid #C7D3E3", borderRadius:999, padding:"4px 12px", textDecoration:"none" }}>SBI証券 ↗</a>
+            </div>
+            <a href="/how-to-buy" style={{ fontSize:11, fontWeight:700, color:"#1E3A66", textDecoration:"none" }}>参加する方法を見る →</a>
+          </div>
+
 {/* IPO投資ガイドへのリンク */}
 <a href="/ipo-guide" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#f0fdf4", textDecoration:"none", border:"1.5px solid #22c55e" }}>
             <div>
@@ -192,6 +203,8 @@ export default async function Home({
           <a href="/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>お問い合わせ</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
           <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>このサイトの使い方</a>
+          <span style={{ color:"#e2e8f0" }}>|</span>
+          <a href="/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>日本からの買い方</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
           <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>料金プラン</a>
           <span style={{ color:"#e2e8f0" }}>|</span>
