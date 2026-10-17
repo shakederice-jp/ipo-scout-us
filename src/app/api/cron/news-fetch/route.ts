@@ -13,7 +13,7 @@ const claude = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = "shakederice@gmail.com";
 
-export const NEWS_SOURCES = [
+const NEWS_SOURCES = [
   { name: "PR TIMES", url: "https://prtimes.jp/rss20.aspx?keyword=%E8%B3%87%E9%87%91%E8%AA%BF%E9%81%94", category: "資金調達" },
   { name: "PR TIMES", url: "https://prtimes.jp/rss20.aspx?keyword=%E6%96%B0%E8%A6%8F%E4%B8%8A%E5%A0%B4", category: "新規上場" },
   { name: "PR TIMES", url: "https://prtimes.jp/rss20.aspx?keyword=%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%88%E3%82%A2%E3%83%83%E3%83%97", category: "スタートアップ" },
