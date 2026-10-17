@@ -16,6 +16,7 @@ type Company = {
   ai_summary?: string;
   is_free?: boolean;
   has_analysis?: boolean;
+  is_decided?: boolean;
 };
 
 type CalendarNote = {
@@ -179,7 +180,7 @@ export default function CalendarClient() {
   });
 
   // 上場日がまだ決まっていない銘柄(分析があるものだけ)
-  const undated = sorted.filter(c => !c.listing_date && (c.has_analysis || c.ai_summary));
+  const undated = sorted.filter(c => !c.listing_date && c.is_decided && (c.has_analysis || c.ai_summary));
 
   const currentMonthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
   const monthSorted = sorted.filter(c => c.listing_date?.startsWith(currentMonthKey));
@@ -495,7 +496,7 @@ export default function CalendarClient() {
                 <span style={{ fontSize:11, color:C.muted }}>（{undated.length}社）</span>
               </div>
               <p style={{ fontSize:11, color:C.muted, lineHeight:1.7, margin:"0 0 10px" }}>
-                SECへの提出書類はそろっていますが、上場日はまだ決まっていません。決まり次第、カレンダーに反映されます。
+                価格帯が発表され、上場が近づいている銘柄です。上場日が決まり次第、カレンダーに反映されます。
               </p>
               {undated.map(company => (
                 <div key={company.id} style={{ backgroundColor:C.white, borderRadius:14, border:"1px solid #fde68a", marginBottom:12, overflow:"hidden" }}>

@@ -7,7 +7,6 @@ import {
   isExcludedByName, isBlankCheckText,
 } from "@/lib/sec-edgar";
 import { xDraftBlock } from "@/lib/x-link";
-import { STYLE_RULE } from "@/lib/writing-style";
 
 // 事業内容の要約に使うモデル(Haiku 4.5。将来Haiku 5.5へ変える場合はここだけ変更)
 const SUMMARY_MODEL = "claude-haiku-4-5";
@@ -64,11 +63,17 @@ async function fetchDailyIndex(date: Date): Promise<IdxRow[]> {
   return rows;
 }
 
-// 新規上場の登録届出書(S-1、外国企業向けのF-1。修正版のS-1/A・F-1/Aは除外)のみを対象にする
-// (2026/10追加: 外国企業の上場=F-1も拾うようにした)
-function isNewRegistration(row: IdxRow): boolean {
-  return row.formType === "S-1" || row.formType === "F-1";
+// 2026/10変更: 「上場が決まった銘柄」だけを拾うため、登録の対象を次の書類に広げ、
+// 本文に価格帯(または公募価格)が書かれているものだけを登録する。
+//   ・S-1 / F-1(外国企業) / S-1/A / F-1/A … 価格帯が書かれていれば、募集が始まった(ロードショー)とみなす
+//   ・424B4 … 最終目論見書(価格決定)
+// 価格帯が空欄($[●])の「上場申請だけの段階」は、まだ上場が決まっていないため登録しない。
+const CANDIDATE_FORMS = new Set(["S-1", "S-1/A", "F-1", "F-1/A", "424B4"]);
+function isCandidate(row: IdxRow): boolean {
+  return CANDIDATE_FORMS.has(row.formType);
 }
+// すでに上場している会社(年次・四半期報告書などを出している)の増資は、新規IPOではない
+const SEASONED_FORMS = new Set(["10-K", "10-Q", "20-F", "40-F", "8-K", "6-K"]);
 
 // 日次インデックスのファイル名(例: edgar/data/1234567/0001234567-26-000123.txt)から書類番号を取り出す
 function accessionFromFileName(fileName: string): string | null {
@@ -99,17 +104,27 @@ export async function GET(req: NextRequest) {
     .from("ipo_companies")
     .select("id, cik, name");
 
+  // 直近5日分の書類をまとめて集め、同じ会社は1件にする(価格決定=424B4を優先し、残りは順番を混ぜる)
+  const allRows: IdxRow[] = [];
   for (const date of dates) {
-    let rows: IdxRow[] = [];
     try {
-      rows = await fetchDailyIndex(date);
+      allRows.push(...(await fetchDailyIndex(date)));
     } catch {
       continue; // タイムアウト等は次の日付へ
     }
+  }
+  const byCik = new Map<string, IdxRow>();
+  for (const r of allRows.filter(isCandidate)) {
+    const cur = byCik.get(r.cik);
+    if (!cur || (r.formType === "424B4" && cur.formType !== "424B4")) byCik.set(r.cik, r);
+  }
+  const candidates = Array.from(byCik.values()).sort((a, b) => {
+    const pa = a.formType === "424B4" ? 0 : 1, pb = b.formType === "424B4" ? 0 : 1;
+    return pa !== pb ? pa - pb : Math.random() - 0.5;
+  });
 
-    const newRegs = rows.filter(isNewRegistration);
-
-    for (const row of newRegs) {
+  {
+    for (const row of candidates) {
       // 秒間10リクエストのSEC制限を守るため軽くウェイトを入れる
       await sleep(150);
 
@@ -135,8 +150,14 @@ export async function GET(req: NextRequest) {
       // 既上場企業(ティッカーシンボルを既に持っている)は新規IPOではないため除外
       // 情報が取れない場合は「新規の可能性あり」として扱う(誤って除外しないよう安全側)
       const sub = await fetchSubmissions(row.cik);
-      if (sub && sub.tickers.length > 0) {
+      const isPriced = row.formType === "424B4";
+      // 価格決定(424B4)の時点では、EDGAR上のティッカー欄がすでに埋まっていることがあるため、ここでは見ない
+      if (!isPriced && sub && sub.tickers.length > 0) {
         results.push(`スキップ(既上場企業): ${row.companyName}（CIK:${row.cik}）`);
+        continue;
+      }
+      if (sub && sub.filings.some((f) => SEASONED_FORMS.has(f.form) && f.filed < row.dateFiled)) {
+        results.push(`スキップ(既上場企業・増資など): ${row.companyName}（CIK:${row.cik}）`);
         continue;
       }
 
@@ -155,7 +176,12 @@ export async function GET(req: NextRequest) {
           results.push(`スキップ(SPAC): ${row.companyName}（CIK:${row.cik}）`);
           continue;
         }
-        const terms = docText ? extractTerms(docText, false) : null;
+        const terms = docText ? extractTerms(docText, isPriced) : null;
+        // 価格帯(または公募価格)の記載がなければ、上場はまだ先。登録せず、翌日以降に再確認する
+        if (!terms || terms.priceLow == null) {
+          results.push(`見送り(価格帯の記載なし・上場はまだ先): ${row.companyName}（${row.formType}）`);
+          continue;
+        }
 
         let analysis: any = {
           sector: "不明",
@@ -178,7 +204,7 @@ export async function GET(req: NextRequest) {
                 `書かれていないことは推測せず、分からない項目は「不明」としてください。` +
                 `JSON形式のみで回答してください(前後の説明文は不要)。\n\n` +
                 `{"sector":"業種名(日本語)","biz_type":"事業内容の一言説明(日本語・30字程度)","ai_summary":"150文字程度の事業概要説明(日本語)"}\n\n` +
-                STYLE_RULE.trimStart() + `\n--- S-1の本文(抜粋) ---\n${excerpt}`,
+                `--- S-1の本文(抜粋) ---\n${excerpt}`,
             }],
           });
           const rawAnalysis = (analysisMsg.content[0] as any).text ?? "";
@@ -217,13 +243,17 @@ export async function GET(req: NextRequest) {
           results.push(`❌ 新規登録失敗: ${row.companyName} - ${insertError.message}`);
         } else {
           results.push(`🆕 新規IPO候補として自動登録: ${row.companyName}（CIK:${row.cik}）`);
+          const priceText = terms.priceLow === terms.priceHigh ? `$${terms.priceLow}` : `$${terms.priceLow}〜$${terms.priceHigh}`;
           const xDraft =
-            `【米国IPO】${row.companyName}がSECに上場申請(${row.formType})\n\n` +
+            (isPriced
+              ? `【米国IPO】${row.companyName}が公募価格を決定(${priceText})\n\n`
+              : `【米国IPO】${row.companyName}が募集条件を発表(価格帯 ${priceText})\n\n`) +
             `${analysis.biz_type && analysis.biz_type !== "不明" ? analysis.biz_type + "\n\n" : ""}` +
             `詳しい分析は準備ができ次第お届けします。\n\n#米国IPO #IPO`;
           await notifyAdmin(
             `🆕 米国新規IPO発見: ${row.companyName}`,
-            `SEC EDGARで新規上場候補(${row.formType}提出)を発見し、自動登録しました。\n\n` +
+            `SEC EDGARで、価格${isPriced ? "が決まった" : "帯が発表された"}新規上場候補(${row.formType}提出)を発見し、自動登録しました。\n\n` +
+            `価格: ${priceText}\n` +
             `会社名: ${row.companyName}\n` +
             `CIK: ${row.cik}\n` +
             `提出日: ${row.dateFiled}\n` +

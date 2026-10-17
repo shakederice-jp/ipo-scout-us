@@ -26,7 +26,7 @@ export async function GET(req: Request) {
     .from("ipo_companies")
     // 公開APIなので、分析本文(analysis_*)・目論見書データは返さない(有料部分の流出防止)。
     // 分析があるかどうかだけ、has_analysis として返す。
-    .select("id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary")
+    .select("id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary, price_range_min, sec_stage")
     .order("listing_date", { ascending: true });
 
   if (error) {
@@ -34,8 +34,10 @@ export async function GET(req: Request) {
   }
 
   const safe = (data ?? []).map((row: any) => {
-    const { analysis_summary, ...rest } = row;
-    return { ...rest, has_analysis: !!analysis_summary };
+    const { analysis_summary, price_range_min, sec_stage, ...rest } = row;
+    // 「上場が決まった」とみなす条件: 価格帯が発表済み、または価格決定済み
+    const is_decided = price_range_min != null || sec_stage === "launched" || sec_stage === "priced";
+    return { ...rest, has_analysis: !!analysis_summary, is_decided };
   });
   return NextResponse.json(safe);
 }
