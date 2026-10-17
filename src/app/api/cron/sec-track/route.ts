@@ -91,6 +91,9 @@ async function syncFromNasdaqCalendar(
   results.push(
     `📅 Nasdaq IPOカレンダーを確認(${cal.months.join("・")}): 予定${count("upcoming")}件・決定済み${count("priced")}件・申請${count("filed")}件${cal.error ? "／一部取得失敗: " + cal.error : ""}`
   );
+  results.push(`🔎 カレンダーの中身(確認用): ${cal.diag.join(" ／ ")}`);
+  const upcomingNames = cal.rows.filter((r) => r.kind === "upcoming").map((r) => `${r.name}${r.ticker ? "(" + r.ticker + ")" : ""}${r.exchange ? "・" + r.exchange : ""}${r.date ? "・" + r.date : ""}`);
+  if (upcomingNames.length > 0) results.push(`🔎 上場予定の案件: ${upcomingNames.slice(0, 15).join(" ／ ")}`);
   const todayYmd = new Date().toISOString().slice(0, 10);
 
   for (const c of targets) {

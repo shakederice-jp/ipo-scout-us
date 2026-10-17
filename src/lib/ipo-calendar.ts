@@ -68,7 +68,19 @@ function toRows(kind: CalRow["kind"], rows: any, dateKey: string | null): CalRow
   return out;
 }
 
-async function fetchMonth(ym: string): Promise<{ rows: CalRow[]; error?: string }> {
+// 想定と少し違う入れ物(階層)で返ってきても拾えるよう、「companyName を持つ行の配列」を深く探す
+function findRows(node: any, depth = 0): any[] {
+  if (!node || depth > 4) return [];
+  if (Array.isArray(node)) return node.length > 0 && typeof node[0] === "object" && node[0] && "companyName" in node[0] ? node : [];
+  if (typeof node !== "object") return [];
+  for (const v of Object.values(node)) {
+    const r = findRows(v, depth + 1);
+    if (r.length > 0) return r;
+  }
+  return [];
+}
+
+async function fetchMonth(ym: string): Promise<{ rows: CalRow[]; error?: string; diag?: string }> {
   try {
     const res = await fetch(`https://api.nasdaq.com/api/ipo/calendar?date=${ym}`, {
       headers: HEADERS,
@@ -79,20 +91,26 @@ async function fetchMonth(ym: string): Promise<{ rows: CalRow[]; error?: string 
     const json: any = await res.json();
     const d = json?.data;
     if (!d) return { rows: [], error: "データ形式が想定と違います" };
+    const up = findRows(d?.upcoming);
+    const pr = findRows(d?.priced);
+    const fi = findRows(d?.filed);
+    const wd = findRows(d?.withdrawn);
+    const diag = `${ym} 項目=[${Object.keys(d).join(",")}] 予定${up.length}/決定済み${pr.length}/申請${fi.length}/取下げ${wd.length}`;
     return {
       rows: [
-        ...toRows("upcoming", d?.upcoming?.upcomingTable?.rows, "expectedPriceDate"),
-        ...toRows("priced", d?.priced?.rows, "pricedDate"),
-        ...toRows("filed", d?.filed?.rows, null),
-        ...toRows("withdrawn", d?.withdrawn?.rows, null),
+        ...toRows("upcoming", up, "expectedPriceDate"),
+        ...toRows("priced", pr, "pricedDate"),
+        ...toRows("filed", fi, null),
+        ...toRows("withdrawn", wd, null),
       ],
+      diag,
     };
   } catch (e: any) {
     return { rows: [], error: String(e?.message ?? e) };
   }
 }
 
-export async function fetchNasdaqCalendar(): Promise<{ rows: CalRow[]; months: string[]; error?: string }> {
+export async function fetchNasdaqCalendar(): Promise<{ rows: CalRow[]; months: string[]; error?: string; diag: string[] }> {
   const now = new Date();
   const ymOf = (offset: number) => {
     const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offset, 1));
@@ -102,12 +120,14 @@ export async function fetchNasdaqCalendar(): Promise<{ rows: CalRow[]; months: s
   if (now.getUTCDate() <= 10) months.unshift(ymOf(-1)); // 月初は、前月末に決まった案件も拾う
   const rows: CalRow[] = [];
   const errors: string[] = [];
+  const diag: string[] = [];
   for (const ym of months) {
     const r = await fetchMonth(ym);
     rows.push(...r.rows);
     if (r.error) errors.push(`${ym}: ${r.error}`);
+    if (r.diag) diag.push(r.diag);
   }
-  return { rows, months, error: errors.length > 0 ? errors.join(" / ") : undefined };
+  return { rows, months, error: errors.length > 0 ? errors.join(" / ") : undefined, diag };
 }
 
 // ---- 会社名の照合 ----
