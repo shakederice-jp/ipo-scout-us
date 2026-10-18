@@ -39,6 +39,25 @@ export default function AdminPage() {
   const [edinetDocId, setEdinetDocId] = useState("");
   const [stepLoading, setStepLoading] = useState<Record<string,boolean>>({});
   const [stepResult, setStepResult] = useState<Record<string,string|null>>({});
+  // 校正で「要確認」として残った指摘の中身(STEPごと)。何が問題か・原文はどうかを画面で確認できるようにする
+  const [proofDetails, setProofDetails] = useState<Record<string, any[]>>({});
+  const renderProofDetails = (key: string) => {
+    const items = proofDetails[key];
+    if (!items || items.length === 0) return null;
+    const kindLabel: Record<string,string> = { contradiction:"原文と食い違い", unsupported:"根拠が見当たらない", overstated:"言い過ぎ" };
+    return (
+      <details style={{ marginTop:6, fontSize:11, lineHeight:1.7, background:"#fffbeb", border:"1px solid #fde68a", borderRadius:6, padding:"6px 8px" }}>
+        <summary style={{ cursor:"pointer", fontWeight:700, color:"#92400e" }}>要確認の中身を見る({items.length}件)</summary>
+        {items.map((u:any, i:number) => (
+          <div key={i} style={{ marginTop:6, paddingTop:6, borderTop: i===0 ? "none" : "1px dashed #fde68a", color:"#78350f", whiteSpace:"pre-wrap" }}>
+            <div><b>{i+1}. {kindLabel[u.kind] ?? u.kind}</b>　「{u.quote}」</div>
+            <div>問題点: {u.problem}</div>
+            {u.source_quote ? <div style={{ color:"#64748b" }}>原文: {u.source_quote}</div> : null}
+          </div>
+        ))}
+      </details>
+    );
+  };
   const [vizLoading, setVizLoading] = useState(false);
   const [vizResult, setVizResult] = useState<string | null>(null);
   const [ipoPriceInput, setIpoPriceInput] = useState("");
@@ -163,6 +182,7 @@ export default function AdminPage() {
     // ⑥原文(英語の目論見書)との照合: Geminiが間違い候補を挙げ、Sonnetが原文で再確認して書き直す(失敗しても保存は続ける)
     const pr = await runProofread(selectedCompany.id, collectFields(merged), msg => setStepResult(prev => ({...prev, "3": `⏳ ⑥${msg}`})));
     applyFields(merged, pr.fields);
+    setProofDetails(prev => ({...prev, "3": pr.unresolved}));
     merged.proofread = { checked_at: new Date().toISOString(), fixed: pr.fixed, unresolved: pr.unresolved.slice(0, 10), skipped: pr.skipped ?? null };
     const proofNote = pr.skipped ? `・校正スキップ(${pr.skipped})` : `・校正:修正${pr.fixed}件${pr.unresolved.length ? `／要確認${pr.unresolved.length}件(${pr.unresolved.slice(0,2).map(u => `${u.field}「${u.quote.slice(0,20)}」`).join("、")})` : ""}`;
     setStepResult(prev => ({...prev, "3": "⏳ 保存中..."}));
@@ -199,6 +219,7 @@ export default function AdminPage() {
     allResults.forEach((a:any, idx:number) => { if (a.report) pf[`axis${idx}`] = a.report; });
     const pr = await runProofread(selectedCompany.id, pf, msg => setStepResult(prev => ({...prev, [stepNum]: `⏳ ${label} ${msg}`})));
     allResults.forEach((a:any, idx:number) => { if (pr.fields[`axis${idx}`]) a.report = pr.fields[`axis${idx}`]; });
+    setProofDetails(prev => ({...prev, [stepNum]: pr.unresolved}));
     const proofNote = pr.skipped ? `・校正スキップ(${pr.skipped})` : `・校正:修正${pr.fixed}件${pr.unresolved.length ? `／要確認${pr.unresolved.length}件(${pr.unresolved.slice(0,2).map(u => `「${u.quote.slice(0,20)}」`).join("、")})` : ""}`;
     setStepResult(prev => ({...prev, [stepNum]: `⏳ ${label} 保存中...`}));
     try {
@@ -424,6 +445,7 @@ export default function AdminPage() {
           {isLoading?"⏳ 処理中...":isDone?"✅ 完了（再実行）":btnLabel}
         </button>
         {res && <div style={{ marginTop:6, fontSize:11, lineHeight:1.7, padding:"6px 8px", borderRadius:6, background:isErr?"#fef2f2":"#f0fdf4", color:isErr?"#dc2626":"#166534", whiteSpace:"pre-wrap" }}>{res}</div>}
+        {renderProofDetails(num)}
       </div>
     );
   };
@@ -752,6 +774,7 @@ export default function AdminPage() {
                         {stepResult[n]}
                       </div>
                     ))}
+                    {["4","5","6"].map(n=>(<div key={`pd${n}`}>{renderProofDetails(n)}</div>))}
                   </div>
                   <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:10, border:`1px solid ${vizResult?.startsWith("❌")?"#fecaca":vizResult?.includes("完了")?"#bbf7d0":"#e2e8f0"}`, background:vizResult?.startsWith("❌")?"#fef2f2":vizResult?.includes("完了")?"#f0fdf4":"#f8fafc" }}>
                     <div style={{ fontWeight:900, color:"#1E3A66", fontSize:13, marginBottom:3 }}>STEP 6｜視覚化データ生成</div>

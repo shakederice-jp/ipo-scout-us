@@ -32,7 +32,9 @@ function factsOf(co: any): string {
     `ロックアップ解除日(180日): ${co.lockup_180_date ?? "記載なし"}`,
   ].join("\n");
   const sd = co.structured_data ? JSON.stringify(co.structured_data).slice(0, 7000) : "";
-  return `${sched}\n${sd}`;
+  // STEP2で集めた市場・競合情報(競合の社名・業界PERなど)も、分析文の根拠として使われている
+  const mk = co.analysis_market ? `\n【市場・競合情報(STEP2で収集)】${JSON.stringify(co.analysis_market).slice(0, 3000)}` : "";
+  return `${sched}\n${sd}${mk}`;
 }
 
 const norm = (t: string) => t.toLowerCase().replace(/[‘’“”"'`]/g, "").replace(/[‐-―−-]/g, "-").replace(/\s+/g, " ");
@@ -70,6 +72,9 @@ ${co.name}のIPOについて書かれた日本語の分析文に、原文と食�
 - 原文の抜粋に載っていないだけで、数字や固有名詞の誤りと言えないもの
 - 言い回しや読みやすさ(文体の好みは指摘しない)
 - 日程(上場予定日・ロックアップ解除日)は【整理済みデータ・日程】にあるものが正しい
+- 原文や整理済みデータの数字から計算できる値(時価総額＝株価×株数、比率、合計など)は、計算が合っていれば指摘しない。計算結果が違うときだけ contradiction とする
+- 競合企業の名前・業界PER・主幹事など、【整理済みデータ・日程】の「市場・競合情報」にあるものは、根拠があるものとして扱う
+- 原文の抜粋は一部だけなので、「抜粋にない」だけでは unsupported にしない。具体的な数字や固有名詞が、抜粋・整理済みデータのどちらにも見当たらず、作り話の疑いが強いときだけ指摘する
 指摘は、確信があるものに絞り、迷うものは含めないでください。
 
 【原文(英語・目論見書の抜粋)】
