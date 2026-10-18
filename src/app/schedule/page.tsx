@@ -73,6 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const FAQ = [
   { q: "米国IPOの上場日と公募価格は、いつ決まりますか？", a: "先に価格帯が発表され、投資家の需要を確認する期間（ロードショー）を経て、多くの場合は上場の前日に公募価格が決まります。取引は価格が決まった翌営業日から始まります。日程は市場の状況で動くことがあるため、このページの上場日は予定として読んでください。" },
   { q: "ロックアップとは何ですか？", a: "創業者・役員・ベンチャーキャピタルなどの大株主が、上場後の一定期間は株を売れないという取り決めです。期間は90日や180日が多く、目論見書に書かれています。解除日の前後は売りが出やすくなるため、売り時を考えるときの目安になります。" },
+  { q: "米国株の売買単位（単元）は何株ですか？", a: "米国株には、日本株の「100株単位」のような単元株の決まりがなく、1株から売買できます。IPOの抽選に申し込むときの最低株数は、取り扱う証券会社と銘柄ごとに決まっているため、各社の公式ページで確認してください。" },
   { q: "日本から米国IPOに参加できますか？", a: "日本の証券会社の一部が、米国IPOの抽選の取り扱いを始めています。ただし対象は証券会社が選んだ銘柄に限られ、すべての米国IPOに参加できるわけではありません。取り扱いの条件は「日本からの買い方」のページにまとめています。" },
 ];
 
@@ -162,6 +163,18 @@ export default async function SchedulePage() {
             {jp(today)}時点。登録データから自動で更新しています。出典はSEC（米国証券取引委員会）の提出書類と、Nasdaqなどの公開情報です。
           </p>
         </div>
+
+        {/* カレンダーへの目立つリンク */}
+        <a href="/" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 16px", marginBottom: 14, borderRadius: 14, backgroundColor: "white", border: `2px solid ${C.nav}`, textDecoration: "none" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <span style={{ fontSize: 20 }}>📅</span>
+            <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+              <span style={{ fontSize: 14, fontWeight: 900, color: C.dark, lineHeight: 1.4 }}>カレンダーで見る</span>
+              <span style={{ fontSize: 11, color: C.mid, lineHeight: 1.5 }}>上場日をカレンダー上で確認し、銘柄の分析レポートへ</span>
+            </span>
+          </span>
+          <span style={{ fontSize: 16, fontWeight: 900, color: C.nav, flexShrink: 0 }}>→</span>
+        </a>
 
         {upcoming.length === 0 && (
           <div style={card}><p style={{ fontSize: 13, color: "#475569", lineHeight: 1.9, margin: 0 }}>現在、上場日が決まっている銘柄は登録されていません。新しい銘柄が見つかり次第、ここに追加します。</p></div>

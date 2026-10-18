@@ -98,6 +98,17 @@ export default async function Home({
 
         {/* 左：カレンダー＋IPO一覧 */}
         <div style={{ flex:"1 1 560px", minWidth:0 }}>
+          {/* 上場スケジュール(月ごとの一覧表)への目立つリンク */}
+          <a href="/schedule" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"12px 16px", marginBottom:12, borderRadius:14, backgroundColor:"#1E3A66", textDecoration:"none", boxShadow:"0 2px 8px rgba(30,58,102,0.25)" }}>
+            <span style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
+              <span style={{ fontSize:20 }}>📋</span>
+              <span style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
+                <span style={{ fontSize:14, fontWeight:900, color:"#ffffff", lineHeight:1.4 }}>上場スケジュールを一覧表で見る</span>
+                <span style={{ fontSize:11, color:"#C7D3E3", lineHeight:1.5 }}>上場日・公募価格・ロックアップ解除日を月ごとに</span>
+              </span>
+            </span>
+            <span style={{ fontSize:16, fontWeight:900, color:"#ffffff", flexShrink:0 }}>→</span>
+          </a>
           <CalendarClient initialCompanies={initialCompanies} />
         </div>
 
