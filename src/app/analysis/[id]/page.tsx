@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { syncPlanForUser } from "@/lib/plan-sync";
 import AnalysisClient from "@/components/AnalysisClient";
 import { notFound } from "next/navigation";
+import { buildKeyFaq, jpDate } from "@/components/KeyFacts";
+import { fmtUsd } from "@/lib/fx";
 
 async function fetchCompany(id: string) {
   // ハイフンを含む場合はUUID、そうでなければティッカーコードとして検索
@@ -62,23 +64,34 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { data } = await fetchCompany(id);
   if (!data) return { title: "米国IPO銘柄分析レポート｜大手町調査室九課" };
   const co = data as any;
-  const summary = co.analysis_summary?.summary ?? `${data.name}のIPO分析レポート。スコア・シナリオ・詳細分析を掲載。`;
-  const score = co.analysis_summary?.total_score ?? "";
-  const grade = co.analysis_summary?.grade ?? "";
-  const description = score
-    ? `総合スコア${score}/100（${grade}評価）。${summary.slice(0, 120)}`
-    : summary.slice(0, 150);
-  const title = `${data.name} 米国IPO分析レポート｜大手町調査室九課`;
-  const ticker = (data as any).ticker;
+  const ticker = co.ticker as string | null;
+  const who = ticker ? `${data.name}（${ticker}）` : data.name;
+  // タイトル: 検索されやすい言葉(上場日・公募価格・ロックアップ・買い方)を、銘柄名と一緒に入れる
+  const title = `${who}のIPO｜上場日・公募価格・ロックアップ・買い方｜米国IPO分析`;
+  // 説明文: 登録されている事実(上場日・価格帯)を先頭に。分析の要約は短く添える
+  const ld = jpDate(co.listing_date);
+  const lo = co.price_range_min, hi = co.price_range_max;
+  const priceText = lo != null || hi != null
+    ? (lo === hi || hi == null || lo == null ? fmtUsd((lo ?? hi) as number) : `${fmtUsd(lo)}〜${fmtUsd(hi)}`)
+    : "";
+  const facts = [
+    ld ? `上場日${ld}${co.listing_date_confirmed ? "" : "(予定)"}` : "",
+    priceText ? `${co.sec_stage === "priced" ? "公募価格" : "想定価格帯"}${priceText}` : "",
+  ].filter(Boolean).join("、");
+  const summary: string = co.analysis_summary?.summary ?? "";
+  const score = co.analysis_summary?.total_score;
+  const grade = co.analysis_summary?.grade;
+  const tail = score ? `AI総合評価${score}/100(${grade}ランク)。` : "";
+  const description = `${who}の米国IPO情報。${facts ? facts + "。" : ""}ロックアップ解除日・主幹事・日本からの買い方を、目論見書(S-1)をもとにAIが日本語で整理。${tail}${summary ? summary.slice(0, 60) : ""}`.slice(0, 200);
   const canonicalId = ticker ?? data.id;
   const url = `https://ipo-us.finance-tower.com/analysis/${canonicalId}`;
   return {
     title,
     description,
-    keywords: [`${data.name}`, "IPO分析", "IPOスコア", "目論見書", "初値予測", (data as any).sector ?? ""].filter(Boolean),
+    keywords: [data.name, ticker ?? "", `${data.name} IPO`, `${data.name} 上場日`, `${data.name} 公募価格`, `${data.name} ロックアップ`, "米国IPO", "目論見書", "S-1", co.sector ?? ""].filter(Boolean),
     openGraph: {
       title, description, url,
-      siteName: "大手町調査室九課",
+      siteName: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
       locale: "ja_JP",
       type: "article",
       images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
@@ -155,10 +168,19 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
   const ticker = co.ticker;
   const canonicalId = ticker ?? company.id;
 
+  // 結論＋主要数値表で使う「公開情報」だけを取り出す(主幹事・ロックアップ期間は目論見書の表紙や条項にある事実)。
+  // structured_data 全体は有料部分なので、閲覧権がなくてもこの2つ以外は渡さない。
+  const ipoDetails = co.structured_data?.ipo_details ?? {};
+  const pick = (v: any) => (typeof v === "string" && v.trim() && !/記載なし|未定/.test(v) ? v.trim() : null);
+  const keyFacts = { underwriters: pick(ipoDetails.underwriters), lockupPeriod: pick(ipoDetails.lockup_period) };
+  const faq = buildKeyFaq(co, keyFacts);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": `${company.name} 米国IPO分析レポート`,
+    "headline": `${company.name}${ticker ? `（${ticker}）` : ""}のIPO｜上場日・公募価格・ロックアップ・買い方`,
+    "inLanguage": "ja",
+    "about": { "@type": "Corporation", "name": company.name, ...(ticker ? { "tickerSymbol": ticker } : {}) },
     "description": analysisSummary?.summary ?? `${company.name}のIPO分析`,
     "publisher": {
       "@type": "Organization",
@@ -173,9 +195,17 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
     },
   };
 
+  // 画面に表示している主要数値表と同じ内容を、よくある質問の形でも伝える
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faq.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
       <AnalysisClient
         company={(hasAccess ? company : {
           ...co,
@@ -187,6 +217,7 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
         visualizationData={hasAccess ? visualizationData : null}
         allCompanies={allCompanies as any[]}
         hasAccess={hasAccess}
+        keyFacts={keyFacts}
       />
     </>
   );
