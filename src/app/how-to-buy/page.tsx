@@ -5,9 +5,17 @@ import type { Metadata } from "next";
 const CHECKED_AT = "2026年10月17日";
 
 export const metadata: Metadata = {
-  title: "日本から米国IPOに参加する方法｜大手町調査室九課",
-  description: "米国のIPO(新規上場株)に、日本の証券会社から参加する方法を整理。IPO抽選に参加する方法と、上場後に買う方法の違い、楽天証券・SBI証券の取り扱い条件、注意点をまとめました。",
+  title: "米国IPOの買い方｜日本の証券会社で抽選に参加する方法と上場後に買う方法",
+  description: "米国IPO（新規上場株）の買い方を、日本の個人投資家向けに整理。楽天証券・SBI証券の抽選の取り扱い条件、上場後に買う方法、1株から買えるのか、NISAは使えるのか、注意点までまとめました。",
   alternates: { canonical: "https://ipo-us.finance-tower.com/how-to-buy" },
+  openGraph: {
+    title: "米国IPOの買い方｜日本の証券会社で抽選に参加する方法と上場後に買う方法",
+    description: "米国IPOの買い方を、日本の個人投資家向けに整理。楽天証券・SBI証券の取り扱い条件と、上場後に買う方法。",
+    url: "https://ipo-us.finance-tower.com/how-to-buy",
+    siteName: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
+    locale: "ja_JP", type: "article",
+    images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
+  },
 };
 
 const C = {
@@ -57,16 +65,44 @@ const BROKERS: Broker[] = [
   },
 ];
 
+// よくある質問。画面に出す文と、検索エンジン・AI向けの構造化データ(FAQPage)で、同じ内容を使う
+const FAQ: { q: string; a: string }[] = [
+  { q: "日本から米国IPOの株を買えますか？", a: "買えます。道は2つあります。1つは、日本の証券会社が取り扱う銘柄のIPO抽選に参加する方法です。もう1つは、上場後に米国株として市場で買う方法です。抽選は取り扱う会社も銘柄も限られます。取り扱いがない銘柄は、上場後に買う形になります。" },
+  { q: "米国IPOは何株から買えますか？", a: "米国株には、日本株の100株単位のような単元株の決まりがなく、1株から売買できます。IPOの抽選に申し込むときの最低株数は、証券会社と銘柄ごとに決まっているため、各社の公式ページで確認してください。" },
+  { q: "公募価格で買うことはできますか？", a: "公募価格で買えるのは、IPOの抽選に当選した場合だけです。上場後に買う場合の価格は、市場で決まる株価（多くは初日の値動きで公募価格から離れます）になります。" },
+  { q: "NISAで米国IPOを買えますか？", a: "楽天証券のIPO抽選は、NISA成長投資枠でも申し込めます（PCのウェブサイトからのみ）。SBI証券も、過去の取り扱いではNISA成長投資枠で応募できました。条件は変わるため、申し込む前に各社の公式ページで確認してください。" },
+  { q: "上場日に買う・売るときの注意点は？", a: "上場日は日本時間では夜になります。上場日の売却は、成行注文ができず指値注文のみの証券会社があります。初日は値動きが大きく、公募価格を下回ることもあるため、注文の出し方を事前に確認しておくと安心です。" },
+  { q: "米国IPOの上場日や公募価格は、どこで確認できますか？", a: "当サイトの上場スケジュールのページに、上場日・公募価格（想定の価格帯）・ロックアップ解除日を一覧にしています。各銘柄の分析ページでは、目論見書をもとにした詳しい情報を確認できます。" },
+];
+
 export default function HowToBuyPage() {
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "米国IPOの買い方｜日本の証券会社で抽選に参加する方法と上場後に買う方法",
+      "inLanguage": "ja",
+      "dateModified": "2026-10-17",
+      "author": { "@type": "Organization", "name": "大手町調査室九課" },
+      "publisher": { "@type": "Organization", "name": "大手町調査室九課", "url": "https://ipo-us.finance-tower.com" },
+      "mainEntityOfPage": "https://ipo-us.finance-tower.com/how-to-buy",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": FAQ.map((f) => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
+    },
+  ];
   return (
     <div style={{ backgroundColor: C.light, minHeight: "100vh", fontFamily: "'Noto Sans JP',sans-serif" }}>
+      {jsonLd.map((j, i) => <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(j) }} />)}
       <div style={{ background: `linear-gradient(135deg, ${C.dark} 0%, ${C.nav} 100%)`, padding: "56px 24px 60px" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: "#C7D3E3", border: "1px solid rgba(199,211,227,0.4)", borderRadius: 20, padding: "4px 14px", marginBottom: 18 }}>
             大手町調査室九課 | 米国IPO ガイド
           </div>
           <h1 style={{ fontSize: "clamp(24px, 4.5vw, 36px)", fontWeight: 900, color: "white", lineHeight: 1.5, margin: "0 0 14px" }}>
-            日本から米国IPOに参加する方法
+            米国IPOの買い方｜日本から参加する方法
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", lineHeight: 2, margin: 0 }}>
             米国のIPOは、日本の個人投資家には「抽選に参加する」か「上場後に買う」かの2つの道があります。
@@ -173,6 +209,21 @@ export default function HowToBuyPage() {
               <li key={i} style={{ fontSize: 13, color: "#334155", lineHeight: 1.9 }}>{t}</li>
             ))}
           </ul>
+        </div>
+
+        <div style={card}>
+          <h2 style={h2}>⑤ 米国IPOの買い方 よくある質問</h2>
+          {FAQ.map((f) => (
+            <div key={f.q} style={{ marginBottom: 14 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 800, color: C.nav, margin: "0 0 4px", lineHeight: 1.6 }}>{f.q}</h3>
+              <p style={{ ...p, fontSize: 13, margin: 0 }}>{f.a}</p>
+            </div>
+          ))}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 4 }}>
+            <a href="/schedule" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>上場スケジュール →</a>
+            <a href="/glossary" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>用語集 →</a>
+            <a href="/" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>カレンダーで見る →</a>
+          </div>
         </div>
 
         <p style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.9, margin: "4px 4px 0" }}>
