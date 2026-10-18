@@ -581,6 +581,45 @@ function ReferenceGroupHeader({icon,order,title,subtitle,accent}:{icon:string;or
   );
 }
 
+// 2026/10追加: お気に入り(マイポートフォリオ)に追加するボタン。上場後は100万円シミュレーションで追跡される
+function FavoriteButton({companyId,ticker,userId}:{companyId:string;ticker?:string|null;userId:string|null}) {
+  const [fav,setFav]=useState<boolean|null>(null);
+  const [busy,setBusy]=useState(false);
+  const [msg,setMsg]=useState<string>("");
+  useEffect(()=>{
+    if(!userId){setFav(false);return;}
+    fetch("/api/favorite-companies",{cache:"no-store"}).then(r=>r.json())
+      .then(d=>setFav(Array.isArray(d.ids)&&d.ids.includes(companyId)))
+      .catch(()=>setFav(false));
+  },[userId,companyId]);
+  const toggle=async()=>{
+    if(!userId){
+      window.location.href=`/auth?next=${encodeURIComponent(`/analysis/${ticker??companyId}`)}`;
+      return;
+    }
+    setBusy(true);setMsg("");
+    try{
+      const res=await fetch("/api/favorite-companies",{method:fav?"DELETE":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:companyId})});
+      if(res.ok){setFav(!fav);setMsg(fav?"お気に入りから外しました。":"追加しました。マイページで確認できます。");}
+      else{const j=await res.json().catch(()=>({}));setMsg(j.error??"保存に失敗しました。");}
+    }catch{setMsg("通信エラーが発生しました。");}
+    setBusy(false);
+  };
+  return (
+    <div style={{backgroundColor:"white",border:`1px solid ${BORDER}`,borderRadius:12,padding:"12px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
+      <div style={{minWidth:0,flex:"1 1 200px"}}>
+        <div style={{fontWeight:900,fontSize:13,color:DARK}}>⭐ お気に入りに追加して、100万円シミュレーションで追跡</div>
+        <div style={{fontSize:11,color:"#64748b",lineHeight:1.6,marginTop:2}}>上場後は「100万円分を公募価格で買っていたら」の現在額を、マイページで確認できます。</div>
+        {msg&&<div style={{fontSize:11,fontWeight:700,color:"#15803d",marginTop:4}}>{msg}</div>}
+      </div>
+      <button onClick={toggle} disabled={busy||fav===null}
+        style={{padding:"8px 18px",borderRadius:20,border:fav?`1px solid ${PRIMARY}`:"none",backgroundColor:fav?"white":"#f59e0b",color:fav?PRIMARY:"white",cursor:"pointer",fontWeight:900,fontSize:12,whiteSpace:"nowrap",flexShrink:0}}>
+        {!userId?"ログインして追加":fav?"★ 追加済み（外す）":"☆ お気に入りに追加"}
+      </button>
+    </div>
+  );
+}
+
 // 2026/10追加: 上場後の値動き(us-price-trackが毎日計算して ipo_companies.price_track に保存したもの)の表示
 function PriceTrackCard({track}:{track:any}) {
   const d1=track?.day1;
@@ -916,6 +955,9 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
 
         {/* 結論1行＋主要数値表(上場日・公募価格・ロックアップ解除日・主幹事)。登録情報から自動で作る */}
         <KeyFacts company={company as any} extra={keyFacts}/>
+
+        {/* お気に入り追加(マイポートフォリオ) */}
+        <FavoriteButton companyId={company.id} ticker={(company as any).ticker} userId={userId}/>
 
         {(company as any).price_track?.day1&&<PriceTrackCard track={(company as any).price_track}/>}
 

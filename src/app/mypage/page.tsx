@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { User, CreditCard, Gift, Bell, ShoppingBag, Calendar, Copy, Check, LogOut } from "lucide-react";
+import { User, CreditCard, Gift, Bell, ShoppingBag, Calendar, Copy, Check, LogOut, Star } from "lucide-react";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { fmtUsd } from "@/lib/fx";
 
@@ -80,6 +80,7 @@ export default function MyPage() {
               method_email: true,
             },
             calendarNotes: [],
+            favoriteCompanies: [],
           });
         } else {
           setData(d);
@@ -120,6 +121,16 @@ export default function MyPage() {
       setNotifySaveResult("❌ 通信エラーが発生しました");
     }
     setSavingNotify(false);
+  };
+
+  // お気に入り(マイポートフォリオ)から外す
+  const handleRemoveFavorite = async (companyId: string, name: string) => {
+    if (!confirm(`「${name}」をマイポートフォリオから外しますか？`)) return;
+    try {
+      const res = await fetch("/api/favorite-companies", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: companyId }) });
+      if (!res.ok) { alert("削除に失敗しました。時間をおいてもう一度お試しください。"); return; }
+      setData((prev: any) => ({ ...prev, favoriteCompanies: (prev.favoriteCompanies ?? []).filter((f: any) => f.id !== companyId) }));
+    } catch { alert("通信エラーが発生しました"); }
   };
 
   const handleLogout = async () => {
@@ -231,6 +242,54 @@ export default function MyPage() {
               💡 特定の1銘柄だけ読みたい場合は、各銘柄の分析ページから「シングルレポートを購入」できます。
             </p>
           </div>
+        </Section>
+
+        {/* 2.5 マイポートフォリオ(100万円シミュレーション): お気に入り登録した銘柄。上場後は「公募価格で100万円分買っていたら」で追跡する */}
+        <Section icon={<Star size={16} />} title="マイポートフォリオ（100万円シミュレーション）">
+          {(data.favoriteCompanies ?? []).length === 0 ? (
+            <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", padding: "16px 0", lineHeight: 1.8 }}>
+              まだ銘柄がありません。<br />各銘柄の分析ページで「お気に入りに追加」すると、ここに並びます。<br />
+              上場後は、100万円分を公募価格で買っていたらいくらになったかを、自動で追跡します。
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {(data.favoriteCompanies ?? []).map((f: any) => {
+                const href = `/analysis/${f.ticker ?? f.id}`;
+                const ip: number | null = f.ipo_price ?? null;
+                const lp: number | null = f.latest_price ?? null;
+                const sim = ip && lp && ip > 0 ? { pct: (lp / ip - 1) * 100, val: Math.round(1000000 * lp / ip) } : null;
+                const up = sim ? sim.pct >= 0 : true;
+                return (
+                  <div key={f.id} style={{ display: "flex", alignItems: "stretch", gap: 6 }}>
+                    <a href={href} style={{ flex: 1, minWidth: 0, display: "block", padding: "10px 12px", backgroundColor: sim ? (up ? "#f0fdf4" : "#fef2f2") : LIGHT, borderRadius: 8, border: `1px solid ${sim ? (up ? "#bbf7d0" : "#fecaca") : BORDER}`, textDecoration: "none" }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: DARK }}>{f.name}{f.ticker ? `（${f.ticker}）` : ""}</div>
+                      {sim ? (
+                        <>
+                          <div style={{ fontSize: 10, color: "#64748b", margin: "2px 0 4px" }}>公募価格 {fmtUsd(ip as number)} → 現在 {fmtUsd(lp as number)}{f.latest_date ? `（${f.latest_date}）` : ""}</div>
+                          <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                            <span style={{ fontSize: 10, color: "#64748b" }}>100万円なら</span>
+                            <span style={{ fontSize: 18, fontWeight: 900, color: up ? "#15803d" : "#b91c1c" }}>¥{sim.val.toLocaleString("ja-JP")}</span>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: up ? "#15803d" : "#b91c1c" }}>（{up ? "+" : ""}{sim.pct.toFixed(1)}%）</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>
+                          {f.listing_date ? `上場予定日：${f.listing_date}` : "上場日は未定"}
+                          {f.listing_date && ip == null ? "・公募価格は未確定" : ""}
+                          {f.listing_date && ip != null && lp == null ? "・上場後の株価を取得待ち" : ""}
+                        </div>
+                      )}
+                    </a>
+                    <button onClick={() => handleRemoveFavorite(f.id, f.name)} aria-label={`${f.name}を外す`}
+                      style={{ flexShrink: 0, width: 36, borderRadius: 8, border: `1px solid ${BORDER}`, backgroundColor: "white", cursor: "pointer", fontSize: 14 }}>🗑</button>
+                  </div>
+                );
+              })}
+              <p style={{ fontSize: 9.5, color: "#94a3b8", lineHeight: 1.7, margin: "4px 0 0" }}>
+                公募価格と終値の比率から計算した目安です。為替の変動と手数料は含みません。過去の値動きであり、将来の株価を約束するものではありません。
+              </p>
+            </div>
+          )}
         </Section>
 
         {/* 3. 友達招待プログラム */}

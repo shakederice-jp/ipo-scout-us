@@ -49,8 +49,29 @@ export async function GET() {
     .gte("note_date", threeMonthsAgo.toISOString().slice(0, 10))
     .order("note_date", { ascending: false });
 
+  // お気に入り銘柄(マイポートフォリオ)。表が未作成でも、マイページ全体が止まらないようにする
+  let favoriteCompanies: any[] = [];
+  try {
+    const { data: favs, error: favErr } = await serviceSupabase
+      .from("favorite_companies").select("company_id, created_at")
+      .eq("user_id", userId).order("created_at", { ascending: false });
+    if (!favErr && favs && favs.length > 0) {
+      const { data: cos } = await serviceSupabase
+        .from("ipo_companies")
+        .select("id, name, ticker, sector, exchange, listing_date, ipo_price, price_track")
+        .in("id", favs.map((f: any) => f.company_id));
+      const byId = new Map((cos ?? []).map((c: any) => [c.id, c]));
+      favoriteCompanies = favs.flatMap((f: any) => {
+        const co: any = byId.get(f.company_id);
+        if (!co) return [];
+        const { price_track, ...rest } = co;
+        return [{ ...rest, added_at: f.created_at, latest_price: price_track?.latest?.close ?? null, latest_date: price_track?.latest?.date ?? null }];
+      });
+    }
+  } catch { favoriteCompanies = []; }
+
   return NextResponse.json({
-    email, profile,
+    email, profile, favoriteCompanies,
     referralLogs: referralLogs ?? [],
     purchases: purchases ?? [],
     notifySettings,
