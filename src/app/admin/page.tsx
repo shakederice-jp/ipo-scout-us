@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import InitialPriceForm from "@/components/InitialPriceForm";
+import { runProofread, collectFields, applyFields } from "@/lib/proofread";
 
 // 2026/10追加: SEC書類の進み具合(sec-track が毎日更新する sec_stage)の表示用
 const STAGE_INFO: Record<string, { label: string; color: string; bg: string; rank: number }> = {
@@ -159,13 +160,18 @@ export default function AdminPage() {
         Object.assign(merged, data);
       } catch { setStep("3", false, `❌ ${p.label}: 通信エラー`); return; }
     }
+    // ⑥原文(英語の目論見書)との照合: Geminiが間違い候補を挙げ、Sonnetが原文で再確認して書き直す(失敗しても保存は続ける)
+    const pr = await runProofread(selectedCompany.id, collectFields(merged), msg => setStepResult(prev => ({...prev, "3": `⏳ ⑥${msg}`})));
+    applyFields(merged, pr.fields);
+    merged.proofread = { checked_at: new Date().toISOString(), fixed: pr.fixed, unresolved: pr.unresolved.slice(0, 10), skipped: pr.skipped ?? null };
+    const proofNote = pr.skipped ? `・校正スキップ(${pr.skipped})` : `・校正:修正${pr.fixed}件${pr.unresolved.length ? `／要確認${pr.unresolved.length}件(${pr.unresolved.slice(0,2).map(u => `${u.field}「${u.quote.slice(0,20)}」`).join("、")})` : ""}`;
     setStepResult(prev => ({...prev, "3": "⏳ 保存中..."}));
     try {
       const saveRes = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, save_results:merged }) });
       const saveData = await saveRes.json();
       if (saveData.error) { setStep("3", false, `❌ 保存エラー: ${saveData.error}`); return; }
     } catch { setStep("3", false, "❌ 保存通信エラー"); return; }
-    setStep("3", false, `✅ スコア: ${merged.total_score}/100・${merged.grade}ランク`);
+    setStep("3", false, `✅ スコア: ${merged.total_score}/100・${merged.grade}ランク${proofNote}`);
   };
 
   const runAxes = async (period: string, label: string, stepNum: string) => {
@@ -188,13 +194,19 @@ export default function AdminPage() {
       }
       allResults.push({ id:axisId, label:axisLabel, score:axisScore, grade:axisGrade, report:combinedText.trim() });
     }
+    // 原文との照合(Gemini→Sonnet)。失敗しても保存は続ける
+    const pf: Record<string,string> = {};
+    allResults.forEach((a:any, idx:number) => { if (a.report) pf[`axis${idx}`] = a.report; });
+    const pr = await runProofread(selectedCompany.id, pf, msg => setStepResult(prev => ({...prev, [stepNum]: `⏳ ${label} ${msg}`})));
+    allResults.forEach((a:any, idx:number) => { if (pr.fields[`axis${idx}`]) a.report = pr.fields[`axis${idx}`]; });
+    const proofNote = pr.skipped ? `・校正スキップ(${pr.skipped})` : `・校正:修正${pr.fixed}件${pr.unresolved.length ? `／要確認${pr.unresolved.length}件(${pr.unresolved.slice(0,2).map(u => `「${u.quote.slice(0,20)}」`).join("、")})` : ""}`;
     setStepResult(prev => ({...prev, [stepNum]: `⏳ ${label} 保存中...`}));
     try {
       const saveRes = await fetch("/api/axes", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ company_id:selectedCompany.id, period, save_results:allResults }) });
       const saveData = await saveRes.json();
       if (saveData.error) { setStep(stepNum, false, `❌ 保存エラー: ${saveData.error}`); return false; }
     } catch { setStep(stepNum, false, "❌ 保存通信エラー"); return false; }
-    setStep(stepNum, false, `✅ ${label} 完了（${allResults.map((a:any)=>`${a.id}:${a.grade}`).join("/")}）`);
+    setStep(stepNum, false, `✅ ${label} 完了（${allResults.map((a:any)=>`${a.id}:${a.grade}`).join("/")}）${proofNote}`);
     return true;
   };
 

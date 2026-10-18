@@ -416,6 +416,7 @@ export async function POST(req: NextRequest) {
         scenarios_long:    Array.isArray(r.scenarios_long) ? r.scenarios_long.slice(0,3) : [],
         axes_scores:       r.axes_scores ?? {},
         data_source:       r.data_source ?? "AI",
+        proofread:         (r.proofread && typeof r.proofread === "object") ? r.proofread : null,
         sources: [
           { label:"SEC EDGAR（S-1・目論見書）", url:"https://www.sec.gov/edgar/search/" },
           { label:"Nasdaq IPOカレンダー", url:"https://www.nasdaq.com/market-activity/ipos" },
