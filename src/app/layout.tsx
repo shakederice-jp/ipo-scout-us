@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
-const GA_ID = "G-27Z6CDZXB1";
+// 米国版専用のGA4(プロパティ「IPO Scout-US」)。以前の別サイト用ID(G-27Z6…)から差し替え
+const GA_ID = "G-FQ31NQ4DV6";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
