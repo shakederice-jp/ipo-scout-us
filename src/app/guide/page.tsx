@@ -149,8 +149,9 @@ export default function GuidePage() {
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
             <a href="https://www.rakuten-sec.co.jp/web/us/ipo/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 800, color: C.nav, backgroundColor: "#E8EDF5", border: `1px solid ${C.border}`, borderRadius: 999, padding: "5px 14px", textDecoration: "none" }}>楽天証券の公式ページ ↗</a>
-            <a href="https://www.sbisec.co.jp/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 800, color: C.nav, backgroundColor: "#E8EDF5", border: `1px solid ${C.border}`, borderRadius: 999, padding: "5px 14px", textDecoration: "none" }}>SBI証券の公式ページ ↗</a>
+            <a href="https://member.c.sbisec.co.jp/foreign/home" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 800, color: C.nav, backgroundColor: "#E8EDF5", border: `1px solid ${C.border}`, borderRadius: 999, padding: "5px 14px", textDecoration: "none" }}>SBI証券の公式ページ ↗</a>
           </div>
+          <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.8, margin: "-4px 0 12px" }}>※SBI証券：新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。</p>
           <a href="/how-to-buy" style={{ fontSize: 13, fontWeight: 800, color: C.nav, textDecoration: "none" }}>参加する方法を見る →</a>
         </div>
 

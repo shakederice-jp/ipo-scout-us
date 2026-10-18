@@ -144,8 +144,9 @@ export default async function Home({
             <div style={{ fontSize:10, color:"#3D5A85", lineHeight:1.7, marginBottom:8 }}>取扱いのある証券会社は限られています。最新の状況は各社の公式ページで確認してください。</div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
               <a href="https://www.rakuten-sec.co.jp/web/us/ipo/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, fontWeight:800, color:"#1E3A66", backgroundColor:"#E8EDF5", border:"1px solid #C7D3E3", borderRadius:999, padding:"4px 12px", textDecoration:"none" }}>楽天証券 ↗</a>
-              <a href="https://www.sbisec.co.jp/" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, fontWeight:800, color:"#1E3A66", backgroundColor:"#E8EDF5", border:"1px solid #C7D3E3", borderRadius:999, padding:"4px 12px", textDecoration:"none" }}>SBI証券 ↗</a>
+              <a href="https://member.c.sbisec.co.jp/foreign/home" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, fontWeight:800, color:"#1E3A66", backgroundColor:"#E8EDF5", border:"1px solid #C7D3E3", borderRadius:999, padding:"4px 12px", textDecoration:"none" }}>SBI証券 ↗</a>
             </div>
+            <div style={{ fontSize:10, color:"#64748b", lineHeight:1.7, marginBottom:8 }}>※SBI証券：新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。</div>
             <a href="/how-to-buy" style={{ fontSize:11, fontWeight:700, color:"#1E3A66", textDecoration:"none" }}>参加する方法を見る →</a>
           </div>
 

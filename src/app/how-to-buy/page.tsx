@@ -22,6 +22,7 @@ type Broker = {
   name: string;
   badge: string;
   url: string;
+  note?: string;
   rows: [string, string][];
 };
 
@@ -43,7 +44,8 @@ const BROKERS: Broker[] = [
   {
     name: "SBI証券",
     badge: "2026年6月のスペースX上場で取り扱い",
-    url: "https://www.sbisec.co.jp/",
+    url: "https://member.c.sbisec.co.jp/foreign/home",
+    note: "新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。",
     rows: [
       ["参加方法", "購入の申込をして、最終日に抽選を受ける方式(事前の需要申告はなし)"],
       ["決済通貨", "米ドルのみ。円は事前にドルへ両替しておく必要があります"],
@@ -131,6 +133,9 @@ export default function HowToBuyPage() {
                   <a href={b.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>
                     {b.name}の公式ページで最新の条件を見る →
                   </a>
+                  {b.note ? (
+                    <p style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.8, margin: "6px 0 0" }}>※{b.note}</p>
+                  ) : null}
                 </div>
               </div>
             ))}

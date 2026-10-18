@@ -7,11 +7,14 @@ export const JP_BROKERS = {
     name: "楽天証券",
     url: "https://www.rakuten-sec.co.jp/web/us/ipo/",
     label: "楽天証券 米国IPOのページ",
+    note: "",
   },
   sbi: {
     name: "SBI証券",
-    url: "https://www.sbisec.co.jp/",
-    label: "SBI証券 公式サイト",
+    url: "https://member.c.sbisec.co.jp/foreign/home",
+    label: "SBI証券 外国株式ページ",
+    // 新規IPOの一覧は、このページを開いたあとの「IPOスピードキャッチ！(米国・中国)」の欄にある
+    note: "新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。",
   },
 } as const;
 
@@ -35,6 +38,11 @@ export function BrokerLinks({ title = "取扱い状況は、各社の公式ペ�
         >
           {JP_BROKERS[k].label} ↗
         </a>
+      ))}
+      {JP_BROKER_KEYS.filter((k) => JP_BROKERS[k].note).map((k) => (
+        <div key={`note-${k}`} style={{ flexBasis: "100%", fontSize: 11, color: "#64748b", lineHeight: 1.7 }}>
+          ※{JP_BROKERS[k].name}：{JP_BROKERS[k].note}
+        </div>
       ))}
     </div>
   );
