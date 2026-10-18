@@ -4,6 +4,8 @@
 // ・SellTimeline     : 上場日・静穏期間・ロックアップ解除日を、時間の流れで見せる(日付は実データのみ)
 // ・CautionSection   : 買ったあとの注意点を、重大度つきのカードで並べる
 
+import { withGlossary } from "@/components/GlossaryText";
+
 const NAVY = "#1E3A66";
 const DARK = "#0F1F36";
 const MID = "#3D5A85";
@@ -56,7 +58,7 @@ export function CharmSection({ highlights, lockedCount = 0 }: { highlights: any;
                 <span style={{ fontSize: 10, fontWeight: 800, color: NAVY, backgroundColor: SOFT, borderRadius: 999, padding: "2px 8px" }}>{HORIZON_LABEL[c.horizon]}</span>
               )}
             </div>
-            <p style={{ fontSize: 12.5, color: "#334155", lineHeight: 1.85, margin: "0 0 6px" }}>{c.why}</p>
+            <p style={{ fontSize: 12.5, color: "#334155", lineHeight: 1.85, margin: "0 0 6px" }}>{withGlossary(String(c.why ?? ""))}</p>
             {c.evidence && (
               <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.7, borderTop: `1px dashed ${BORDER}`, paddingTop: 6 }}>
                 <span style={{ fontWeight: 800, color: MID }}>根拠：</span>{c.evidence}
@@ -175,7 +177,7 @@ export function CautionSection({ highlights }: { highlights: any }) {
             <div style={{ height: 5, borderRadius: 999, backgroundColor: "#f1f5f9", marginBottom: 8, overflow: "hidden" }}>
               <div style={{ width: `${s.w}%`, height: "100%", backgroundColor: s.bar }} />
             </div>
-            <p style={{ fontSize: 12.5, color: "#334155", lineHeight: 1.85, margin: "0 0 6px" }}>{c.detail}</p>
+            <p style={{ fontSize: 12.5, color: "#334155", lineHeight: 1.85, margin: "0 0 6px" }}>{withGlossary(String(c.detail ?? ""))}</p>
             {c.watch && (
               <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.7, backgroundColor: "#F5F4EF", borderRadius: 8, padding: "6px 10px" }}>
                 <span style={{ fontWeight: 800, color: MID }}>買ったあとに見るところ：</span>{c.watch}

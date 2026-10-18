@@ -475,11 +475,8 @@ export default function CalendarClient() {
                     </p>
                   )}
                  <div style={{ display:"flex", justifyContent:"flex-end", gap:8, flexWrap:"wrap" }}>
-                    <a href={`/analysis/${company.id}/beginner`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"white", color: isFree ? C.nav : "#92400e", border:`1.5px solid ${isFree ? C.teal : "#f59e0b"}` }}>
-                      {lang === "ja" ? "📖 初心者向け分析" : "📖 Beginner"}
-                    </a>
                     <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor: isFree ? C.teal : "#f59e0b", color:"white" }}>
-                      {lang === "ja" ? "🎓 中・上級者向け分析" : "🎓 Expert"}
+                      {lang === "ja" ? "📊 分析レポートを読む" : "📊 Read the report"}
                     </a>
                   </div>
                 </div>
@@ -512,8 +509,7 @@ export default function CalendarClient() {
                       <p style={{ fontSize:12, color:"#374151", lineHeight:1.9, margin:"0 0 12px" }}>{company.ai_summary}</p>
                     )}
                     <div style={{ display:"flex", justifyContent:"flex-end", gap:8, flexWrap:"wrap" }}>
-                      <a href={`/analysis/${company.id}/beginner`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"white", color:"#92400e", border:"1.5px solid #f59e0b" }}>📖 初心者向け分析</a>
-                      <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"#f59e0b", color:"white" }}>🎓 中・上級者向け分析</a>
+                      <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"#f59e0b", color:"white" }}>📊 分析レポートを読む</a>
                     </div>
                   </div>
                 </div>

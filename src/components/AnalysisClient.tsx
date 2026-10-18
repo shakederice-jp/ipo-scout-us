@@ -9,6 +9,7 @@ import {
 import { useState, useEffect } from "react";
 import { JpBuyCard, BrokerLinks } from "@/components/JpBuyInfo";
 import { SectionBand, CharmSection, SellTimeline, CautionSection } from "@/components/HighlightsView";
+import { GlossaryParagraphs, withGlossary } from "@/components/GlossaryText";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { PlanButton } from "@/components/PlanButton";
 import { fmtUsd, fmtJpyApprox, FX_NOTE } from "@/lib/fx";
@@ -134,15 +135,17 @@ function MarkdownReport({text,beginner=false}:{text:string;beginner?:boolean}) {
     );
   }
 
+  const seen=new Set<string>(); // 同じ用語は、レポートの中で最初の1回だけ吹き出しを付ける
+  const clean=(t:string)=>t.replace(/\*\*([^*]+)\*\*/g,'$1');
   return (
-    <div style={{fontSize:12,color:"#334155",lineHeight:1.9}}>
+    <div style={{fontSize:13,color:"#334155",lineHeight:1.95}}>
       {normalizedText.split('\n').map((line,i)=>{
-        if(line.startsWith('#### ')) return <div key={i} style={{fontWeight:900,fontSize:13,color:"#1E3A66",margin:"16px 0 6px"}}>{line.replace(/^#### /,'')}</div>;
-        if(line.startsWith('### ')) return <div key={i} style={{fontWeight:900,fontSize:14,color:"#0F1F36",margin:"18px 0 8px"}}>{line.replace(/^### /,'')}</div>;
-        if(line.startsWith('## ')) return <div key={i} style={{fontWeight:900,fontSize:15,color:"#0F1F36",margin:"20px 0 10px"}}>{line.replace(/^## /,'')}</div>;
-        if(line.startsWith('- ')) return <div key={i} style={{paddingLeft:12,marginBottom:6}}>{'• '}{line.replace(/^- /,'').replace(/\*\*([^*]+)\*\*/g,'$1')}</div>;
+        if(line.startsWith('#### ')) return <div key={i} style={{fontWeight:900,fontSize:14,color:"#1E3A66",margin:"18px 0 6px"}}>{line.replace(/^#### /,'')}</div>;
+        if(line.startsWith('### ')) return <div key={i} style={{fontWeight:900,fontSize:15,color:"#0F1F36",margin:"20px 0 8px"}}>{line.replace(/^### /,'')}</div>;
+        if(line.startsWith('## ')) return <div key={i} style={{fontWeight:900,fontSize:16,color:"#0F1F36",margin:"22px 0 10px"}}>{line.replace(/^## /,'')}</div>;
+        if(line.startsWith('- ')) return <div key={i} style={{paddingLeft:12,marginBottom:6}}>{'• '}{withGlossary(clean(line.replace(/^- /,'')),seen)}</div>;
         if(line.trim()==='') return <div key={i} style={{height:12}}/>;
-        return <div key={i} style={{marginBottom:10}}>{line.replace(/\*\*([^*]+)\*\*/g,'$1')}</div>;
+        return <div key={i} style={{marginBottom:10}}>{withGlossary(clean(line),seen)}</div>;
       })}
     </div>
   );
@@ -347,7 +350,7 @@ function LockupTimeline({lockupPeriod}:{lockupPeriod:string}) {
 const ICONS=[<Zap size={13} key="z"/>,<TrendingUp size={13} key="t"/>,<Users size={13} key="u"/>];
 function InsightCard({ins,idx,level="expert"}:{ins:Insight;idx:number;level?:"expert"|"beginner"}) {
   const [open,setOpen]=useState(false);
-  const isBeginner=level==="beginner";
+  const isBeginner=false; // 初心者向けは廃止(2026/10)
   const beginnerDetail=(ins as any).detail_beginner??"";
   const detailText=isBeginner&&beginnerDetail?beginnerDetail:(ins.detail??"");
   return (
@@ -367,9 +370,7 @@ function InsightCard({ins,idx,level="expert"}:{ins:Insight;idx:number;level?:"ex
           {isBeginner&&!beginnerDetail&&(
             <p style={{fontSize:11,color:"#92400e",backgroundColor:"#fffbeb",padding:"8px 10px",borderRadius:8,marginBottom:10}}>📖 初心者向け解説は準備中のため、通常の解説を表示しています。</p>
           )}
-          {detailText.split(/\n\n+/).map((para:string,i:number)=>(
-            <p key={i} style={{fontSize:isBeginner?13:11,color:"#475569",lineHeight:isBeginner?2:1.8,whiteSpace:"pre-wrap",margin:i===0?`0 0 ${isBeginner?14:10}px`:`${isBeginner?14:10}px 0`}}>{para}</p>
-          ))}
+          <GlossaryParagraphs text={detailText} style={{fontSize:12.5,color:"#475569",lineHeight:1.9,whiteSpace:"pre-wrap",margin:"10px 0"}} firstStyle={{margin:"0 0 10px"}}/>
         </div>
       )}
     </div>
@@ -381,7 +382,7 @@ function DeepDiveCard({item,accentColor,level="expert"}:{item:AxisItem;accentCol
   const sc=Math.max(0,Math.min(100,item.score||0));
   const grade=item.grade||(sc>=80?"A":sc>=65?"B":sc>=50?"C":sc>=35?"D":"E");
   const r=22,circ=2*Math.PI*r,dash=(sc/100)*circ;
-  const isBeginner=level==="beginner";
+  const isBeginner=false; // 初心者向けは廃止(2026/10)
   const reportBeginner=(item as any).report_beginner??"";
   const hasBeginnerReport=!!reportBeginner;
   const hasReport=!!(item as any).report;
@@ -926,7 +927,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             )}
           </div>
           {(()=>{
-            const isBeginner=level==="beginner";
+            const isBeginner=false; // 初心者向けは廃止(2026/10)
             const beginnerSummary=(analysis as any).summary_beginner??"";
             const summaryText=isBeginner&&beginnerSummary?beginnerSummary:(analysis.summary??"");
             return (
@@ -934,9 +935,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 {isBeginner&&!beginnerSummary&&(
                   <p style={{fontSize:11,color:"#92400e",backgroundColor:"#fffbeb",padding:"8px 10px",borderRadius:8,marginBottom:10}}>📖 初心者向け要約は準備中のため、通常の要約を表示しています。</p>
                 )}
-                {summaryText.split(/\n\n+/).map((para:string,i:number)=>(
-                  <p key={i} style={{fontSize:isBeginner?15:13,color:"#475569",lineHeight:isBeginner?2:1.8,margin:i===0?`0 0 ${isBeginner?12:10}px`:`${isBeginner?12:10}px 0`}}>{para}</p>
-                ))}
+                <GlossaryParagraphs text={summaryText} style={{fontSize:13.5,color:"#475569",lineHeight:1.9,margin:"10px 0"}} firstStyle={{margin:"0 0 10px"}}/>
               </>
             );
           })()}
@@ -1278,31 +1277,6 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 <span style={{fontWeight:900,fontSize:9,letterSpacing:"0.1em",padding:"2px 8px",borderRadius:4,backgroundColor:DARK,color:"white",display:"inline-block",marginBottom:6}}>DEEP ANALYSIS</span>
                 <h2 style={{fontWeight:900,fontSize:18,color:"white",margin:"0 0 2px"}}>詳細分析 深掘りレポート</h2>
                 <p style={{fontSize:10,color:"#C7D3E3",margin:"0 0 8px"}}>投資時間軸（超短期・短期・長期）で整理した9軸分析</p>
-                <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:4}}>
-                  {(()=>{
-                    const shareId=(company as any).ticker??company.id;
-                    const expertHref=`/analysis/${shareId}`;
-                    const beginnerHref=`/analysis/${shareId}/beginner`;
-                    return (
-                      <>
-                        <a href={beginnerHref} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-                          fontSize:14,fontWeight:900,padding:"12px 16px",borderRadius:12,textDecoration:"none",
-                          backgroundColor:level==="beginner"?DARK:"rgba(255,255,255,0.75)",
-                          color:level==="beginner"?"white":DARK,
-                          border:level==="beginner"?"none":`2px solid ${DARK}`}}>
-                          📖 初心者向け分析
-                        </a>
-                        <a href={expertHref} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,
-                          fontSize:14,fontWeight:900,padding:"12px 16px",borderRadius:12,textDecoration:"none",
-                          backgroundColor:level==="expert"?DARK:"rgba(255,255,255,0.75)",
-                          color:level==="expert"?"white":DARK,
-                          border:level==="expert"?"none":`2px solid ${DARK}`}}>
-                          🎓 中・上級者向け分析
-                        </a>
-                      </>
-                    );
-                  })()}
-                </div>
               </div>
               <div style={{backgroundColor:"rgba(255,255,255,0.9)",borderRadius:10,padding:"8px 14px",textAlign:"center",flexShrink:0}}>
                 <div style={{fontWeight:900,fontSize:26,color:DARK,lineHeight:1}}>{score}</div>

@@ -159,16 +159,6 @@ export default function AdminPage() {
         Object.assign(merged, data);
       } catch { setStep("3", false, `❌ ${p.label}: 通信エラー`); return; }
     }
-    // ④まずここに注目・初心者向けリライト（別呼び出しにして負荷分散）
-    setStepResult(prev => ({...prev, "3": `⏳ ⑥まずここに注目（初心者向け）生成中 (6/6)...`}));
-    try {
-      const res = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, part:"insights_beginner", insights:merged.insights ?? [] }) });
-      const data = await res.json();
-      if (!data.error && Array.isArray(data.details_beginner) && Array.isArray(merged.insights)) {
-        merged.insights = merged.insights.map((ins: any, i: number) => ({ ...ins, detail_beginner: data.details_beginner[i] ?? "" }));
-      }
-    } catch { /* 初心者向けリライト失敗は致命的ではないため、通常保存は続行する */ }
-
     setStepResult(prev => ({...prev, "3": "⏳ 保存中..."}));
     try {
       const saveRes = await fetch("/api/analyze", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id:selectedCompany.id, save_results:merged }) });
@@ -758,18 +748,6 @@ export default function AdminPage() {
                       {vizLoading?"⏳ 生成中...":"📊 視覚化データを生成"}
                     </button>
                     {vizResult && <div style={{ marginTop:6, fontSize:11, padding:"4px 8px", borderRadius:6, background:vizResult.startsWith("❌")?"#fef2f2":"#f0fdf4", color:vizResult.startsWith("❌")?"#dc2626":"#166534" }}>{vizResult}</div>}
-                  </div>
-                  <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:10, border:`1px solid ${(stepResult["7a"]||stepResult["7b"]||stepResult["7c"])?.startsWith("❌")?"#fecaca":stepResult["7c"]?"#bbf7d0":"#e2e8f0"}`, background:(stepResult["7a"]||stepResult["7b"]||stepResult["7c"])?.startsWith("❌")?"#fef2f2":stepResult["7c"]?"#f0fdf4":"#f8fafc" }}>
-                    <div style={{ fontWeight:900, color:"#db2777", fontSize:13, marginBottom:3 }}>STEP 7｜初心者向けリライト（一括実行）</div>
-                    <p style={{ fontSize:11, color:"#64748b", margin:"2px 0 8px" }}>④⑤⑥の9軸レポートを初心者向けにやさしく書き直します（約2〜4分・要④⑤⑥完了後）</p>
-                    <button onClick={handleBeginnerRewrite} disabled={beginnerLoading} style={btnStyle("#db2777", beginnerLoading)}>
-                      {beginnerLoading?"⏳ 書き直し中（しばらくお待ちください）...":"📖 初心者向けにリライトする"}
-                    </button>
-                    {["7a","7b","7c"].map(n=>stepResult[n]&&(
-                      <div key={n} style={{ marginTop:6, fontSize:11, lineHeight:1.7, padding:"4px 8px", borderRadius:6, background:stepResult[n]?.startsWith("❌")?"#fef2f2":"#f0fdf4", color:stepResult[n]?.startsWith("❌")?"#dc2626":"#166534", whiteSpace:"pre-wrap" }}>
-                        {stepResult[n]}
-                      </div>
-                    ))}
                   </div>
                 </>
               )}
