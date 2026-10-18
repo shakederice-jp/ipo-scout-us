@@ -40,22 +40,39 @@ export default function AdminPage() {
   const [stepLoading, setStepLoading] = useState<Record<string,boolean>>({});
   const [stepResult, setStepResult] = useState<Record<string,string|null>>({});
   // 校正で「要確認」として残った指摘の中身(STEPごと)。何が問題か・原文はどうかを画面で確認できるようにする
-  const [proofDetails, setProofDetails] = useState<Record<string, any[]>>({});
+  const [proofDetails, setProofDetails] = useState<Record<string, { unresolved: any[]; changes: any[] }>>({});
   const renderProofDetails = (key: string) => {
-    const items = proofDetails[key];
-    if (!items || items.length === 0) return null;
+    const d = proofDetails[key];
+    if (!d || (d.unresolved.length === 0 && d.changes.length === 0)) return null;
     const kindLabel: Record<string,string> = { contradiction:"原文と食い違い", unsupported:"根拠が見当たらない", overstated:"言い過ぎ" };
+    const actLabel: Record<string,string> = { fix:"原文に合わせて修正", soften:"根拠のない部分をやわらげた", remove:"根拠が示せないため削除" };
     return (
-      <details style={{ marginTop:6, fontSize:11, lineHeight:1.7, background:"#fffbeb", border:"1px solid #fde68a", borderRadius:6, padding:"6px 8px" }}>
-        <summary style={{ cursor:"pointer", fontWeight:700, color:"#92400e" }}>要確認の中身を見る({items.length}件)</summary>
-        {items.map((u:any, i:number) => (
-          <div key={i} style={{ marginTop:6, paddingTop:6, borderTop: i===0 ? "none" : "1px dashed #fde68a", color:"#78350f", whiteSpace:"pre-wrap" }}>
-            <div><b>{i+1}. {kindLabel[u.kind] ?? u.kind}</b>　「{u.quote}」</div>
-            <div>問題点: {u.problem}</div>
-            {u.source_quote ? <div style={{ color:"#64748b" }}>原文: {u.source_quote}</div> : null}
-          </div>
-        ))}
-      </details>
+      <>
+        {d.changes.length > 0 && (
+          <details style={{ marginTop:6, fontSize:11, lineHeight:1.7, background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:6, padding:"6px 8px" }}>
+            <summary style={{ cursor:"pointer", fontWeight:700, color:"#075985" }}>AIが自動で直した内容を見る({d.changes.length}件)</summary>
+            {d.changes.map((u:any, i:number) => (
+              <div key={i} style={{ marginTop:6, paddingTop:6, borderTop: i===0 ? "none" : "1px dashed #bae6fd", color:"#0c4a6e", whiteSpace:"pre-wrap" }}>
+                <div><b>{i+1}. {actLabel[u.action] ?? u.action}</b>{u.reason ? `(${u.reason})` : ""}</div>
+                <div style={{ color:"#64748b" }}>直す前: {u.before}</div>
+                <div>直した後: {u.after || "(この文を削除)"}</div>
+              </div>
+            ))}
+          </details>
+        )}
+        {d.unresolved.length > 0 && (
+          <details style={{ marginTop:6, fontSize:11, lineHeight:1.7, background:"#fffbeb", border:"1px solid #fde68a", borderRadius:6, padding:"6px 8px" }}>
+            <summary style={{ cursor:"pointer", fontWeight:700, color:"#92400e" }}>要確認の中身を見る({d.unresolved.length}件)</summary>
+            {d.unresolved.map((u:any, i:number) => (
+              <div key={i} style={{ marginTop:6, paddingTop:6, borderTop: i===0 ? "none" : "1px dashed #fde68a", color:"#78350f", whiteSpace:"pre-wrap" }}>
+                <div><b>{i+1}. {kindLabel[u.kind] ?? u.kind}</b>　「{u.quote}」</div>
+                <div>問題点: {u.problem}</div>
+                {u.source_quote ? <div style={{ color:"#64748b" }}>原文: {u.source_quote}</div> : null}
+              </div>
+            ))}
+          </details>
+        )}
+      </>
     );
   };
   const [vizLoading, setVizLoading] = useState(false);
@@ -182,8 +199,8 @@ export default function AdminPage() {
     // ⑥原文(英語の目論見書)との照合: Geminiが間違い候補を挙げ、Sonnetが原文で再確認して書き直す(失敗しても保存は続ける)
     const pr = await runProofread(selectedCompany.id, collectFields(merged), msg => setStepResult(prev => ({...prev, "3": `⏳ ⑥${msg}`})));
     applyFields(merged, pr.fields);
-    setProofDetails(prev => ({...prev, "3": pr.unresolved}));
-    merged.proofread = { checked_at: new Date().toISOString(), fixed: pr.fixed, unresolved: pr.unresolved.slice(0, 10), skipped: pr.skipped ?? null };
+    setProofDetails(prev => ({...prev, "3": { unresolved: pr.unresolved, changes: pr.changes }}));
+    merged.proofread = { checked_at: new Date().toISOString(), fixed: pr.fixed, unresolved: pr.unresolved.slice(0, 10), changes: pr.changes.slice(0, 20), skipped: pr.skipped ?? null };
     const proofNote = pr.skipped ? `・校正スキップ(${pr.skipped})` : `・校正:修正${pr.fixed}件${pr.unresolved.length ? `／要確認${pr.unresolved.length}件(${pr.unresolved.slice(0,2).map(u => `${u.field}「${u.quote.slice(0,20)}」`).join("、")})` : ""}`;
     setStepResult(prev => ({...prev, "3": "⏳ 保存中..."}));
     try {
@@ -219,7 +236,7 @@ export default function AdminPage() {
     allResults.forEach((a:any, idx:number) => { if (a.report) pf[`axis${idx}`] = a.report; });
     const pr = await runProofread(selectedCompany.id, pf, msg => setStepResult(prev => ({...prev, [stepNum]: `⏳ ${label} ${msg}`})));
     allResults.forEach((a:any, idx:number) => { if (pr.fields[`axis${idx}`]) a.report = pr.fields[`axis${idx}`]; });
-    setProofDetails(prev => ({...prev, [stepNum]: pr.unresolved}));
+    setProofDetails(prev => ({...prev, [stepNum]: { unresolved: pr.unresolved, changes: pr.changes }}));
     const proofNote = pr.skipped ? `・校正スキップ(${pr.skipped})` : `・校正:修正${pr.fixed}件${pr.unresolved.length ? `／要確認${pr.unresolved.length}件(${pr.unresolved.slice(0,2).map(u => `「${u.quote.slice(0,20)}」`).join("、")})` : ""}`;
     setStepResult(prev => ({...prev, [stepNum]: `⏳ ${label} 保存中...`}));
     try {

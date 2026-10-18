@@ -71,6 +71,7 @@ ${co.name}のIPOについて書かれた日本語の分析文に、原文と食�
 - 見通し・評価・意見(「〜と考えられます」など)。数字や事実が間違っていなければ指摘しない
 - 原文の抜粋に載っていないだけで、数字や固有名詞の誤りと言えないもの
 - 言い回しや読みやすさ(文体の好みは指摘しない)
+- この銘柄についての事実の主張ではない、一般的な説明・投資のやり方の助言(例:「最終目論見書(424B4)で◯◯を確認する」「ロックアップ解除後は売りが出やすい」)。提出書類の種類名を一般論として挙げているだけの文は、この銘柄の書類名を誤っているという指摘にしない
 - 日程(上場予定日・ロックアップ解除日)は【整理済みデータ・日程】にあるものが正しい
 - 原文や整理済みデータの数字から計算できる値(時価総額＝株価×株数、比率、合計など)は、計算が合っていれば指摘しない。計算結果が違うときだけ contradiction とする
 - 競合企業の名前・業界PER・主幹事など、【整理済みデータ・日程】の「市場・競合情報」にあるものは、根拠があるものとして扱う
@@ -180,6 +181,7 @@ export async function POST(req: NextRequest) {
       const issues: Issue[] = (Array.isArray(body.issues) ? body.issues : []).slice(0, 20);
       const round = Number(body.round) || 1;
       const finalRound = !!body.final; // 最後の回は、確認できないものは削る・ぼかす方向で必ず決着させる
+      const force = !!body.force;      // 強制決着: keep以外で直せなかったものは、その文を削除して必ず終わらせる
       if (issues.length === 0) return NextResponse.json({ results: [], fields, applied: 0 });
       const ranges = issues.map(i => (typeof fields[i.field] === "string" ? sentenceRange(fields[i.field], i.quote) : null));
       const list = issues.map((i, n) => {
@@ -199,8 +201,9 @@ export async function POST(req: NextRequest) {
 - fix のときは source_evidence に、根拠となる原文の英文を、そのまま引用すること(引用できないなら fix にしない)
 - new_sentence は「問題の文」全体と置き換える、新しい1文(または数文)。前後の文章とつながるように書き、元の長さを大きく超えないこと。ですます調のまま。keep・remove のときは空文字
 - 原文に書かれていない数字や事実を、新しく作らない。原文が単位違い(千ドル単位など)のときは、単位を取り違えない
+- この銘柄についての事実の主張ではなく、一般的な説明や「〜を確認しましょう」という投資のやり方の助言になっている文は、原文との食い違いではない。keep とする
 - 計算で出した数字(時価総額＝株価×株数、比率、合計など)は、元の数字から計算し直して確かめる。合っていれば keep、違っていれば fix で直す
-${finalRound ? "- これが最後の見直しです。原文で確認できないものを残さないこと。確信をもって keep と言えるもの以外は、soften か remove で決着させる" : ""}
+${finalRound || force ? "- これが最後の見直しです。原文で確認できないものを残さないこと。確信をもって keep と言えるもの以外は、soften か remove で決着させる" : ""}
 ${STYLE_RULE}
 
 【原文(英語・目論見書の抜粋)】
@@ -238,8 +241,20 @@ ${list}
             didApply = true;
           }
         }
+        // 強制決着: keep以外で直せなかったものは、その文を削除する(誤った記述を残さない)
+        if (force && !didApply && verdict !== "keep" && range && typeof cur === "string") {
+          const now = updated[issue.field];
+          const r2 = sentenceRange(now, issue.quote);
+          if (r2) {
+            updated[issue.field] = (now.slice(0, r2[0]) + now.slice(r2[1])).replace(/\n{3,}/g, "\n\n");
+            didApply = true;
+            verdict = "remove";
+          }
+        }
         if (didApply) applied++;
-        return { issue, verdict, applied: didApply, reason: String(r?.reason ?? "").slice(0, 80) };
+        const oldS = range && typeof cur === "string" ? cur.slice(range[0], range[1]) : issue.quote;
+        const newS = verdict === "remove" ? "" : (didApply ? newSentence : "");
+        return { issue, verdict, applied: didApply, reason: String(r?.reason ?? "").slice(0, 80), before: oldS, after: newS };
       });
       return NextResponse.json({ results, fields: updated, applied });
     }
