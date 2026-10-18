@@ -215,7 +215,7 @@ export default async function SchedulePage() {
           ))}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 4 }}>
             <a href="/how-to-buy" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>日本からの買い方 →</a>
-            <a href="/" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>カレンダーで見る →</a>
+            <a href="/glossary" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>用語集 →</a>
           </div>
         </section>
 

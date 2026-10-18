@@ -213,6 +213,7 @@ export default async function Home({
           <a href="/privacy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>プライバシーポリシー</a>
           <a href="/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>お問い合わせ</a>
           <a href="/schedule" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📅 上場スケジュール</a>
+          <a href="/glossary" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📖 用語集</a>
           <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>このサイトの使い方</a>
           <a href="/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>日本からの買い方</a>
           <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>料金プラン</a>
