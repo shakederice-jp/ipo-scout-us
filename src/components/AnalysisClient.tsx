@@ -610,6 +610,32 @@ function PriceTrackCard({track}:{track:any}) {
         <span style={{fontWeight:900,fontSize:14,color:DARK}}>上場後の値動き</span>
         <span style={{fontSize:10,color:"#94a3b8"}}>公募価格との比較・終値ベース</span>
       </div>
+      {ipo!=null&&ipo>0&&track.latest?.close!=null&&(()=>{
+        const yen=(price:number)=>Math.round(1000000*price/ipo).toLocaleString("ja-JP");
+        const now=track.latest.close as number;
+        const nowPct=(now/ipo-1)*100;
+        const up=nowPct>=0;
+        const d1c=d1.close as number|null;
+        const d1Pct=d1c!=null?(d1c/ipo-1)*100:null;
+        return (
+          <div style={{backgroundColor:up?"#f0fdf4":"#fef2f2",border:`1px solid ${up?"#bbf7d0":"#fecaca"}`,borderRadius:12,padding:"12px 14px",marginBottom:10}}>
+            <div style={{fontSize:11,fontWeight:800,color:"#475569",marginBottom:4}}>💰 100万円分を公募価格で買っていたら</div>
+            <div style={{display:"flex",alignItems:"baseline",gap:8,flexWrap:"wrap"}}>
+              <span style={{fontSize:11,color:"#64748b"}}>現在</span>
+              <span style={{fontSize:24,fontWeight:900,color:up?"#15803d":"#b91c1c"}}>¥{yen(now)}</span>
+              <span style={{fontSize:15,fontWeight:800,color:up?"#15803d":"#b91c1c"}}>（{up?"+":""}{nowPct.toFixed(1)}%）</span>
+            </div>
+            {d1c!=null&&d1Pct!=null&&(
+              <div style={{fontSize:11,color:"#475569",marginTop:4}}>
+                初日終値の時点では ¥{yen(d1c)}（{d1Pct>=0?"+":""}{d1Pct.toFixed(1)}%）でした。
+              </div>
+            )}
+            <div style={{fontSize:9.5,color:"#94a3b8",marginTop:4,lineHeight:1.6}}>
+              公募価格と終値の比率から計算した目安です。為替の変動と手数料は含みません。過去の値動きであり、将来の株価を約束するものではありません。
+            </div>
+          </div>
+        );
+      })()}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:8,marginBottom:10}}>
         {tiles.map(t=>(
           <div key={t.label} style={{backgroundColor:LIGHT,borderRadius:10,padding:"8px 10px"}}>

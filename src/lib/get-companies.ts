@@ -11,14 +11,17 @@ export async function getPublicCompanies(): Promise<any[]> {
   const supabase = createClient(url, key);
   const { data, error } = await supabase
     .from("ipo_companies")
-    .select("id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary, price_range_min, sec_stage")
+    .select("id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary, price_range_min, sec_stage, ipo_price, price_track")
     .order("listing_date", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row: any) => {
-    const { analysis_summary, price_range_min, sec_stage, ...rest } = row;
+    const { analysis_summary, price_range_min, sec_stage, price_track, ...rest } = row;
+    // 100万円シミュレーション用: 最新の終値と、その日付だけ取り出す(終値の推移などの細かい履歴は返さない)
+    const latest_price: number | null = price_track?.latest?.close ?? null;
+    const latest_date: string | null = price_track?.latest?.date ?? null;
     // 「上場が決まった」とみなす条件: 価格帯が発表済み、または価格決定済み
     const is_decided = price_range_min != null || sec_stage === "launched" || sec_stage === "priced";
-    return { ...rest, has_analysis: !!analysis_summary, is_decided };
+    return { ...rest, has_analysis: !!analysis_summary, is_decided, latest_price, latest_date };
   });
 }
 

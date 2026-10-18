@@ -17,6 +17,9 @@ type Company = {
   is_free?: boolean;
   has_analysis?: boolean;
   is_decided?: boolean;
+  ipo_price?: number | null;      // 公募価格(ドル)
+  latest_price?: number | null;   // 最新の終値(ドル)
+  latest_date?: string | null;    // その終値の日付
 };
 
 type CalendarNote = {
@@ -462,6 +465,25 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
                     })()}
                   </div>
                 </div>
+                {/* 100万円シミュレーション: 上場済みで、公募価格と最新の終値がそろっている銘柄だけ */}
+                {(() => {
+                  const ip = company.ipo_price, lp = company.latest_price;
+                  if (!ip || !lp || ip <= 0) return null;
+                  const pct = (lp / ip - 1) * 100;
+                  const val = Math.round(1000000 * lp / ip);
+                  const up = pct >= 0;
+                  return (
+                    <div style={{ padding:"10px 16px", borderTop:`1px solid ${C.border}`, backgroundColor: up ? "#f0fdf4" : "#fef2f2" }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:"#475569", marginBottom:2 }}>💰 100万円分を公募価格で買っていたら</div>
+                      <div style={{ display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:11, color:"#64748b" }}>現在</span>
+                        <span style={{ fontSize:20, fontWeight:900, color: up ? "#15803d" : "#b91c1c" }}>¥{val.toLocaleString("ja-JP")}</span>
+                        <span style={{ fontSize:14, fontWeight:800, color: up ? "#15803d" : "#b91c1c" }}>（{up ? "+" : ""}{pct.toFixed(1)}%）</span>
+                      </div>
+                      <div style={{ fontSize:9.5, color:"#94a3b8", marginTop:2 }}>{company.latest_date ? `${company.latest_date}の終値で計算。` : ""}為替の変動と手数料は含みません。</div>
+                    </div>
+                  );
+                })()}
                 <div style={{ padding:"10px 16px 14px", borderTop:`1px solid ${C.border}` }}>
                   <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
                     <span style={{ fontSize:11, fontWeight:700, color:C.teal }}>⚡ AI分析要約</span>
@@ -476,7 +498,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
                     </p>
                   )}
                  <div style={{ display:"flex", justifyContent:"flex-end", gap:8, flexWrap:"wrap" }}>
-                    <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor: isFree ? C.teal : "#f59e0b", color:"white" }}>
+                    <a href={`/analysis/${company.ticker ?? company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor: isFree ? C.teal : "#f59e0b", color:"white" }}>
                       {lang === "ja" ? "📊 分析レポートを読む" : "📊 Read the report"}
                     </a>
                   </div>
