@@ -21,3 +21,18 @@ export async function getPublicCompanies(): Promise<any[]> {
     return { ...rest, has_analysis: !!analysis_summary, is_decided };
   });
 }
+
+// 2026/10追加: 「上場スケジュール」ページ用。価格帯・ロックアップ解除日など、表に載せる事実だけを返す(分析本文は返さない)。
+export async function getScheduleCompanies(): Promise<any[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return [];
+  const supabase = createClient(url, key);
+  const { data, error } = await supabase
+    .from("ipo_companies")
+    .select("id, name, ticker, sector, exchange, listing_date, listing_date_confirmed, price_range_min, price_range_max, lockup_90_date, lockup_180_date, sec_stage")
+    .order("listing_date", { ascending: true });
+  if (error) throw new Error(error.message);
+  // 取り下げた銘柄は載せない
+  return (data ?? []).filter((r: any) => r.sec_stage !== "withdrawn");
+}
