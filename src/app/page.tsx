@@ -6,7 +6,7 @@ import { Zap, Crown, AlertCircle, User } from "lucide-react";
 import { jpyMonth } from "@/lib/pricing";
 
 export const metadata: Metadata = {
-  title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
+  title: { absolute: "米国IPO企業情報AI分析レポート｜大手町調査室九課" },
   description: "米国IPO予定企業のAI分析レポート。SEC提出書類をもとに総合スコア・株価シナリオ・9軸詳細分析を掲載。大手町調査室九課が運営。",
   openGraph: {
     title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
@@ -80,11 +80,6 @@ export default async function Home({
             米国のIPOでは、日本の目論見書にあたる書類（S-1／F-1）が公開されます。公開される場所は、SEC（米国証券取引委員会）の電子開示システム「EDGAR」です。
             当サイトでは、この英語の書類をAIが読み込みます。そしてIPOの判断材料になる部分だけを要約し、日本語でお届けします。
           </p>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:12 }}>
-            {["① EDGARから書類を読み込み", "② IPOに参考になる部分を要約", "③ 日本語に翻訳"].map((s) => (
-              <span key={s} style={{ fontSize:12, fontWeight:700, color:"#0F1F36", backgroundColor:"#E8EDF5", borderRadius:20, padding:"5px 14px" }}>{s}</span>
-            ))}
-          </div>
           <p style={{ fontSize:10.5, color:"#A9C1E8", lineHeight:1.7, margin:0 }}>
             ※ 要約・翻訳はAIによる自動生成です。投資判断の前には、EDGARの原文もあわせてご確認ください。
             <a href="/guide" style={{ color:"#ffffff", marginLeft:10, textDecoration:"underline" }}>このサイトの使い方</a>
@@ -196,22 +191,15 @@ export default async function Home({
 
       {/* フッター */}
       <footer style={{ borderTop:"1px solid #C7D3E3", backgroundColor:"white", padding:"24px 16px", textAlign:"center" }}>
-        <div style={{ display:"flex", justifyContent:"center", gap:16, marginBottom:10 }}>
-        <a href="/tokushoho" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>特定商取引法に基づく表記</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/privacy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>プライバシーポリシー</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>お問い合わせ</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>このサイトの使い方</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>日本からの買い方</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>料金プラン</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/trends" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>📡 マーケットトレンド</a>
-          <span style={{ color:"#e2e8f0" }}>|</span>
-          <a href="/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none" }}>💡 IPO投資の法則</a>
+        <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", columnGap:20, rowGap:8, marginBottom:12 }}>
+          <a href="/tokushoho" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>特定商取引法に基づく表記</a>
+          <a href="/privacy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>プライバシーポリシー</a>
+          <a href="/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>お問い合わせ</a>
+          <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>このサイトの使い方</a>
+          <a href="/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>日本からの買い方</a>
+          <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>料金プラン</a>
+          <a href="/trends" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📡 マーケットトレンド</a>
+          <a href="/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>💡 IPO投資の法則</a>
         </div>
         <p style={{ fontSize:10, color:"#94a3b8", lineHeight:1.7, margin:0 }}>
           本サービスの分析・スコアはAIによる試算値であり、投資勧誘ではありません。<br/>

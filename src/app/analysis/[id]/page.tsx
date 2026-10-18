@@ -60,7 +60,7 @@ async function checkAccess(companyId: string, isFreeCompany: boolean): Promise<b
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { data } = await fetchCompany(id);
-  if (!data) return { title: "銘柄分析レポート" };
+  if (!data) return { title: "米国IPO銘柄分析レポート｜大手町調査室九課" };
   const co = data as any;
   const summary = co.analysis_summary?.summary ?? `${data.name}のIPO分析レポート。スコア・シナリオ・詳細分析を掲載。`;
   const score = co.analysis_summary?.total_score ?? "";
@@ -68,10 +68,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const description = score
     ? `総合スコア${score}/100（${grade}評価）。${summary.slice(0, 120)}`
     : summary.slice(0, 150);
-  const title = `${data.name} IPO分析レポート｜大手町調査室九課`;
+  const title = `${data.name} 米国IPO分析レポート｜大手町調査室九課`;
   const ticker = (data as any).ticker;
   const canonicalId = ticker ?? data.id;
-  const url = `https://ipo.finance-tower.com/analysis/${canonicalId}`;
+  const url = `https://ipo-us.finance-tower.com/analysis/${canonicalId}`;
   return {
     title,
     description,
@@ -81,12 +81,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       siteName: "大手町調査室九課",
       locale: "ja_JP",
       type: "article",
-      images: [{ url: "https://ipo.finance-tower.com/ogp.png", width: 1200, height: 630 }],
+      images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title, description,
-      images: ["https://ipo.finance-tower.com/ogp.png"],
+      images: ["https://ipo-us.finance-tower.com/ogp.png"],
     },
     alternates: { canonical: url },
   };
@@ -158,18 +158,18 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": `${company.name} IPO分析レポート`,
+    "headline": `${company.name} 米国IPO分析レポート`,
     "description": analysisSummary?.summary ?? `${company.name}のIPO分析`,
     "publisher": {
       "@type": "Organization",
       "name": "大手町調査室九課",
-      "url": "https://ipo.finance-tower.com",
+      "url": "https://ipo-us.finance-tower.com",
     },
     "datePublished": company.listing_date ?? new Date().toISOString(),
-    "dateModified": new Date().toISOString(),
+    "dateModified": analysisSummary?.generated_at ?? company.listing_date ?? new Date().toISOString(),
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://ipo.finance-tower.com/analysis/${canonicalId}`,
+      "@id": `https://ipo-us.finance-tower.com/analysis/${canonicalId}`,
     },
   };
 

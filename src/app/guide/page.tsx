@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "このサイトの効果的な使い方｜大手町調査室九課",
-  description: "IPO企業情報AI分析レポートの特徴・使い方を解説。目論見書をAIが分析し、9軸スコア・株価シナリオ・詳細レポートを提供します。",
+  description: "米国IPO企業情報AI分析レポートの特徴・使い方を解説。目論見書をAIが分析し、9軸スコア・株価シナリオ・詳細レポートを提供します。",
 };
 
 const C = {
@@ -18,7 +18,7 @@ export default function GuidePage() {
       <div style={{ background: `linear-gradient(135deg, ${C.dark} 0%, ${C.nav} 100%)`, padding: "72px 24px 80px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: "#C7D3E3", backgroundColor: "rgba(199,211,227,0.12)", border: "1px solid rgba(199,211,227,0.4)", borderRadius: 20, padding: "4px 14px", marginBottom: 24, letterSpacing: "0.08em" }}>
-            大手町調査室九課 | IPO企業情報AI分析レポート
+            大手町調査室九課 | 米国IPO企業情報AI分析レポート
           </div>
           <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 900, color: "white", lineHeight: 1.4, marginBottom: 20 }}>
             目論見書を、<br/>読む必要はありません。

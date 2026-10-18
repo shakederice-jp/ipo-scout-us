@@ -361,7 +361,7 @@ export default function IpoGuidePage() {
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
             <Link href="/" style={{ display: "inline-block", padding: "12px 28px", background: C.teal, color: "white", borderRadius: 8, fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
-              📊 IPO分析レポートを見る →
+              📊 米国IPO分析レポートを見る →
             </Link>
             <Link href="/trends" style={{ display: "inline-block", padding: "12px 28px", background: "rgba(255,255,255,0.15)", color: "white", borderRadius: 8, fontWeight: 700, fontSize: 14, textDecoration: "none", border: "1px solid rgba(255,255,255,0.3)" }}>
               📡 マーケットトレンドを見る

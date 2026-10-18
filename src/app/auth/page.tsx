@@ -68,7 +68,7 @@ export default function AuthPage() {
     <div style={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:"100vh", backgroundColor:"#F5F4EF" }}>
       <div style={{ background:"white", padding:"32px", borderRadius:"16px", border:"1px solid #C7D3E3", width:"100%", maxWidth:"360px" }}>
         <h1 style={{ margin:"0 0 4px", fontSize:"18px", color:"#0F1F36", fontWeight:"900" }}>
-          📊 IPO企業情報AI分析レポート
+          📊 米国IPO企業情報AI分析レポート
         </h1>
         <p style={{ margin:"0 0 24px", fontSize:"11px", color:"#3D5A85" }}>担当：大手町調査室九課</p>
 

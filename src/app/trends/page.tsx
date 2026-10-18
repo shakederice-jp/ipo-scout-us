@@ -195,7 +195,7 @@ export default function TrendsPage() {
             ※ 各記事の著作権は各情報源に帰属します。当サイトはRSSフィードを通じて情報を収集・要約しています。
           </p>
           <Link href="/" style={{ fontSize: 12, color: "#1E3A66", textDecoration: "none" }}>
-            ← IPO分析レポートトップに戻る
+            ← 米国IPO分析レポートトップに戻る
           </Link>
         </div>
       </div>
