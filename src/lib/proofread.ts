@@ -55,7 +55,13 @@ async function post(body: any): Promise<any> {
 
 const keyOf = (i: { field: string; quote: string }) => `${i.field}@@${i.quote}`;
 
-// 照合→書き直しを最大2回。途中で失敗しても、元の文章はそのまま返す(保存は止めない)。
+// 確認済み(問題なし)の箇所と、ほぼ同じ箇所(一方がもう一方を含む)かどうか
+const sameSpot = (a: ProofIssue, k: ProofIssue) =>
+  a.field === k.field && (a.quote.includes(k.quote) || k.quote.includes(a.quote));
+
+// 照合→書き直しを、問題がなくなるまで最大3回。途中で失敗しても、元の文章はそのまま返す(保存は止めない)。
+//  ・Sonnetが「Geminiの指摘は誤り(原文どおり)」と判断した箇所は、以後の照合で再び指摘させない
+//  ・3回目は「最後の見直し」として、確認できないものは削る・ぼかす形で決着させる
 export async function runProofread(
   companyId: string,
   startFields: Record<string, string>,
@@ -63,29 +69,30 @@ export async function runProofread(
 ): Promise<ProofResult> {
   let fields = { ...startFields };
   if (Object.keys(fields).length === 0) return { fields, fixed: 0, unresolved: [] };
+  const MAX_ROUNDS = 3;
   let fixed = 0;
-  const kept = new Set<string>(); // Sonnetが「Geminiの指摘は誤り(原文どおり)」と判断したもの
+  const kept: ProofIssue[] = []; // Sonnetが「問題なし」と判断した箇所
   let unresolved: ProofIssue[] = [];
   try {
-    for (let round = 1; round <= 2; round++) {
-      onProgress?.(`原文と照合中(${round}/2)...`);
-      const chk = await post({ action: "check", company_id: companyId, fields });
-      const issues: ProofIssue[] = (chk.issues ?? []).filter((i: ProofIssue) => !kept.has(keyOf(i)));
+    for (let round = 1; round <= MAX_ROUNDS; round++) {
+      onProgress?.(`原文と照合中(${round}/${MAX_ROUNDS})...`);
+      const chk = await post({ action: "check", company_id: companyId, fields, ignore: kept.slice(-30) });
+      const issues: ProofIssue[] = (chk.issues ?? []).filter((i: ProofIssue) => !kept.some(k => sameSpot(i, k)));
       unresolved = issues;
       if (issues.length === 0) return { fields, fixed, unresolved: [] };
-      onProgress?.(`指摘${issues.length}件を、Sonnetが原文で再確認中(${round}/2)...`);
-      const fx = await post({ action: "fix", company_id: companyId, fields, issues });
+      onProgress?.(`指摘${issues.length}件を、Sonnetが原文で再確認して修正中(${round}/${MAX_ROUNDS})...`);
+      const fx = await post({ action: "fix", company_id: companyId, fields, issues, round, final: round === MAX_ROUNDS });
       for (const r of fx.results ?? []) {
-        if (r.verdict === "keep") kept.add(keyOf(r.issue));
+        if (r.verdict === "keep") kept.push(r.issue);
       }
       fields = fx.fields ?? fields;
       fixed += fx.applied ?? 0;
       unresolved = (fx.results ?? []).filter((r: any) => r.verdict !== "keep" && !r.applied).map((r: any) => r.issue);
     }
-    // 2回目の書き直し後に、最終確認
+    // 最後の書き直しのあとに、最終確認
     onProgress?.("最終確認中...");
-    const last = await post({ action: "check", company_id: companyId, fields });
-    unresolved = (last.issues ?? []).filter((i: ProofIssue) => !kept.has(keyOf(i)));
+    const last = await post({ action: "check", company_id: companyId, fields, ignore: kept.slice(-30) });
+    unresolved = (last.issues ?? []).filter((i: ProofIssue) => !kept.some(k => sameSpot(i, k)));
     return { fields, fixed, unresolved };
   } catch (e: any) {
     return { fields, fixed, unresolved, skipped: String(e?.message ?? e).slice(0, 120) };

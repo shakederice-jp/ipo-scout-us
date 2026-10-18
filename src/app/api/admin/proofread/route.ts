@@ -57,7 +57,7 @@ function numberHints(fields: Record<string, string>, haystackRaw: string): strin
   return hints;
 }
 
-function checkPrompt(co: any, fields: Record<string, string>, source: string, facts: string, hints: string[]) {
+function checkPrompt(co: any, fields: Record<string, string>, source: string, facts: string, hints: string[], ignore: Issue[]) {
   const list = Object.entries(fields).map(([k, v]) => `[${k}]\n${v}`).join("\n\n");
   return `あなたは、英語の目論見書(SEC提出書類)と日本語の分析文を照らし合わせる校閲者です。
 ${co.name}のIPOについて書かれた日本語の分析文に、原文と食い違う記述がないかを確認してください。
@@ -85,6 +85,9 @@ ${facts}
 
 【機械チェックの参考(日本語側の数字で、原文に同じ数字が見つからなかったもの。換算や言い換えの可能性もあるので、候補として扱う)】
 ${hints.length ? hints.join("\n") : "なし"}
+
+【編集者が原文を確認し、問題なしと判断した箇所(再び指摘しないこと)】
+${ignore.length ? ignore.map(i => `[${i.field}]「${i.quote}」`).join("\n") : "なし"}
 
 【確認する日本語の分析文】
 ${list}
@@ -115,12 +118,35 @@ function parseJson(text: string): any {
   try { return JSON.parse(text.slice(i, j + 1)); } catch { return null; }
 }
 
-// Sonnetが示した原文の引用が、本当に原文にあるかを確かめる(「...」で区切られた部分は、それぞれ確認)
+// Sonnetが示した原文の引用が、本当に原文にあるかを確かめる。
+//  まず、そのままの形で原文にあるかを見る。表の崩れや改行の違いで見つからないときは、
+//  「数字がすべて原文にあり、語の8割以上が原文にある」ことを条件にする。
 function evidenceFound(evidence: string, source: string): boolean {
   const s = norm(source);
-  const parts = evidence.split(/\.\.\.|…/).map(p => norm(p).trim()).filter(p => p.length >= 12);
+  const parts = evidence.split(/\.\.\.|…/).map(p => norm(p).trim()).filter(p => p.length >= 8);
   if (parts.length === 0) return false;
-  return parts.every(p => s.includes(p));
+  if (parts.every(p => s.includes(p))) return true;
+  const sNum = s.replace(/(\d),(?=\d{3})/g, "$1");
+  const words = norm(evidence).replace(/(\d),(?=\d{3})/g, "$1").match(/[a-z0-9.$%-]{2,}/g) ?? [];
+  if (words.length < 4) return false;
+  const nums = words.filter(w => /\d/.test(w));
+  if (!nums.every(w => sNum.includes(w.replace(/^[$.-]+|[.,%-]+$/g, "")))) return false;
+  const hit = words.filter(w => sNum.includes(w)).length;
+  return hit / words.length >= 0.8;
+}
+
+// 問題の箇所(quote)を含む「1文」の範囲を返す(。や改行で区切る)
+function sentenceRange(text: string, quote: string): [number, number] | null {
+  const idx = text.indexOf(quote);
+  if (idx < 0) return null;
+  let start = 0;
+  for (let i = idx - 1; i >= 0; i--) { if (text[i] === "。" || text[i] === "\n") { start = i + 1; break; } }
+  let end = text.length;
+  for (let i = idx + quote.length - 1; i < text.length; i++) {
+    if (text[i] === "。") { end = i + 1; break; }
+    if (text[i] === "\n") { end = i; break; }
+  }
+  return [start, end];
 }
 
 export async function POST(req: NextRequest) {
@@ -139,7 +165,8 @@ export async function POST(req: NextRequest) {
     // ===== Geminiによる照合 =====
     if (action === "check") {
       const hints = numberHints(fields, source + "\n" + facts);
-      const out = await generateJsonWithGemini(checkPrompt(co, fields, source, facts, hints));
+      const ignore: Issue[] = (Array.isArray(body.ignore) ? body.ignore : []).filter((i: any) => i && typeof i.field === "string" && typeof i.quote === "string").slice(0, 40);
+      const out = await generateJsonWithGemini(checkPrompt(co, fields, source, facts, hints, ignore));
       const raw: any[] = Array.isArray(out?.issues) ? out.issues : [];
       const issues: Issue[] = raw
         .filter(i => i && typeof i.field === "string" && typeof i.quote === "string" && typeof fields[i.field] === "string" && fields[i.field].includes(i.quote))
@@ -151,19 +178,29 @@ export async function POST(req: NextRequest) {
     // ===== Sonnetによる再確認と書き直し =====
     if (action === "fix") {
       const issues: Issue[] = (Array.isArray(body.issues) ? body.issues : []).slice(0, 20);
+      const round = Number(body.round) || 1;
+      const finalRound = !!body.final; // 最後の回は、確認できないものは削る・ぼかす方向で必ず決着させる
       if (issues.length === 0) return NextResponse.json({ results: [], fields, applied: 0 });
-      const list = issues.map((i, n) => `#${n}\n場所: ${i.field}\n問題の箇所: 「${i.quote}」\n文章全体: ${fields[i.field] ?? ""}\n指摘の種類: ${i.kind}\n指摘内容: ${i.problem}\n指摘側が示した原文: ${i.source_quote ?? "なし"}`).join("\n\n");
-      const prompt = `あなたは米国IPOの分析記事の編集者です。校閲者(別のAI)が、日本語の分析文に誤りがあると指摘しました。
+      const ranges = issues.map(i => (typeof fields[i.field] === "string" ? sentenceRange(fields[i.field], i.quote) : null));
+      const list = issues.map((i, n) => {
+        const r = ranges[n];
+        const sentence = r ? fields[i.field].slice(r[0], r[1]) : i.quote;
+        return `#${n}\n場所: ${i.field}\n問題の文: ${sentence}\n問題の箇所: 「${i.quote}」\n指摘の種類: ${i.kind}\n指摘内容: ${i.problem}\n指摘側が示した原文: ${i.source_quote ?? "なし"}`;
+      }).join("\n\n");
+      const prompt = `あなたは米国IPOの分析記事の編集者です。校閲者(別のAI)が、日本語の分析文に誤りがあると指摘しました(今回は${round}回目の見直しです)。
 校閲者も間違えることがあります。指摘を鵜呑みにせず、必ず【原文】を自分で読み直して、本当に誤りかを判断してください。
 
 【判断のルール】
-- verdict は次の3つから選ぶ:
-  fix  = 原文と食い違っている。原文の根拠を引用したうえで、問題の箇所だけを正しく書き直す
+- verdict は次の4つから選ぶ:
+  fix    = 原文と食い違っている。原文の根拠を引用したうえで、問題の文を正しく書き直す
   soften = 原文に根拠が見つからない数字・断定・言い過ぎ。根拠がある範囲の言い方に直す(数字を削る、「〜と考えられます」にする等)
-  keep = 指摘は誤りで、元の文章が原文と合っている。書き直さない
-- fix のときは source_evidence に、根拠となる原文の英文を一字一句そのまま引用すること(引用できないなら fix にしない)
-- replacement は「問題の箇所」と置き換える文字列。前後の文章とつながるように書き、元の長さを大きく超えないこと。ですます調のまま
+  remove = 書き直しても根拠を示せない。その文は、なくても全体の意味が通るので削除する
+  keep   = 指摘は誤りで、元の文章が原文と合っている。書き直さない
+- fix のときは source_evidence に、根拠となる原文の英文を、そのまま引用すること(引用できないなら fix にしない)
+- new_sentence は「問題の文」全体と置き換える、新しい1文(または数文)。前後の文章とつながるように書き、元の長さを大きく超えないこと。ですます調のまま。keep・remove のときは空文字
 - 原文に書かれていない数字や事実を、新しく作らない。原文が単位違い(千ドル単位など)のときは、単位を取り違えない
+- 計算で出した数字(時価総額＝株価×株数、比率、合計など)は、元の数字から計算し直して確かめる。合っていれば keep、違っていれば fix で直す
+${finalRound ? "- これが最後の見直しです。原文で確認できないものを残さないこと。確信をもって keep と言えるもの以外は、soften か remove で決着させる" : ""}
 ${STYLE_RULE}
 
 【原文(英語・目論見書の抜粋)】
@@ -176,7 +213,7 @@ ${facts}
 ${list}
 
 【出力形式】JSONのみ(前置き・コードブロック不要):
-{"results":[{"index":0,"verdict":"fix / soften / keep","replacement":"置き換える文字列(keepなら空文字)","source_evidence":"原文の英文の引用(fixのとき必須)","reason":"判断の理由。40字以内"}]}`;
+{"results":[{"index":0,"verdict":"fix / soften / remove / keep","new_sentence":"置き換える文(keep・removeなら空文字)","source_evidence":"原文の英文の引用(fixのとき必須)","reason":"判断の理由。40字以内"}]}`;
       const text = await callSonnet(prompt);
       const parsed = parseJson(text);
       const rs: any[] = Array.isArray(parsed?.results) ? parsed.results : [];
@@ -184,15 +221,24 @@ ${list}
       let applied = 0;
       const results = issues.map((issue, n) => {
         const r = rs.find(x => Number(x?.index) === n);
-        let verdict: string = r?.verdict === "fix" || r?.verdict === "soften" || r?.verdict === "keep" ? r.verdict : "unclear";
-        const replacement = typeof r?.replacement === "string" ? r.replacement.trim() : "";
+        let verdict: string = ["fix", "soften", "remove", "keep"].includes(r?.verdict) ? r.verdict : "unclear";
+        const newSentence = typeof r?.new_sentence === "string" ? r.new_sentence.trim() : "";
         let didApply = false;
-        if (verdict === "fix" && !evidenceFound(String(r?.source_evidence ?? ""), source)) verdict = "unclear"; // 原文の引用が確認できないものは直さない
-        if ((verdict === "fix" || verdict === "soften") && replacement && updated[issue.field]?.includes(issue.quote) && replacement.length <= issue.quote.length * 1.6 + 30) {
-          updated[issue.field] = updated[issue.field].replace(issue.quote, replacement);
-          didApply = true;
-          applied++;
+        // fixは、原文の引用が確認できたときだけ有効。確認できなければ、ぼかす形(soften)に格下げして数字を使わない書き方にさせる
+        if (verdict === "fix" && !evidenceFound(String(r?.source_evidence ?? ""), source)) verdict = "unclear";
+        const cur = updated[issue.field];
+        const range = typeof cur === "string" ? sentenceRange(cur, issue.quote) : null;
+        if (range && typeof cur === "string") {
+          const oldSentence = cur.slice(range[0], range[1]);
+          if ((verdict === "fix" || verdict === "soften") && newSentence && newSentence.length <= oldSentence.length * 1.5 + 40) {
+            updated[issue.field] = cur.slice(0, range[0]) + newSentence + cur.slice(range[1]);
+            didApply = true;
+          } else if (verdict === "remove") {
+            updated[issue.field] = (cur.slice(0, range[0]) + cur.slice(range[1])).replace(/\n{3,}/g, "\n\n");
+            didApply = true;
+          }
         }
+        if (didApply) applied++;
         return { issue, verdict, applied: didApply, reason: String(r?.reason ?? "").slice(0, 80) };
       });
       return NextResponse.json({ results, fields: updated, applied });
