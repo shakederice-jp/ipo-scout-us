@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   description: "AI分析で米国のIPO投資判断をサポート。初日騰落率の見通し・スコアリング・需給分析・財務分析を提供します。",
   keywords: ["IPO", "米国IPO", "新規上場", "投資", "分析", "米国株", "SEC", "S-1"],
   verification: {
-    google: "zxV54LwwUEhL4EUHpiVivnO2KykbnhJ3CGS6w01bYH4",
+    // Search Consoleの所有権確認用。米国版(ipo-us)の確認用に追加した分と、以前からある分の両方を残す
+    google: ["QkiBSGZYFOhFzNmdi5-3AYgYYFSxUXuVEzStGB8IuZ8", "zxV54LwwUEhL4EUHpiVivnO2KykbnhJ3CGS6w01bYH4"],
   },
 };
 
