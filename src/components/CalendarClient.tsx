@@ -54,13 +54,14 @@ const C = {
   white:  "#ffffff",
 };
 
-export default function CalendarClient() {
+export default function CalendarClient({ initialCompanies }: { initialCompanies?: Company[] }) {
   const today = new Date();
   const { lang } = useApp();
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
+  // サーバー側で渡された銘柄一覧があれば、最初からそれを表示する(検索エンジン・AIにも中身が見える)
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies ?? []);
+  const [loading, setLoading] = useState(initialCompanies === undefined);
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const itemRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
 

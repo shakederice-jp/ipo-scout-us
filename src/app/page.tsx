@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import CalendarClient from "@/components/CalendarClient";
+import { getPublicCompanies } from "@/lib/get-companies";
 import { CheckoutButton } from "@/components/CheckoutButton";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Zap, Crown, AlertCircle, User } from "lucide-react";
@@ -7,10 +8,10 @@ import { jpyMonth } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: { absolute: "米国IPO企業情報AI分析レポート｜大手町調査室九課" },
-  description: "米国IPO予定企業のAI分析レポート。SEC提出書類をもとに総合スコア・株価シナリオ・9軸詳細分析を掲載。大手町調査室九課が運営。",
+  description: "米国IPOの上場スケジュールと、目論見書(S-1)のAI分析を日本語で。上場日・公募価格・ロックアップ解除日・日本からの買い方、買うか見送るかの目安を銘柄ごとに掲載。大手町調査室九課が運営。",
   openGraph: {
     title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
-    description: "米国IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。",
+    description: "米国IPOの上場スケジュールと目論見書のAI分析を日本語で。上場日・公募価格・ロックアップ解除日・買い方を銘柄ごとに掲載。",
     url: "https://ipo-us.finance-tower.com",
     siteName: "大手町調査室九課",
     locale: "ja_JP",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
-    description: "米国IPO予定企業のAI分析レポート。総合スコア・株価シナリオ・9軸詳細分析を掲載。",
+    description: "米国IPOの上場スケジュールと目論見書のAI分析を日本語で。上場日・公募価格・ロックアップ解除日・買い方を銘柄ごとに掲載。",
     images: ["https://ipo-us.finance-tower.com/ogp.png"],
   },
   alternates: { canonical: "https://ipo-us.finance-tower.com" },
@@ -44,6 +45,9 @@ export default async function Home({
     ? await supabase.auth.getSession()
     : { data: { session: null } };
   const userId = session?.user?.id ?? null;
+  // 銘柄一覧は、サーバー側で取得して最初のHTMLに入れる(失敗したときは、ブラウザ側で取得する従来の動きに戻る)
+  let initialCompanies: any[] | undefined;
+  try { initialCompanies = await getPublicCompanies(); } catch { initialCompanies = undefined; }
 
   return (
     <div style={{ backgroundColor:"#F5F4EF", minHeight:"100vh", fontFamily:"'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif" }}>
@@ -73,12 +77,13 @@ export default async function Home({
       <div style={{ maxWidth:1200, margin:"0 auto", padding:"16px 16px 0" }}>
         <div style={{ background:"linear-gradient(135deg, #0F1F36 0%, #1E3A66 100%)", borderRadius:16, padding:"22px 22px 18px" }}>
           <div style={{ fontSize:11, fontWeight:700, color:"#C7D3E3", letterSpacing:"0.08em", marginBottom:8 }}>このサイトの仕組み</div>
-          <h2 style={{ fontSize:"clamp(17px, 3.2vw, 22px)", fontWeight:900, color:"#ffffff", lineHeight:1.5, margin:"0 0 10px" }}>
-            米国の目論見書を、AIが日本語で読み解きます
-          </h2>
+          <h1 style={{ fontSize:"clamp(17px, 3.2vw, 22px)", fontWeight:900, color:"#ffffff", lineHeight:1.5, margin:"0 0 10px" }}>
+            米国IPOの目論見書を、AIが日本語で読み解きます
+          </h1>
           <p style={{ fontSize:13, color:"rgba(255,255,255,0.85)", lineHeight:1.9, margin:"0 0 14px", maxWidth:820 }}>
             米国のIPOでは、日本の目論見書にあたる書類（S-1／F-1）が公開されます。公開される場所は、SEC（米国証券取引委員会）の電子開示システム「EDGAR」です。
             当サイトでは、この英語の書類をAIが読み込みます。そしてIPOの判断材料になる部分だけを要約し、日本語でお届けします。
+            銘柄ごとに、上場日・公募価格・ロックアップ（売却制限）の解除日・日本からの買い方を確認できます。
           </p>
           <p style={{ fontSize:10.5, color:"#A9C1E8", lineHeight:1.7, margin:0 }}>
             ※ 要約・翻訳はAIによる自動生成です。投資判断の前には、EDGARの原文もあわせてご確認ください。
@@ -92,7 +97,7 @@ export default async function Home({
 
         {/* 左：カレンダー＋IPO一覧 */}
         <div style={{ flex:"1 1 560px", minWidth:0 }}>
-          <CalendarClient />
+          <CalendarClient initialCompanies={initialCompanies} />
         </div>
 
         {/* 右：サイドバー */}
