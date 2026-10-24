@@ -16,21 +16,21 @@ const PLANS: {
 }[] = [
   {
     id: "plan_a",
-    label: "A 分析プラン",
+    label: "A 分析見放題プラン",
     price: jpyMonth("plan_a"),
     icon: <BookOpen className="h-3.5 w-3.5" aria-hidden />,
     description: "全IPO銘柄の超深度分析が読み放題",
   },
   {
     id: "plan_b",
-    label: "B 分析＋通知プラン",
+    label: "B 分析見放題＋通知プラン",
     price: jpyMonth("plan_b"),
     icon: <Bell className="h-3.5 w-3.5" aria-hidden />,
     description: "分析読み放題＋上場日・価格決定日・ロックアップ解除の通知",
   },
   {
     id: "plan_c",
-    label: "C 総合プラン",
+    label: "C 完全パックプラン",
     price: jpyMonth("plan_c"),
     icon: <Crown className="h-3.5 w-3.5" aria-hidden />,
     description: "分析・通知に加え、日本版の週刊スライド(PDF)と予定の自動登録つき",

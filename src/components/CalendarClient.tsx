@@ -407,7 +407,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
               </div>
               <p style={{ fontSize:12, color:"#3D5A85", lineHeight:1.7, margin:0 }}>
                 {lang === "ja"
-                  ? <>毎月、日付順で最初の<strong style={{ color:"#0F1F36" }}>2銘柄の分析レポートは完全無料</strong>でご覧いただけます。特定銘柄だけをピックアップして読む場合は{jpy("single")}です。また、分析・通知がそろった<strong style={{ color:"#0F1F36" }}>B 分析＋通知プラン</strong>や、週刊スライドなどもつく<strong style={{ color:"#0F1F36" }}>C 総合プラン</strong>もあります。</>
+                  ? <>毎月、日付順で最初の<strong style={{ color:"#0F1F36" }}>2銘柄の分析レポートは完全無料</strong>でご覧いただけます。特定銘柄だけをピックアップして読む場合は{jpy("single")}です。また、分析・通知がそろった<strong style={{ color:"#0F1F36" }}>B 分析見放題＋通知プラン</strong>や、週刊スライドなどもつく<strong style={{ color:"#0F1F36" }}>C 完全パックプラン</strong>もあります。</>
                   : <>The first <strong style={{ color:"#0F1F36" }}>2 IPO reports each month are completely free</strong>. Single reports are {jpy("single")}. A <strong style={{ color:"#0F1F36" }}>Complete Pack</strong> with all features is also available.</>
                 }
               </p>

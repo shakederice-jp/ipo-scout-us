@@ -14,11 +14,11 @@ const BORDER = "#C7D3E3";
 const PLAN_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   free:     { label: "無料プラン",           color: "#64748b", bg: "#f1f5f9" },
   // 2026/10/24: 3プラン化(report / complete は管理者が手で付けた旧名が残っていた場合の表示用)
-  plan_a:   { label: "A 分析プラン",         color: "#0369a1", bg: "#eff6ff" },
-  plan_b:   { label: "B 分析＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
-  plan_c:   { label: "C 総合プラン",         color: "#1E3A66", bg: "#E8EDF5" },
-  report:   { label: "A 分析プラン",         color: "#0369a1", bg: "#eff6ff" },
-  complete: { label: "B 分析＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
+  plan_a:   { label: "A 分析見放題プラン",         color: "#0369a1", bg: "#eff6ff" },
+  plan_b:   { label: "B 分析見放題＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
+  plan_c:   { label: "C 完全パックプラン",         color: "#1E3A66", bg: "#E8EDF5" },
+  report:   { label: "A 分析見放題プラン",         color: "#0369a1", bg: "#eff6ff" },
+  complete: { label: "B 分析見放題＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
 };
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
