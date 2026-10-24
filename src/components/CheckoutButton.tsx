@@ -30,7 +30,7 @@ const PLANS: {
   },
   {
     id: "plan_c",
-    label: "C 完全パックプラン",
+    label: "C フルパックプラン",
     price: jpyMonth("plan_c"),
     icon: <Crown className="h-3.5 w-3.5" aria-hidden />,
     description: "分析・通知に加え、日本版の週刊スライド(PDF)と予定の自動登録つき",

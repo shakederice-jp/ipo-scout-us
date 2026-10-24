@@ -26,7 +26,9 @@ export async function GET(request: NextRequest) {
     );
     await supabase.auth.exchangeCodeForSession(code);
 
-    // 購入ボタンから会員登録した人は、確認メールのリンクを押したあと元の画面（料金ページなど）へ戻す
+    // 2026/10/24追加: 会員登録・パスワード再設定のメールのリンクを押したあと、元の画面へ戻す
+    // (購入ボタンから登録した人は料金ページへ・パスワード再設定の人は /auth/reset へ)。
+    // 日本版(ipo-scout)のcallbackと同じ処理。
     try {
       const raw = cookieStore.get(NEXT_COOKIE)?.value;
       let decoded = raw ?? null;

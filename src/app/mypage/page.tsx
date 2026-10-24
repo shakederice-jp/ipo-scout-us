@@ -16,7 +16,7 @@ const PLAN_LABELS: Record<string, { label: string; color: string; bg: string }> 
   // 2026/10/24: 3プラン化(report / complete は管理者が手で付けた旧名が残っていた場合の表示用)
   plan_a:   { label: "A 分析見放題プラン",         color: "#0369a1", bg: "#eff6ff" },
   plan_b:   { label: "B 分析見放題＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
-  plan_c:   { label: "C 完全パックプラン",         color: "#1E3A66", bg: "#E8EDF5" },
+  plan_c:   { label: "C フルパックプラン",         color: "#1E3A66", bg: "#E8EDF5" },
   report:   { label: "A 分析見放題プラン",         color: "#0369a1", bg: "#eff6ff" },
   complete: { label: "B 分析見放題＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
 };
