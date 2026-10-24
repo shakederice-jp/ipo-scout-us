@@ -176,7 +176,7 @@ export default function MyPage() {
 
   const profile = data.profile ?? {};
   const plan = PLAN_LABELS[profile.plan ?? "free"] ?? PLAN_LABELS.free;
-  const referralUrl = `https://ipo.finance-tower.com/?ref=${profile.referral_code ?? ""}`;
+  const referralUrl = `https://ipo-us.finance-tower.com/?ref=${profile.referral_code ?? ""}`;
   const completedReferrals = (data.referralLogs ?? []).filter((r: any) => r.status === "completed").length;
   const freeMonthsEarned = completedReferrals * 2;
 

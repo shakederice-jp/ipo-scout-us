@@ -554,7 +554,7 @@ export default function AdminPage() {
                         {healthResult.ok?"✅ 全システム正常":"⚠️ 一部に問題があります"}
                         {healthResult.results && Object.entries(healthResult.results).map(([key,val]:[string,any])=>(
                           <div key={key} style={{ marginTop:4, padding:"4px 8px", borderRadius:6, background:val.ok?"#f0fdf4":"#fef2f2" }}>
-                            {val.ok?"✅":"❌"} {{"supabase":"Supabase DB","claude":"Claude API","edinet":"EDINET API","last_cron":"直近Cron"}[key]??key}: {val.detail}
+                            {val.ok?"✅":"❌"} {{"supabase":"Supabase DB","claude":"Claude API","last_cron":"直近Cron"}[key]??key}: {val.detail}
                           </div>
                         ))}
                       </div>
@@ -597,7 +597,7 @@ export default function AdminPage() {
                 style={{ width:"100%", padding:"16px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#334155", border:"none", cursor:"pointer", borderRadius:masterOpen?"12px 12px 0 0":"12px" }}>
                 <div>
                   <div style={{ fontWeight:900, fontSize:14, color:"white" }}>🗂 マスタ管理</div>
-                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.6)", marginTop:2 }}>競合財務・EDINETコード・初値・経済指標カレンダー</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.6)", marginTop:2 }}>競合財務・初値・経済指標カレンダー</div>
                 </div>
                 <span style={{ color:"white", fontSize:12, transform:masterOpen?"rotate(180deg)":"none", display:"inline-block", transition:"transform 0.2s" }}>▼</span>
               </button>
@@ -616,13 +616,7 @@ export default function AdminPage() {
                       </>}
                   </div>
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
-                  <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:4 }}>📥 EDINETコードリスト取得 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（数ヶ月に1回）</span></div>
-                    <p style={{ fontSize:11, color:"#64748b", margin:"0 0 8px" }}>EDINETからCSVをダウンロードし、edinet_companiesテーブルにインポートします。</p>
-                    <button onClick={handleEdinetCodes} style={btnStyle("#0369a1", false)}>EDINETダウンロードページを開く</button>
-                    {edinetResult && <p style={{ marginTop:8, fontSize:11, color:"#1E3A66" }}>{edinetResult}</p>}
-                  </div>
-                  <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
+                  {/* 2026/10/24削除: 「EDINETコードリスト取得」は日本版由来の機能で、米国版では使わないため */}
                   <div>
                     <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:8 }}>📝 初値・騰落率入力</div>
                     <InitialPriceForm />

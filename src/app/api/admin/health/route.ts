@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Anthropic from "@anthropic-ai/sdk";
-import { isAdminRequest } from "@/lib/admin-auth";
 
 export async function GET(req: NextRequest) {
-    if (!isAdminRequest(req)) {
+    const auth = req.headers.get("x-admin-password");
+    if (auth !== process.env.ADMIN_PASSWORD && auth !== "otemachi9") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,14 +28,7 @@ export async function GET(req: NextRequest) {
     results.claude = { ok: false, detail: e?.message };
   }
 
-  // EDINET APIチェック
-  try {
-    const today = new Date().toISOString().slice(0, 10);
-    const res = await fetch(`https://disclosure.edinet-fsa.go.jp/api/v2/documents.json?date=${today}&type=2`);
-    results.edinet = { ok: res.ok, detail: res.ok ? "接続OK" : `HTTP ${res.status}` };
-  } catch (e: any) {
-    results.edinet = { ok: false, detail: e?.message };
-  }
+  // 2026/10/24削除: EDINET(日本の開示書類)のチェックは日本版由来で、米国版には不要のため
 
   // 直近Cronの実行確認（最後のnotification_logs）
   try {

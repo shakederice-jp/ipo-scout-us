@@ -97,7 +97,7 @@ export async function POST() {
 
     try {
       await resend.emails.send({
-        from:    "米国IPO分析レポート <noreply@ipo.finance-tower.com>",
+        from:    "IPO分析レポート <noreply@finance-tower.com>",
         to:      email,
         subject: `【IPO週次通知】翌週（${fromDate}〜${toDate}）のIPOイベント`,
         html: `
@@ -120,7 +120,7 @@ export async function POST() {
                 </thead>
                 <tbody>${rows.join("")}</tbody>
               </table>
-              <a href="https://ipo.finance-tower.com"
+              <a href="https://ipo-us.finance-tower.com"
                 style="display:inline-block;padding:12px 24px;background:#1E3A66;color:white;text-decoration:none;border-radius:8px;font-weight:bold;margin-top:20px;font-size:14px">
                 分析レポートを確認する →
               </a>

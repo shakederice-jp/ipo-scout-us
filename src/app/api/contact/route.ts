@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { notifyAdmin } from "@/lib/notify-admin";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = "米国IPO分析レポート <onboarding@resend.dev>";
+const FROM = "IPO分析レポート <onboarding@resend.dev>";
 const ADMIN_EMAIL = "otemachi.sec9@gmail.com";
 
 export async function POST(req: NextRequest) {
@@ -61,14 +61,14 @@ export async function POST(req: NextRequest) {
 
               <div style="background:#f0fafa;border-left:4px solid #1E3A66;padding:14px 18px;border-radius:0 8px 8px 0;margin:20px 0">
                 <p style="color:#1E3A66;font-size:13px;line-height:1.8;margin:0">
-                  なお、いただいたご意見・ご提案はサービス改善の重要な参考とさせていただきますが、
-                  すべてのご要望にお応えすることや、ご意見の内容がそのまま反映されることをお約束するものではございません。
+                  いただいたご意見・ご提案は、サービス改善の重要な参考とさせていただきます。
+                  ただし、すべてのご要望にお応えできるとは限りません。また、ご意見がそのまま反映されることもお約束いたしかねます。
                   何卒ご理解いただけますと幸いです。
                 </p>
               </div>
 
               <p style="color:#374151;font-size:14px;line-height:1.9;margin:16px 0">
-                引き続き、IPO投資の判断にお役立ていただけるよう、
+                引き続きIPO投資の判断にお役立ていただけるよう、
                 コンテンツの充実とサービス品質の向上に努めてまいります。<br/>
                 今後ともどうぞよろしくお願いいたします。
               </p>
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
               <div style="border-top:1px solid #e2e8f0;margin-top:24px;padding-top:16px">
                 <p style="color:#0F1F36;font-size:13px;font-weight:700;margin:0 0 4px">大手町調査室九課</p>
                 <p style="color:#64748b;font-size:12px;margin:0">IPO企業情報AI分析レポート</p>
-                <a href="https://ipo.finance-tower.com" style="color:#1E3A66;font-size:12px;text-decoration:none">ipo.finance-tower.com</a>
+                <a href="https://ipo-us.finance-tower.com" style="color:#1E3A66;font-size:12px;text-decoration:none">ipo-us.finance-tower.com</a>
               </div>
 
               <p style="margin-top:20px;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:12px;line-height:1.7">

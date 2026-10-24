@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://ipo.finance-tower.com";
+    // 2026/10/24修正: 日本版のURLが既定値になっており、日本版の通知を動かしてしまう恐れがあったため、このサイト自身のURLを使う
+    const baseUrl = new URL(request.url).origin;
     const res = await fetch(`${baseUrl}/api/cron/notify`, {
       method: "GET",
       headers: {

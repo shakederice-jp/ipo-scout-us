@@ -12,7 +12,7 @@ const getSupabase = () => createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const SITE_URL = 'https://ipo.finance-tower.com';
+const SITE_URL = 'https://ipo-us.finance-tower.com';
 
 const gradeColor: Record<string, string> = {
   A: '#15803d', B: '#0369a1', C: '#d97706', D: '#dc2626', E: '#7c3aed'
@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
 
     try {
       const { error } = await resend.emails.send({
-        from: '米国IPO分析レポート <noreply@finance-tower.com>',
+        from: 'IPO分析レポート <noreply@finance-tower.com>',
         to: email,
         subject: `【IPO前日通知】明日（${dateLabel}）のIPOイベント`,
         html: `
