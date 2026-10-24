@@ -13,9 +13,12 @@ const BORDER = "#C7D3E3";
 
 const PLAN_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   free:     { label: "無料プラン",           color: "#64748b", bg: "#f1f5f9" },
-  notify:   { label: "通知プラン",           color: "#0369a1", bg: "#eff6ff" },
-  report:   { label: "レポート無制限プラン", color: "#7c3aed", bg: "#f5f3ff" },
-  complete: { label: "コンプリートパック",   color: "#d97706", bg: "#fffbeb" },
+  // 2026/10/24: 3プラン化(report / complete は管理者が手で付けた旧名が残っていた場合の表示用)
+  plan_a:   { label: "A 分析プラン",         color: "#0369a1", bg: "#eff6ff" },
+  plan_b:   { label: "B 分析＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
+  plan_c:   { label: "C 総合プラン",         color: "#1E3A66", bg: "#E8EDF5" },
+  report:   { label: "A 分析プラン",         color: "#0369a1", bg: "#eff6ff" },
+  complete: { label: "B 分析＋通知プラン",   color: "#7c3aed", bg: "#f5f3ff" },
 };
 
 function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
@@ -237,7 +240,7 @@ export default function MyPage() {
 
 <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${LIGHT}` }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: DARK, marginBottom: 12 }}>プランに加入・アップグレード</p>
-            <CheckoutButton availablePlans={["notify", "report", "complete"]} defaultPlan="notify" />
+            <CheckoutButton availablePlans={["plan_a", "plan_b", "plan_c"]} defaultPlan="plan_c" />
             <p style={{ fontSize: 11, color: "#64748b", marginTop: 10, lineHeight: 1.6 }}>
               💡 特定の1銘柄だけ読みたい場合は、各銘柄の分析ページから「シングルレポートを購入」できます。
             </p>

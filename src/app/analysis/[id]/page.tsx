@@ -47,7 +47,7 @@ async function checkAccess(companyId: string, isFreeCompany: boolean): Promise<b
   const synced = await syncPlanForUser(user);
   const plan = synced ?? profile?.plan;
 
-  if (plan && ["report", "complete"].includes(plan)) return true;
+  if (plan && ["plan_a", "plan_b", "plan_c", "report", "complete"].includes(plan)) return true;
 
   const { data: purchase } = await serviceSupabase
     .from("purchased_stocks")

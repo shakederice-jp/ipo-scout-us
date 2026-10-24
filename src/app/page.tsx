@@ -119,7 +119,7 @@ export default async function Home({
           <a href="/plans" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#E8EDF5", textDecoration:"none", border:"1.5px solid #1E3A66" }}>
             <div>
               <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>📋 料金プランを見る</div>
-              <div style={{ fontSize:10, color:"#3D5A85", marginTop:2 }}>無料〜{jpyMonth("complete")}・4プラン比較</div>
+              <div style={{ fontSize:10, color:"#3D5A85", marginTop:2 }}>無料〜{jpyMonth("plan_c")}・有料3プラン比較</div>
             </div>
             <span style={{ fontSize:16, color:"#1E3A66" }}>→</span>
           </a>
@@ -134,7 +134,7 @@ export default async function Home({
               </div>
             </div>
             <div style={{ padding:16, backgroundColor:"white" }}>
-              <CheckoutButton availablePlans={["notify", "report", "complete"]} defaultPlan="notify" />
+              <CheckoutButton availablePlans={["plan_a", "plan_b", "plan_c"]} defaultPlan="plan_c" />
               <p style={{ fontSize:10, color:"#64748b", marginTop:10, lineHeight:1.6 }}>
                 💡 各IPOレポートの単一購入は、各銘柄の分析ページからお申込みいただけます。
               </p>
@@ -194,7 +194,7 @@ export default async function Home({
             <p style={{ fontSize:12, color:"#3D5A85", lineHeight:1.7, margin:"0 0 12px" }}>
               上場日・価格決定・ロックアップ解除を<strong style={{ color:"#0F1F36" }}>前週金曜日18時</strong>にまとめてお届けします。
             </p>
-            {[{ label:"通知プラン", price:jpyMonth("notify") }, { label:"コンプリートパック", price:jpyMonth("complete") }].map(item => (
+            {[{ label:"B 分析＋通知プラン", price:jpyMonth("plan_b") }, { label:"C 総合プラン", price:jpyMonth("plan_c") }].map(item => (
               <div key={item.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", borderRadius:10, padding:"8px 12px", marginBottom:6, backgroundColor:"#F5F4EF", border:"1px solid #E3E8F0" }}>
                 <span style={{ fontSize:11, fontWeight:700, color:"#1E3A66" }}>{item.label}</span>
                 <span style={{ fontSize:11, fontWeight:900, color:"#1E3A66" }}>{item.price}</span>

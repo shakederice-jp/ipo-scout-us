@@ -4,8 +4,8 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { syncPlanForUser } from "@/lib/plan-sync";
 
-// 分析レポートを読めるプラン（通知プランは通知だけで、分析レポートは含まない）
-const PAID_ANALYSIS_PLANS = ["report", "complete"];
+// 分析レポートを読めるプラン(2026/10/24: 3プラン化。旧名 report / complete は管理者が手で付けたものが残っていた場合のために許可)
+const PAID_ANALYSIS_PLANS = ["plan_a", "plan_b", "plan_c", "report", "complete"];
 
 export async function GET(req: NextRequest) {
   const stockId  = req.nextUrl.searchParams.get("stock_id") ?? "";

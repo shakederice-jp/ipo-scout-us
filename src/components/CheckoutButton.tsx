@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { PlanButton } from "@/components/PlanButton";
 import { jpyMonth, jpyPerItem } from "@/lib/pricing";
 
-type Plan = "notify" | "report" | "complete" | "single";
+type Plan = "plan_a" | "plan_b" | "plan_c" | "single";
 
 const PLANS: {
   id: Plan;
@@ -15,25 +15,25 @@ const PLANS: {
   description: string;
 }[] = [
   {
-    id: "notify",
-    label: "通知プラン",
-    price: jpyMonth("notify"),
-    icon: <Bell className="h-3.5 w-3.5" aria-hidden />,
-    description: "週末「次週戦略指令書」フル配信",
-  },
-  {
-    id: "report",
-    label: "レポート無制限",
-    price: jpyMonth("unlimited"),
+    id: "plan_a",
+    label: "A 分析プラン",
+    price: jpyMonth("plan_a"),
     icon: <BookOpen className="h-3.5 w-3.5" aria-hidden />,
     description: "全IPO銘柄の超深度分析が読み放題",
   },
   {
-    id: "complete",
-    label: "コンプリートパック",
-    price: jpyMonth("complete"),
+    id: "plan_b",
+    label: "B 分析＋通知プラン",
+    price: jpyMonth("plan_b"),
+    icon: <Bell className="h-3.5 w-3.5" aria-hidden />,
+    description: "分析読み放題＋上場日・価格決定日・ロックアップ解除の通知",
+  },
+  {
+    id: "plan_c",
+    label: "C 総合プラン",
+    price: jpyMonth("plan_c"),
     icon: <Crown className="h-3.5 w-3.5" aria-hidden />,
-    description: "通知フル＋レポート読み放題・全機能解放",
+    description: "分析・通知に加え、日本版の週刊スライド(PDF)と予定の自動登録つき",
   },
   {
     id: "single",
@@ -45,7 +45,7 @@ const PLANS: {
 ];
 
 export function CheckoutButton({
-  defaultPlan = "complete",
+  defaultPlan = "plan_c",
   stockId,
   availablePlans,
 }: {

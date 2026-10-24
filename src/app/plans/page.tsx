@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
-import { PlanButton, type PlanKey } from "@/components/PlanButton";
+import { PlanButton } from "@/components/PlanButton";
 import { jpy, jpyPerItem } from "@/lib/pricing";
 
 export const metadata: Metadata = {
   title: "料金プラン｜大手町調査室九課",
-  description: "米国IPO企業情報AI分析レポートの料金プラン一覧。無料・通知プラン・レポート無制限・コンプリートパックの4プランをご用意。",
+  description: "米国IPO企業情報AI分析レポートの料金プラン一覧。無料のほか、有料は分析プラン(A)・分析＋通知プラン(B)・総合プラン(C)の3つをご用意。",
 };
 
 const C = {
   teal: "#1E3A66", nav: "#1E3A66", dark: "#0F1F36",
   light: "#f0fafa", border: "#C7D3E3", mid: "#3D5A85",
 };
+
+// 2026/10/24: 通知プラン・レポート無制限・コンプリートパックを廃止し、A 分析プラン / B 分析＋通知プラン / C 総合プラン の3つにした
+// (日本版と共通のプラン・共通の料金)。「一番人気」などのバッジは付けず、同じ扱いで並べる。
+type Row = { label: string; value: string; ok: boolean };
+const rowsFor = (o: { reports: string; notify: boolean; slides: boolean; single: string }): Row[] => [
+  { label: "AI分析レポート", value: o.reports, ok: true },
+  { label: "週次メール通知", value: o.notify ? "あり" : "なし", ok: o.notify },
+  { label: "価格決定・上場日通知", value: o.notify ? "あり" : "なし", ok: o.notify },
+  { label: "ロックアップ解除通知", value: o.notify ? "あり" : "なし", ok: o.notify },
+  { label: "週刊スライド・予定の自動登録（日本版の機能）", value: o.slides ? "あり" : "なし", ok: o.slides },
+  { label: "カレンダー・メモ機能", value: "あり", ok: true },
+  { label: "シングル購入", value: o.single, ok: true },
+];
 
 const plans = [
   {
@@ -21,85 +34,54 @@ const plans = [
     color: "#64748b",
     bg: "#f8fafc",
     border: "#e2e8f0",
-    badge: null,
+    badge: null as string | null,
     target: "まずIPO投資を始めてみたい方・月2銘柄で十分な方",
-    features: [
-      { label: "AI分析レポート", value: "月2銘柄", ok: true },
-      { label: "週次メール通知", value: "なし", ok: false },
-      { label: "価格決定・上場日通知", value: "なし", ok: false },
-      { label: "ロックアップ解除通知", value: "なし", ok: false },
-      { label: "カレンダー・メモ機能", value: "あり", ok: true },
-      { label: "シングル購入", value: jpyPerItem("single"), ok: true },
-    ],
+    features: rowsFor({ reports: "月2銘柄", notify: false, slides: false, single: jpyPerItem("single") }),
   },
   {
-    id: "notify",
-    name: "通知プラン",
-    price: jpy("notify"),
+    id: "plan_a",
+    name: "A　分析プラン",
+    price: jpy("plan_a"),
     period: "/月",
     color: "#0369a1",
     bg: "#eff6ff",
     border: "#bfdbfe",
-    badge: null,
-    target: "価格決定日・上場日を絶対に見逃したくない方・通知重視の方",
-    features: [
-      { label: "AI分析レポート", value: "月2銘柄", ok: true },
-      { label: "週次メール通知", value: "あり", ok: true },
-      { label: "価格決定・上場日通知", value: "あり", ok: true },
-      { label: "ロックアップ解除通知", value: "あり", ok: true },
-      { label: "カレンダー・メモ機能", value: "あり", ok: true },
-      { label: "シングル購入", value: jpyPerItem("single"), ok: true },
-    ],
+    badge: null as string | null,
+    target: "毎月すべての銘柄を研究したい方・情報量を重視する方",
+    features: rowsFor({ reports: "無制限", notify: false, slides: false, single: "不要" }),
   },
   {
-    id: "unlimited",
-    name: "レポート無制限",
-    price: jpy("unlimited"),
+    id: "plan_b",
+    name: "B　分析＋通知プラン",
+    price: jpy("plan_b"),
     period: "/月",
     color: "#7c3aed",
     bg: "#f5f3ff",
-    border: "#ddd6fe",
-    badge: null,
-    target: "毎月すべての銘柄を研究したい方・情報量重視の方",
-    features: [
-      { label: "AI分析レポート", value: "無制限", ok: true },
-      { label: "週次メール通知", value: "なし", ok: false },
-      { label: "価格決定・上場日通知", value: "なし", ok: false },
-      { label: "ロックアップ解除通知", value: "なし", ok: false },
-      { label: "カレンダー・メモ機能", value: "あり", ok: true },
-      { label: "シングル購入", value: "不要", ok: true },
-    ],
+    border: "#c4b5fd",
+    badge: null as string | null,
+    target: "分析も通知も両方ほしい方・価格決定日や上場日を逃したくない方",
+    features: rowsFor({ reports: "無制限", notify: true, slides: false, single: "不要" }),
   },
   {
-    id: "complete",
-    name: "コンプリートパック",
-    price: jpy("complete"),
+    id: "plan_c",
+    name: "C　総合プラン",
+    price: jpy("plan_c"),
     period: "/月",
     color: C.nav,
     bg: "#E8EDF5",
     border: C.teal,
-    badge: null,
-    target: "通知も情報も両方欲しい方・IPO投資に本気で取り組む方",
-    features: [
-      { label: "AI分析レポート", value: "無制限", ok: true },
-      { label: "週次メール通知", value: "あり", ok: true },
-      { label: "価格決定・上場日通知", value: "あり", ok: true },
-      { label: "ロックアップ解除通知", value: "あり", ok: true },
-      { label: "カレンダー・メモ機能", value: "あり", ok: true },
-      { label: "シングル購入", value: "不要", ok: true },
-    ],
+    badge: null as string | null,
+    target: "忙しくても要点だけ押さえたい方・1週間の動きをまとめて見たい方",
+    features: rowsFor({ reports: "無制限", notify: true, slides: true, single: "不要" }),
   },
 ];
-
-// 料金ページのプランID → 決済用のプラン名
-const PLAN_KEY: Record<string, PlanKey> = { notify: "notify", unlimited: "report", complete: "complete" };
 
 const faqs = [
   { q: "いつでも解約できますか？", a: "はい。マイページからいつでもキャンセル可能です。解約後は当月末まで引き続きご利用いただけます。" },
   { q: "無料プランに期限はありますか？", a: "ありません。登録不要でずっと無料でご利用いただけます。" },
   { q: "決済は安全ですか？", a: "はい。世界標準の決済サービス「Stripe」を使用しています。カード情報は当サービスでは保持しません。" },
   { q: "プランの変更はできますか？", a: "はい。マイページからいつでもプランの変更・アップグレードが可能です。" },
-  { q: "日本版・米国版は別々の契約ですか？", a: "いいえ。料金は日本版と同じで、プランは日本版・米国版で共通です。同じメールアドレスで両方に登録してください。どちらか一方で加入したプラン（通知プラン・レポート無制限・コンプリートパック）が両方のサイトで有効になります。解約・変更も両方に反映されます。なおシングルレポートは、購入した銘柄だけが読めます。" },
+  { q: "日本版・米国版は別々の契約ですか？", a: "いいえ。料金は日本版と同じで、プランは日本版・米国版で共通です。同じメールアドレスで両方に登録してください。どちらか一方で加入したプラン（A 分析プラン・B 分析＋通知プラン・C 総合プラン）が両方のサイトで有効になります。解約・変更も両方に反映されます。なおシングルレポートは、購入した銘柄だけが読めます。" },
   { q: "シングルレポートとは何ですか？", a: "サブスク不要で、気になる1銘柄だけを" + jpy("single") + "で購入できるプランです。無料枠の2銘柄以外を読みたい場合にご利用ください。" },
 ];
 
@@ -112,7 +94,7 @@ export default function PlansPage() {
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#C7D3E3", letterSpacing: "0.1em", marginBottom: 16 }}>PRICING</div>
           <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 900, color: "white", lineHeight: 1.4, marginBottom: 12 }}>
-            あなたのIPO投資スタイルに合わせて<br/>選べる4つのプラン
+            あなたのIPO投資スタイルに合わせて<br/>選べる3つの有料プラン
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.9 }}>
             まずは無料からお試しいただけます。いつでもアップグレード・解約が可能です。
@@ -153,7 +135,7 @@ export default function PlansPage() {
                 ) : (
                   <>
                     <PlanButton
-                      plan={PLAN_KEY[plan.id]}
+                      plan={plan.id as "plan_a" | "plan_b" | "plan_c"}
                       label="このプランを申し込む →"
                       style={{ display: "block", width: "100%", marginTop: 16, padding: "12px 10px", backgroundColor: plan.color, color: "#ffffff", borderRadius: 10, fontWeight: 900, fontSize: 13, textAlign: "center", border: "none" }}
                     />
@@ -208,12 +190,13 @@ export default function PlansPage() {
                 </thead>
                 <tbody>
                   {[
-                    { label: "AI分析レポート",      values: ["月2銘柄", "月2銘柄", "無制限", "無制限"] },
-                    { label: "週次メール通知",       values: ["❌", "✅", "❌", "✅"] },
-                    { label: "価格決定・上場日通知", values: ["❌", "✅", "❌", "✅"] },
-                    { label: "ロックアップ解除通知", values: ["❌", "✅", "❌", "✅"] },
+                    { label: "AI分析レポート",      values: ["月2銘柄", "無制限", "無制限", "無制限"] },
+                    { label: "週次メール通知",       values: ["❌", "❌", "✅", "✅"] },
+                    { label: "価格決定・上場日通知", values: ["❌", "❌", "✅", "✅"] },
+                    { label: "ロックアップ解除通知", values: ["❌", "❌", "✅", "✅"] },
+                    { label: "週刊スライド・予定の自動登録（日本版）", values: ["❌", "❌", "❌", "✅"] },
                     { label: "カレンダー・メモ",     values: ["✅", "✅", "✅", "✅"] },
-                    { label: "シングル購入",         values: [jpyPerItem("single"), jpyPerItem("single"), "不要", "不要"] },
+                    { label: "シングル購入",         values: [jpyPerItem("single"), "不要", "不要", "不要"] },
                   ].map((row, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${C.border}`, backgroundColor: i % 2 === 0 ? "white" : C.light }}>
                       <td style={{ padding: "12px 16px", fontWeight: 600, color: C.dark, fontSize: 12 }}>{row.label}</td>

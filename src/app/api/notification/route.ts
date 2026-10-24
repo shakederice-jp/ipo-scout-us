@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
   const supabase = getSupabase();
 
   const { data: profile } = await supabase.from('user_profiles').select('plan, email').eq('id', user_id).single();
-  const allowedPlans = ['notify', 'report', 'complete'];
+  const allowedPlans = ['plan_b', 'plan_c', 'complete']; // 2026/10/24: 通知を使えるのは B・C プラン(旧 complete は管理者付与の残り)
   if (!profile || !allowedPlans.includes(profile.plan ?? '')) {
-    return NextResponse.json({ error: 'この機能は通知プラン以上でご利用いただけます。', needsPlan: true }, { status: 403 });
+    return NextResponse.json({ error: 'この機能は、分析＋通知プラン(B)以上でご利用いただけます。', needsPlan: true }, { status: 403 });
   }
 
   const { error } = await supabase.from('notification_settings').upsert({

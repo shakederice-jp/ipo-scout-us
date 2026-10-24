@@ -527,7 +527,7 @@ function NotifyModal({company,userId,onClose}:{company:IpoCompany;userId:string|
           <div style={{backgroundColor:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:12,marginBottom:12,fontSize:12,color:"#92400e"}}>
             {!userId
               ? <>通知機能を使うには<strong>ログイン</strong>が必要です。<a href="/auth" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>ログイン・新規登録 →</a></>
-              : <>通知機能は<strong>通知プラン（{jpyMonth("notify")}）</strong>以上でご利用いただけます。<a href="/" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>プランを確認する →</a></>
+              : <>通知機能は<strong>B 分析＋通知プラン（{jpyMonth("plan_b")}）</strong>以上でご利用いただけます。<a href="/" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>プランを確認する →</a></>
             }
           </div>
         )}
@@ -1067,15 +1067,15 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           <div style={{borderRadius:14,padding:"20px",backgroundColor:"#1E3A66",color:"white",textAlign:"center"}}>
             <div style={{fontSize:15,fontWeight:900,marginBottom:6}}>🔒 ここから先は有料コンテンツです</div>
             <p style={{fontSize:12,color:"#C7D3E3",margin:"0 0 14px",lineHeight:1.7}}>
-            軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、レポート無制限プラン以上への加入が必要です。この銘柄だけ読む場合は、単品購入（{jpy("single")}）もご利用いただけます。
+            軸別スコア・シナリオ分析・詳細インサイトをご覧いただくには、A 分析プラン以上への加入が必要です。この銘柄だけ読む場合は、単品購入（{jpy("single")}）もご利用いただけます。
             </p>
             <div style={{display:"flex",flexDirection:"column",gap:10,maxWidth:380,margin:"0 auto"}}>
               <PlanButton plan="single" stockId={company.id} label={`この銘柄だけ読む（${jpy("single")}・買い切り）`}
                 style={{display:"block",width:"100%",padding:"13px 16px",backgroundColor:"#ffffff",color:"#1E3A66",borderRadius:10,fontWeight:900,fontSize:14,border:"none"}} messageStyle={{color:"#fecaca"}} />
-              <PlanButton plan="report" label={`全銘柄が読み放題（レポート無制限 ${jpyMonth("unlimited")}）`}
+              <PlanButton plan="plan_a" label={`全銘柄が読み放題（A 分析プラン ${jpyMonth("plan_a")}）`}
                 style={{display:"block",width:"100%",padding:"12px 16px",backgroundColor:"transparent",color:"#ffffff",borderRadius:10,fontWeight:800,fontSize:13,border:"1.5px solid #C7D3E3"}} messageStyle={{color:"#fecaca"}} />
               <a href="/plans" style={{fontSize:12,color:"#C7D3E3",textDecoration:"underline"}}>
-                通知プラン・コンプリートパックなど、全プランを比較する →
+                通知つきプランも含めて、全プランを比較する →
               </a>
             </div>
           </div>
@@ -1088,7 +1088,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
               <span style={{fontSize:20}}>🔔</span>
               <div>
                 <div style={{fontWeight:900,fontSize:13,color:"#0F1F36"}}>価格決定・上場日・公募価格確定をお知らせ</div>
-                <div style={{fontSize:11,color:"#92400e",marginTop:2}}>通知プランで前週金曜18時に自動配信</div>
+                <div style={{fontSize:11,color:"#92400e",marginTop:2}}>B・Cプランで前週金曜18時に自動配信</div>
               </div>
             </div>
             <button onClick={() => setShowNotify(true)}
