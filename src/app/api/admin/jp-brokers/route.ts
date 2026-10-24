@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// 2026/10追加: 銘柄ごとの「日本の証券会社での公募(抽選)の取扱い」を保存する。
+// 2026/10追加: 銘柄ごとの「日本の証券会社での取扱い(上場後に売買できるか)」を保存する。2026/10/24に「抽選あり」から意味を変更。
 // /api/admin/... は proxy.ts の門番を通るため、管理画面にログインした人だけが呼べる。
 const ALLOWED = new Set(["rakuten", "sbi"]);
 

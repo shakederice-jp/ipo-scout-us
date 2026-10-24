@@ -1,20 +1,18 @@
 // 2026/10追加: 「日本での買い方」の表示と、証券会社の公式ページへのリンク。
 // 読者が、公式ページで取扱い状況を再確認できるようにする。
-// 取扱い状況(抽選の有無)は、管理画面で銘柄ごとに登録する(ipo_companies.jp_brokers)。
+// 取扱い状況(上場後に売買できるか)は、管理画面で銘柄ごとに登録する(ipo_companies.jp_brokers)。
+// 2026/10/24: この列の意味を「抽選あり」から「上場後に売買できる(取扱いあり)」に変更した。
 
 export const JP_BROKERS = {
   rakuten: {
     name: "楽天証券",
     url: "https://www.rakuten-sec.co.jp/web/us/ipo/",
     label: "楽天証券 米国IPOのページ",
-    note: "",
   },
   sbi: {
     name: "SBI証券",
-    url: "https://member.c.sbisec.co.jp/foreign/home",
-    label: "SBI証券 外国株式ページ",
-    // 新規IPOの一覧は、このページを開いたあとの「IPOスピードキャッチ！(米国・中国)」の欄にある
-    note: "新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。",
+    url: "https://www.sbisec.co.jp/",
+    label: "SBI証券 公式サイト",
   },
 } as const;
 
@@ -39,23 +37,18 @@ export function BrokerLinks({ title = "取扱い状況は、各社の公式ペ�
           {JP_BROKERS[k].label} ↗
         </a>
       ))}
-      {JP_BROKER_KEYS.filter((k) => JP_BROKERS[k].note).map((k) => (
-        <div key={`note-${k}`} style={{ flexBasis: "100%", fontSize: 11, color: "#64748b", lineHeight: 1.7 }}>
-          ※{JP_BROKERS[k].name}：{JP_BROKERS[k].note}
-        </div>
-      ))}
     </div>
   );
 }
 
 type Tone = { bg: string; border: string; fg: string; badgeBg: string };
 const TONES: Record<string, Tone> = {
-  lottery: { bg: "#EFF6FF", border: "#BFDBFE", fg: "#1D4ED8", badgeBg: "#DBEAFE" },
   listed: { bg: "#F0FDF4", border: "#BBF7D0", fg: "#15803D", badgeBg: "#DCFCE7" },
   unknown: { bg: "#FFFBEB", border: "#FDE68A", fg: "#92400E", badgeBg: "#FEF3C7" },
 };
 
 // 銘柄ごとの「日本での買い方」カード(分析ページの上部に置く)
+// 2026/10/24変更: 「抽選あり」の表示をやめ、「上場後に売買できるか(取扱いあり)」の表示に変更した。
 export function JpBuyCard({ company }: { company: { listing_date?: string | null; jp_brokers?: string[] | null } }) {
   const today = new Date().toISOString().slice(0, 10);
   const listed = !!company.listing_date && company.listing_date <= today;
@@ -63,24 +56,19 @@ export function JpBuyCard({ company }: { company: { listing_date?: string | null
   const names = keys.map((k) => JP_BROKERS[k].name).join("・");
 
   let toneKey = "unknown";
-  let badge = "取扱い未定";
-  let title = "日本での公募(抽選)の取扱いは、確認できていません";
-  let body = "上場後に、市場価格で買う形になる可能性が高い銘柄です。その場合の買値は、公募価格ではなく上場初日の値になります。";
+  let badge = "取扱い未確認";
+  let title = "日本の証券会社での取扱いは、確認できていません";
+  let body = "多くの銘柄は上場後に取扱いが始まりますが、銘柄によっては扱われないこともあります。買う前に、各社の公式ページでティッカーを検索して確認してください。";
 
   if (keys.length > 0 && !listed) {
-    toneKey = "lottery";
-    badge = "抽選の取扱いあり";
-    title = `${names}の抽選で申し込めます`;
-    body = "当選すれば、公募価格で買えます。ただし当選は抽選です。取扱いや締切は変わるので、各社の公式ページで確認してください。";
+    toneKey = "listed";
+    badge = "取扱いあり";
+    title = `${names}で、上場後に売買できます`;
+    body = "買値は公募価格ではなく、上場後の市場価格です(上場初日の値になります)。取扱いは変わることがあるので、各社の公式ページで確認してください。";
   } else if (keys.length > 0 && listed) {
     toneKey = "listed";
-    badge = "上場後に買えます";
-    title = "抽選の取扱いがあった銘柄です";
-    body = "上場後は、米国株を扱う証券会社で市場価格で買えます。価格は、公募価格ではなく、その時点の市場価格です。";
-  } else if (listed) {
-    toneKey = "listed";
-    badge = "上場後に買えます";
-    title = "米国株を扱う証券会社で買えます";
+    badge = "取扱いあり";
+    title = `${names}で売買できます`;
     body = "ティッカーから検索して買えます。価格は、公募価格ではなく、その時点の市場価格です。";
   }
 
