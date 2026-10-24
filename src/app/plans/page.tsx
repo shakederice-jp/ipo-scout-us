@@ -17,11 +17,11 @@ const C = {
 type Row = { label: string; value: string; ok: boolean };
 const rowsFor = (o: { reports: string; notify: boolean; slides: boolean; single: string }): Row[] => [
   { label: "AI分析レポート", value: o.reports, ok: true },
+  { label: "カレンダー・メモ機能", value: "あり", ok: true },
   { label: "週次メール通知", value: o.notify ? "あり" : "なし", ok: o.notify },
   { label: "価格決定・上場日通知", value: o.notify ? "あり" : "なし", ok: o.notify },
   { label: "ロックアップ解除通知", value: o.notify ? "あり" : "なし", ok: o.notify },
   { label: "週刊スライド・予定の自動登録（日本版の機能）", value: o.slides ? "あり" : "なし", ok: o.slides },
-  { label: "カレンダー・メモ機能", value: "あり", ok: true },
   { label: "シングル購入", value: o.single, ok: true },
 ];
 
@@ -79,7 +79,7 @@ const plans = [
 const faqs = [
   { q: "いつでも解約できますか？", a: "はい。マイページからいつでもキャンセル可能です。解約後は当月末まで引き続きご利用いただけます。" },
   { q: "無料プランに期限はありますか？", a: "ありません。登録不要でずっと無料でご利用いただけます。" },
-  { q: "決済は安全ですか？", a: "はい。世界標準の決済サービス「Stripe」を使用しています。カード情報は当サービスでは保持しません。" },
+  { q: "決済は安全ですか？", a: "はい。世界標準の決済サービス「Stripe」を使用しています。カード情報の入力はStripeの専用画面で行い、当サービスでは保持しません。会員登録で取得するのもメールアドレスとパスワードだけです。" },
   { q: "プランの変更はできますか？", a: "はい。マイページからいつでもプランの変更・アップグレードが可能です。" },
   { q: "日本版・米国版は別々の契約ですか？", a: "いいえ。料金は日本版と同じで、プランは日本版・米国版で共通です。同じメールアドレスで両方に登録してください。どちらか一方で加入したプラン（A 分析見放題プラン・B 分析見放題＋通知プラン・C フルパックプラン）が両方のサイトで有効になります。解約・変更も両方に反映されます。なおシングルレポートは、購入した銘柄だけが読めます。" },
   { q: "シングルレポートとは何ですか？", a: "サブスク不要で、気になる1銘柄だけを" + jpy("single") + "で購入できるプランです。無料枠の2銘柄以外を読みたい場合にご利用ください。" },
@@ -153,6 +153,30 @@ export default function PlansPage() {
           ※ 日本版と同じ料金です。日本版・米国版どちらで加入しても、同じメールアドレスで登録した両方のサイトで利用できます。
         </p>
 
+        {/* 安心してお申し込みいただくために(2026/10/24新設・日米共通の文面) */}
+        <div style={{ marginTop: 24, backgroundColor: "#ecfdf5", border: "2px solid #6ee7b7", borderRadius: 16, padding: "20px 22px" }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: "#065f46", marginBottom: 6 }}>🔒 安心してお申し込みいただくために</div>
+          <p style={{ fontSize: 12, color: "#047857", lineHeight: 1.8, margin: "0 0 14px" }}>
+            情報漏洩のニュースが続く今、「そもそも漏れて困る情報を持たない」ことを基本に、このサイトを作っています。
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10 }}>
+            {[
+              { t: "カード番号は当サイトに残りません", d: "カード情報の入力は、世界標準の決済サービス「Stripe」の専用画面で行います。当サイトのサーバーを通らず、保存もしません。" },
+              { t: "預かる個人情報は最小限", d: "会員登録で取得するのは、メールアドレスとパスワードだけです。氏名・住所・電話番号はお聞きしません。" },
+              { t: "パスワードは運営者にも見えません", d: "パスワードは、認証サービス「Supabase」が暗号化して管理します。当社が中身を見ることはできません。" },
+              { t: "通信はすべて暗号化", d: "サイトとの通信は常時HTTPS（暗号化通信）で保護しています。" },
+            ].map((s) => (
+              <div key={s.t} style={{ backgroundColor: "white", border: "1px solid #a7f3d0", borderRadius: 12, padding: "12px 14px" }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: "#065f46", marginBottom: 4 }}>✅ {s.t}</div>
+                <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.7 }}>{s.d}</div>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.7, margin: "12px 0 0" }}>
+            詳しくは<a href="/privacy" style={{ color: "#047857", fontWeight: 700 }}>プライバシーポリシー</a>をご覧ください。
+          </p>
+        </div>
+
         {/* お申し込みの流れ */}
         <div style={{ marginTop: 24, backgroundColor: "white", border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px 20px" }}>
           <div style={{ fontSize: 13, fontWeight: 900, color: C.dark, marginBottom: 10 }}>お申し込みの流れ（約2分）</div>
@@ -191,11 +215,11 @@ export default function PlansPage() {
                 <tbody>
                   {[
                     { label: "AI分析レポート",      values: ["月2銘柄", "無制限", "無制限", "無制限"] },
+                    { label: "カレンダー・メモ",     values: ["✅", "✅", "✅", "✅"] },
                     { label: "週次メール通知",       values: ["❌", "❌", "✅", "✅"] },
                     { label: "価格決定・上場日通知", values: ["❌", "❌", "✅", "✅"] },
                     { label: "ロックアップ解除通知", values: ["❌", "❌", "✅", "✅"] },
                     { label: "週刊スライド・予定の自動登録（日本版）", values: ["❌", "❌", "❌", "✅"] },
-                    { label: "カレンダー・メモ",     values: ["✅", "✅", "✅", "✅"] },
                     { label: "シングル購入",         values: [jpyPerItem("single"), "不要", "不要", "不要"] },
                   ].map((row, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${C.border}`, backgroundColor: i % 2 === 0 ? "white" : C.light }}>
