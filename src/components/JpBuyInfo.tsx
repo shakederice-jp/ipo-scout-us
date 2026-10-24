@@ -1,6 +1,7 @@
 // 2026/10追加: 「日本での買い方」の表示と、証券会社の公式ページへのリンク。
 // 読者が、公式ページで取扱い状況を再確認できるようにする。
 // 取扱い状況(上場後に売買できるか)は、管理画面で銘柄ごとに登録する(ipo_companies.jp_brokers)。
+// 2026/10/24: 管理画面の手入力欄は廃止(今後は手動入力しない)。登録がなければ「各社で要確認」を表示する。
 // 2026/10/24: この列の意味を「抽選あり」から「上場後に売買できる(取扱いあり)」に変更した。
 
 export const JP_BROKERS = {
@@ -56,8 +57,8 @@ export function JpBuyCard({ company }: { company: { listing_date?: string | null
   const names = keys.map((k) => JP_BROKERS[k].name).join("・");
 
   let toneKey = "unknown";
-  let badge = "取扱い未確認";
-  let title = "日本の証券会社での取扱いは、確認できていません";
+  let badge = "各社で要確認";
+  let title = "日本から買えるかは、各社の公式ページで確認してください";
   let body = "多くの銘柄は上場後に取扱いが始まりますが、銘柄によっては扱われないこともあります。買う前に、各社の公式ページでティッカーを検索して確認してください。";
 
   if (keys.length > 0 && !listed) {

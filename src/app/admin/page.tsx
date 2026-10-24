@@ -739,22 +739,7 @@ export default function AdminPage() {
                     </div>
                     {ipoPriceResult && <p style={{ marginTop:6, fontSize:11, color:ipoPriceResult.startsWith("❌")?"#dc2626":"#166534" }}>{ipoPriceResult}</p>}
                   </div>
-                  <div style={{ background:"#eff6ff", borderRadius:8, padding:12, marginBottom:14, border:"1px solid #bfdbfe" }}>
-                    <label style={{ ...labelStyle, color:"#1d4ed8" }}>🇯🇵 日本の証券会社での取扱い（上場後に売買できるか） ※各社のページで確認してチェック</label>
-                    <div style={{ display:"flex", gap:16, alignItems:"center", flexWrap:"wrap" }}>
-                      {([["rakuten","楽天証券"],["sbi","SBI証券"]] as [string,string][]).map(([k,n])=>(
-                        <label key={k} style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, color:"#1e3a8a", cursor:"pointer" }}>
-                          <input type="checkbox" checked={jpBrokers.includes(k)} onChange={e=>setJpBrokers(prev=>e.target.checked?Array.from(new Set([...prev,k])):prev.filter(x=>x!==k))}/>
-                          {n}で取扱いあり
-                        </label>
-                      ))}
-                      <button onClick={handleSaveJpBrokers} disabled={jpBrokersLoading} style={{ padding:"8px 14px", backgroundColor:jpBrokersLoading?"#94a3b8":"#1d4ed8", color:"white", border:"none", borderRadius:8, cursor:"pointer", fontWeight:700, fontSize:12 }}>
-                        {jpBrokersLoading?"保存中...":"保存"}
-                      </button>
-                    </div>
-                    <p style={{ marginTop:6, fontSize:10, color:"#64748b", lineHeight:1.7 }}>どちらもチェックしないと「取扱い未確認」と表示されます。買い方・売り方ガイドは、どちらの場合も「上場初日の寄り付き付近で買う」前提で書かれます。</p>
-                    {jpBrokersResult && <p style={{ marginTop:6, fontSize:11, color:jpBrokersResult.startsWith("❌")?"#dc2626":"#166534" }}>{jpBrokersResult}</p>}
-                  </div>
+                  {/* 2026/10/24削除: 「日本の証券会社での取扱い」の手入力欄。今後は手動入力しない方針のため */}
                   <div style={{ marginBottom:14 }}>
                     <label style={labelStyle}>SEC書類のURL（空白で自動検索。通常は入力不要）</label>
                     <input value={edinetDocId} onChange={e=>setEdinetDocId(e.target.value)} placeholder="例：https://www.sec.gov/Archives/edgar/data/…/xxxx.htm" style={inputStyle}/>
