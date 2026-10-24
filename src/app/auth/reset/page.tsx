@@ -13,10 +13,13 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  // 失敗の原因を調べるための確認用コード(/auth/callback が付ける)
+  const [diag, setDiag] = useState<string | null>(null);
 
   const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
+    try { setDiag(new URLSearchParams(window.location.search).get("diag")); } catch {}
     supabase.auth.getSession().then(({ data }) => setReady(!!data.session));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -52,6 +55,7 @@ export default function ResetPasswordPage() {
             <p style={{ fontSize:"13px", color:"#b91c1c", lineHeight:1.8, margin:"0 0 16px" }}>
               再設定のリンクが確認できませんでした。リンクの有効期限が切れたか、メールを開いたブラウザが、再設定を申し込んだブラウザと異なる可能性があります。お手数ですが、もう一度お試しください。
             </p>
+            {diag && <p style={{ fontSize:"10px", color:"#94a3b8", margin:"0 0 12px", wordBreak:"break-all" }}>確認用コード: {diag}</p>}
             <a href="/auth" style={{ display:"block", textAlign:"center", padding:"12px", backgroundColor:"#1E3A66", color:"white", borderRadius:"8px", fontWeight:"900", fontSize:"14px", textDecoration:"none" }}>
               ログイン画面へ戻る
             </a>
