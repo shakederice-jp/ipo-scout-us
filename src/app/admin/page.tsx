@@ -514,7 +514,7 @@ export default function AdminPage() {
               <h2 style={{ fontSize:"13px", fontWeight:900, color:"white", margin:"0 0 12px" }}>📅 週次ルーティン</h2>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {[
-                  { day:"毎日", label:"EDINET取得・ニュース収集", auto:true },
+                  { day:"毎日", label:"SEC書類の取得・進み具合の更新", auto:true },
                   { day:"月曜", label:"DB整合性チェック結果をメールで確認", auto:true },
                   { day:"随時", label:"新規IPO銘柄を登録 → AI分析を生成", auto:false },
                   { day:"随時", label:"公募価格が決定したら入力", auto:false },
@@ -577,14 +577,7 @@ export default function AdminPage() {
                       </div>
                     )}
                   </div>
-                  <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
-                  <div>
-                    <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:2 }}>📡 IPO情報自動取得 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎日自動実行）</span></div>
-                    <button onClick={handleAutoFetch} disabled={autoLoading} style={btnStyle("#9b59b6", autoLoading)}>
-                      {autoLoading?"取得中...":"今すぐ自動取得を実行"}
-                    </button>
-                    {autoResult && <p style={{ marginTop:6, fontSize:11, color:"#3D5A85" }}>{autoResult}</p>}
-                  </div>
+                  {/* 2026/10/24削除: 「📡 IPO情報自動取得」ボタンは、日本版からコピーされた機能で、日本のIPOスケジュール(96ut.com)から銘柄を取り込んでしまうため、米国版では廃止した */}
                   <hr style={{ border:"none", borderTop:"1px solid #e2e8f0" }}/>
                   <div>
                     <div style={{ fontWeight:700, fontSize:13, color:"#0F1F36", marginBottom:2 }}>📧 週次通知メール送信 <span style={{ fontSize:10, color:"#94a3b8", marginLeft:6 }}>（通常: 毎週金曜18時に自動送信）</span></div>
