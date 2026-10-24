@@ -141,15 +141,6 @@ export default async function Home({
             </div>
           </div>
 
-          {/* トレンドページへのリンク */}
-          <a href="/trends" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#1E3A66", border:"2px solid #1E3A66", textDecoration:"none" }}>
-            <div>
-              <div style={{ fontSize:13, fontWeight:900, color:"white" }}>📡 大手町発マーケットトレンド</div>
-              <div style={{ fontSize:10, color:"#C7D3E3", marginTop:2 }}>IPO・スタートアップ・資金調達の最新動向</div>
-            </div>
-            <span style={{ fontSize:16, color:"#ffffff" }}>→</span>
-          </a>
-
 {/* 日本から買うには(楽天証券・SBI証券の公式ページへのリンク付き) */}
 <div style={{ ...cardStyle, padding:"12px 16px", backgroundColor:"#F5F4EF", border:"1.5px solid #C7D3E3" }}>
             <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36", marginBottom:4 }}>🇯🇵 日本から米国IPOを買うには</div>
@@ -217,7 +208,6 @@ export default async function Home({
           <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>このサイトの使い方</a>
           <a href="/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>日本からの買い方</a>
           <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>料金プラン</a>
-          <a href="/trends" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📡 マーケットトレンド</a>
           <a href="/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>💡 IPO投資の法則</a>
         </div>
         <p style={{ fontSize:10, color:"#94a3b8", lineHeight:1.7, margin:0 }}>

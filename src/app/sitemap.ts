@@ -16,10 +16,8 @@ export default async function sitemap() {
   const staticPages = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1.0 },
     { url: `${baseUrl}/schedule`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.95 },
-    { url: `${baseUrl}/glossary`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.7 },
     { url: `${baseUrl}/guide`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.8 },
     { url: `${baseUrl}/plans`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.6 },
-    { url: `${baseUrl}/trends`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.6 },
     { url: `${baseUrl}/ipo-guide`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.6 },
     { url: `${baseUrl}/how-to-buy`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.7 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
