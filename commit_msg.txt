@@ -1,6 +1,0 @@
-3プラン化(plan-sync・料金・チェックアウト)
-
-- 料金プランを日本版と同じA/B/Cの3本に再編(plan-sync・pricing・チェックアウト・マイページ等)
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
-Claude-Session: https://claude.ai/code/session_01CjJcx8exm9jbFcji6MHeMQ
