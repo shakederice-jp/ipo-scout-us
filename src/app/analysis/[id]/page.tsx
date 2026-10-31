@@ -2,6 +2,7 @@ import { fetchIpoCompanyById, fetchIpoCompanies, createSupabaseServerClient, cre
 export const dynamic = "force-dynamic";
 import { createClient } from "@supabase/supabase-js";
 import { syncPlanForUser } from "@/lib/plan-sync";
+import { canReadPaidAnalysis } from "@/lib/member-auth";
 import AnalysisClient from "@/components/AnalysisClient";
 import { notFound } from "next/navigation";
 import { buildKeyFaq, jpDate } from "@/components/KeyFacts";
@@ -23,7 +24,7 @@ async function fetchCompany(id: string) {
 }
 
 // この銘柄をこのユーザーが閲覧できるかどうかを判定する
-// (無料枠の銘柄 / ログイン済みかつ有料プラン加入 / ログイン済みかつ単品購入済み のいずれか)
+// (無料枠の銘柄 / ログイン済みかつ有料プラン加入または紹介特典の期間中 / ログイン済みかつ単品購入済み のいずれか)
 async function checkAccess(companyId: string, isFreeCompany: boolean): Promise<boolean> {
   if (isFreeCompany) return true;
 
@@ -40,14 +41,15 @@ async function checkAccess(companyId: string, isFreeCompany: boolean): Promise<b
 
   const { data: profile } = await serviceSupabase
     .from("user_profiles")
-    .select("plan")
+    .select("plan, free_until")
     .eq("id", user.id)
     .maybeSingle();
   // 日本版・米国版は共通のプラン。Stripeの契約に合わせてプランを最新にしてから判定する(src/lib/plan-sync.ts)
   const synced = await syncPlanForUser(user);
   const plan = synced ?? profile?.plan;
 
-  if (plan && ["plan_a", "plan_b", "plan_c", "report", "complete"].includes(plan)) return true;
+  // プラン加入、または紹介特典の無料期間中(user_profiles.free_until が未来)なら、有料分析を読める
+  if (canReadPaidAnalysis({ plan, free_until: profile?.free_until })) return true;
 
   const { data: purchase } = await serviceSupabase
     .from("purchased_stocks")

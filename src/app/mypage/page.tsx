@@ -46,6 +46,7 @@ export default function MyPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [notifyState, setNotifyState] = useState<any>(null);
   const [savingNotify, setSavingNotify] = useState(false);
   const [notifySaveResult, setNotifySaveResult] = useState<string | null>(null);
@@ -180,6 +181,38 @@ export default function MyPage() {
   const completedReferrals = (data.referralLogs ?? []).filter((r: any) => r.status === "completed").length;
   const freeMonthsEarned = completedReferrals * 2;
 
+  // 2026/10/31新設(米国版の紹介制度): 招待する側が招待文を自分で考えなくて済むよう、X・LINE・メール・コピーの
+  // ワンタップ導線を用意した(日本版と同じ考え方。米国版の文面にしてある)。
+  const inviteMessage =
+    `📊 米国IPOの目論見書(S-1)をAIが日本語で読み解いてくれる「米国IPO企業情報AI分析レポート」を使っています。\n` +
+    `毎月最初の2社ぶんは無料で、ロックアップ解除日や日本からの買い方もまとめて見られて便利です。\n\n` +
+    `このリンクから登録すると、お互いに有料分析が2ヶ月間読み放題になります🎁（先着300名限定）\n${referralUrl}`;
+  const inviteMessageX =
+    `📊 米国IPOの目論見書(S-1)をAIが日本語で解析してくれる「米国IPO企業情報AI分析レポート」を使ってます。毎月2社は無料。\n` +
+    `このリンクから登録で、お互い有料分析が2ヶ月読み放題🎁（先着300名限定）\n${referralUrl}\n#米国IPO #IPO投資`;
+  const inviteSubjectEmail = `「米国IPO企業情報AI分析レポート」のご紹介`;
+  const inviteBodyEmail =
+    `いつもお世話になっております。\n\n` +
+    `米国IPOの投資判断に役立つ「米国IPO企業情報AI分析レポート」というサービスを使っているのでご紹介します。\n\n` +
+    `米国企業がSECに提出する目論見書(S-1)をAIが読み込み、財務状況やリスク、ロックアップ解除日、日本からの買い方を日本語でまとめてくれるサービスです。毎月最初の2社は無料で読めます。\n\n` +
+    `以下の招待リンクから登録いただくと、お互いに有料分析が2ヶ月間読み放題になる特典が付きます（先着300名限定）。よろしければ試してみてください。\n\n${referralUrl}`;
+
+  const handleShareX = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(inviteMessageX)}`, "_blank", "noopener,noreferrer");
+  };
+  const handleShareLine = () => {
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(inviteMessage)}`, "_blank", "noopener,noreferrer");
+  };
+  const handleShareEmail = () => {
+    window.location.href = `mailto:?subject=${encodeURIComponent(inviteSubjectEmail)}&body=${encodeURIComponent(inviteBodyEmail)}`;
+  };
+  const handleCopyInvite = () => {
+    // handleCopy()は「招待URLコピー」ボタン用のcopiedを更新してしまうため、別ボタンのここでは巻き込まないよう直接書き込む
+    navigator.clipboard.writeText(inviteMessage);
+    setInviteCopied(true);
+    setTimeout(() => setInviteCopied(false), 2000);
+  };
+
   // カレンダーメモの月別損益集計
   const pnlByMonth: Record<string, number> = {};
   (data.calendarNotes ?? []).forEach((n: any) => {
@@ -297,6 +330,12 @@ export default function MyPage() {
 
         {/* 3. 友達招待プログラム */}
         <Section icon={<Gift size={16} />} title="友達招待プログラム">
+          {/* 2026/10/31追加(米国版の紹介制度): 日本版と同じ「先着300名限定」の訴求。実際の残り人数で自動的に止める仕組みは無い(表記のみ) */}
+          <div style={{ marginBottom: 12 }}>
+            <span style={{ display: "inline-block", fontSize: 10, fontWeight: 900, color: "white", backgroundColor: "#dc2626", borderRadius: 6, padding: "3px 10px" }}>
+              🎉 先着300名限定キャンペーン実施中
+            </span>
+          </div>
           <div style={{ backgroundColor: LIGHT, borderRadius: 10, padding: "12px 14px", marginBottom: 14 }}>
             <div style={{ fontSize: 11, color: MID, marginBottom: 6, fontWeight: 700 }}>あなたの招待URL</div>
             <div style={{ display: "flex", gap: 8 }}>
@@ -308,11 +347,34 @@ export default function MyPage() {
               </button>
             </div>
           </div>
+          {/* 招待文つきのワンタップ共有ボタン */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, color: MID, marginBottom: 6, fontWeight: 700 }}>かんたん招待（招待文つき）</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button onClick={handleShareX}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px", borderRadius: 8, border: "none", backgroundColor: "#000", color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                𝕏 でシェア
+              </button>
+              <button onClick={handleShareLine}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px", borderRadius: 8, border: "none", backgroundColor: "#06C755", color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                💬 LINEで送る
+              </button>
+              <button onClick={handleShareEmail}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px", borderRadius: 8, border: "none", backgroundColor: MID, color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                📧 メールで送る
+              </button>
+              <button onClick={handleCopyInvite}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px", borderRadius: 8, border: `1.5px solid ${PRIMARY}`, backgroundColor: inviteCopied ? "#dcfce7" : "white", color: inviteCopied ? "#15803d" : MID, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+                {inviteCopied ? <><Check size={14} />招待文をコピーしました</> : <><Copy size={14} />招待文をコピー（Slack・Discordなど）</>}
+              </button>
+            </div>
+          </div>
+
           <InfoRow label="招待コード" value={<span style={{ fontFamily: "monospace", letterSpacing: 2 }}>{profile.referral_code ?? "-"}</span>} />
           <InfoRow label="招待済み人数" value={`${completedReferrals}名`} />
-          <InfoRow label="獲得した無料月数" value={<span style={{ color: "#15803d", fontWeight: 900 }}>{freeMonthsEarned}ヶ月</span>} />
+          <InfoRow label="獲得した読み放題期間" value={<span style={{ color: "#15803d", fontWeight: 900 }}>{freeMonthsEarned}ヶ月</span>} />
           <div style={{ marginTop: 12, padding: "10px 12px", backgroundColor: "#fffbeb", borderRadius: 8, border: "1px solid #fde68a", fontSize: 11, color: "#92400e" }}>
-            💡 友達が登録すると、あなたと友達の両方に<strong>2ヶ月無料</strong>が付与されます
+            💡 友達が登録すると、あなたと友達の両方が<strong>有料分析を2ヶ月間読み放題</strong>になります（通知機能は対象外）（<strong>先着300名限定</strong>・予告なく終了する場合があります）
           </div>
         </Section>
 

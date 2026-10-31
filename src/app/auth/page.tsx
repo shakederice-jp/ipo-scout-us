@@ -24,8 +24,21 @@ export default function AuthPage() {
         // 購入ボタンから来た人は、まだ会員でない可能性が高いので「新規登録」を先に見せる
         if (n.includes("buy=")) setMode("signup");
       }
+      // 2026/10/31修正: 紹介リンクはトップページ(/?ref=コード)に案内する作りのため、トップページ等を見てから
+      // 登録画面に来た場合はURLに?refが付いていない。その場合は、ReferralCapture.tsx がlayout側で保存しておいた
+      // コードをlocalStorageから拾う(URL側にあれば従来通りそちらを優先)。
       const urlRef = new URLSearchParams(window.location.search).get("ref");
-      if (urlRef) setRefCode(urlRef);
+      if (urlRef) {
+        setRefCode(urlRef);
+      } else {
+        try {
+          const stored = localStorage.getItem("pendingReferralCode");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed?.code && Date.now() - (parsed.savedAt ?? 0) < 30 * 86400000) setRefCode(parsed.code);
+          }
+        } catch {}
+      }
     }
   }, []);
 
@@ -54,31 +67,56 @@ export default function AuthPage() {
       if (next) {
         try { document.cookie = `${NEXT_COOKIE}=${encodeURIComponent(next)}; path=/; max-age=3600; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`; } catch {}
       }
+      // 2026/10/31改修(米国版の紹介制度): 紹介コードは、ここではその人のアカウント情報に預けておくだけにした。
+      // 実際の特典の付与は、確認メールのリンクを押してログインが完了した時点で、サーバーが本人を確認してから
+      // 行う(src/lib/referral.ts・src/app/auth/callback/route.ts)。以前はここから会員IDを送って即時に付与して
+      // いたため、架空のIDで特典を何度でも発生させられる問題があった。
+      const pendingCode = refCode.trim().toUpperCase();
       const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${location.origin}/auth/callback`,
+        ...(pendingCode ? { data: { pending_referral_code: pendingCode } } : {}),
+      },
     });
 
     if (error) {
       setError(error.message);
     } else {
-      if (refCode.trim() && data?.user?.id) {
-        try {
-          await fetch("/api/referral", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ referral_code: refCode, user_id: data.user.id }),
-          });
-        } catch (e) {
-          console.error("referral apply failed", e);
+      let referralNote = "";
+      if (pendingCode) {
+        try { localStorage.removeItem("pendingReferralCode"); } catch {}
+        if (data?.session) {
+          // メール確認なしでその場でログインできた場合は、すぐに適用を試みる
+          try {
+            const res = await fetch("/api/referral", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ referral_code: pendingCode }) });
+            const json = await res.json().catch(() => ({} as any));
+            referralNote = res.ok && json?.success
+              ? " 🎉紹介特典を適用しました（あなたと紹介者様の有料分析が2ヶ月間読み放題になりました）。"
+              : json?.error === "invalid code" ? " 紹介コードが見つかりませんでした（登録自体は完了しています）。"
+              : json?.error === "self referral" ? " ご自身の紹介コードは利用できません（登録自体は完了しています）。"
+              : json?.error === "already referred" ? " このアカウントは既に紹介特典を利用済みです。"
+              : " 紹介コードの適用に失敗しました（登録自体は完了しています）。";
+          } catch {
+            referralNote = " 紹介コードの適用中に通信エラーが発生しました（登録自体は完了しています）。";
+          }
+        } else {
+          referralNote = " 紹介コードを受け付けました。メール内のリンクから登録を完了すると、あなたと紹介者様の有料分析が2ヶ月間読み放題になります。";
         }
       }
-      setMessage(`確認メールを送信しました。メールをご確認ください。${next?.includes("buy=") ? " メール内のリンクを押すと、自動でお支払い画面に進みます。" : ""}`);
+      setMessage(`確認メールを送信しました。メールをご確認ください。${referralNote}${next?.includes("buy=") ? " メール内のリンクを押すと、自動でお支払い画面に進みます。" : ""}`);
     }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError("メールアドレスまたはパスワードが違います");
-      else location.href = next ?? "/";
+      else {
+        // 確認メールのリンクを別の端末で開いた等で、紹介特典がまだ適用されていない場合は、ログインのタイミングで
+        // 適用する(条件チェックはサーバー側。対象外なら何もしない)
+        if ((signInData?.user?.user_metadata as any)?.pending_referral_code) {
+          try { await fetch("/api/referral", { method: "POST" }); } catch {}
+        }
+        location.href = next ?? "/";
+      }
     }
     setLoading(false);
   };
@@ -148,7 +186,7 @@ export default function AuthPage() {
               style={{ width:"100%", padding:"10px", borderRadius:"8px", border:"1px solid #C7D3E3", boxSizing:"border-box", fontSize:"14px" }}
             />
             <p style={{ fontSize:"11px", color:"#1E3A66", margin:"6px 0 0", fontWeight:"700" }}>
-              紹介コードを入力して登録すると、あなたと紹介者の両方に2ヶ月間無料特典が付与されます
+              紹介コードを入力して登録すると、あなたと紹介者の両方が有料分析を2ヶ月間読み放題になります
             </p>
           </div>
         )}

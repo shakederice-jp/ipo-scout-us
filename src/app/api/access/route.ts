@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { syncPlanForUser } from "@/lib/plan-sync";
+import { canReadPaidAnalysis } from "@/lib/member-auth";
 
 // 分析レポートを読めるプラン(2026/10/24: 3プラン化。旧名 report / complete は管理者が手で付けたものが残っていた場合のために許可)
 const PAID_ANALYSIS_PLANS = ["plan_a", "plan_b", "plan_c", "report", "complete"];
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
   // サブスクプランを確認（日本版・米国版共通のプラン。Stripeの契約に合わせて最新にしてから判定する）
   const { data: profile } = await supabase
     .from("user_profiles")
-    .select("plan")
+    .select("plan, free_until")
     .eq("id", user.id)
     .maybeSingle();
   const synced = await syncPlanForUser(user);
@@ -47,6 +48,11 @@ export async function GET(req: NextRequest) {
 
   if (plan && PAID_ANALYSIS_PLANS.includes(plan)) {
     return NextResponse.json({ access: true, reason: "subscription" });
+  }
+
+  // 紹介特典の無料期間中(user_profiles.free_until が未来)も、有料分析を読める
+  if (canReadPaidAnalysis({ plan: null, free_until: profile?.free_until })) {
+    return NextResponse.json({ access: true, reason: "referral" });
   }
 
   // 単品購入を確認（購入した銘柄だけ）

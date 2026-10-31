@@ -124,6 +124,15 @@ export default async function Home({
             <span style={{ fontSize:16, color:"#1E3A66" }}>→</span>
           </a>
 
+          {/* 2026/10/31追加(米国版の紹介制度): 紹介プログラムがマイページの奥にしかなく気づかれにくいため、トップページからも露出させる。 */}
+          <a href="/mypage" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#fef2f2", textDecoration:"none", border:"1.5px solid #dc2626" }}>
+            <div>
+              <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>🎁 友達紹介で有料分析2ヶ月読み放題</div>
+              <div style={{ fontSize:10, color:"#b91c1c", marginTop:2, fontWeight:700 }}>🎉 先着300名限定キャンペーン実施中</div>
+            </div>
+            <span style={{ fontSize:16, color:"#dc2626" }}>→</span>
+          </a>
+
           {/* 購入パネル */}
           <div style={cardStyle}>
             <div style={{ padding:"12px 16px", backgroundColor:"#1E3A66", display:"flex", alignItems:"center", gap:8 }}>

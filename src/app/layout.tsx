@@ -3,6 +3,7 @@ import "./globals.css";
 import Script from "next/script";
 import AppHeader from "@/components/AppHeader";
 import InstallPwaButton from "@/components/InstallPwaButton";
+import ReferralCapture from "@/components/ReferralCapture";
 import { AppProvider } from "@/contexts/AppContext";
 
 export const metadata: Metadata = {
@@ -57,6 +58,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="app-content">{children}</div>
           {/* 2026/10/29: ホーム画面に追加の案内(スマホで2ページ目以降を見たときだけ、下に小さく出る) */}
           <InstallPwaButton />
+          {/* 2026/10/31: 友達紹介のリンク(?ref=コード)で来た人の紹介コードを、どのページからでも一時保存する(表示なし) */}
+          <ReferralCapture />
         </AppProvider>
       </body>
     </html>

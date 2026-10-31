@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { NEXT_COOKIE, safeNext } from "@/lib/post-login";
+import { applyPendingReferral } from "@/lib/referral";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -30,8 +31,19 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     if (exchangeError) diag = `exchange:${String(exchangeError.message).slice(0, 80)}`;
+
+    // 2026/10/31追加(米国版の紹介制度): 確認メールのリンクからの初回ログイン時に、登録画面で預かった紹介コードを適用する。
+    // 本人確認済みのユーザーに対してだけサーバー側で行う(条件チェックは src/lib/referral.ts)。
+    // 失敗してもログイン自体は続行する。
+    if (!exchangeError && exchangeData?.user) {
+      try {
+        await applyPendingReferral(exchangeData.user);
+      } catch (e) {
+        console.error("referral apply failed", e);
+      }
+    }
   } else {
     diag = linkError ? `link:${linkError}` : "nocode";
   }
