@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import InitialPriceForm from "@/components/InitialPriceForm";
 import { runProofread, collectFields, applyFields } from "@/lib/proofread";
 
@@ -132,13 +132,117 @@ export default function AdminPage() {
       .then(r => r.json()).then(data => { if (!data.error) setReferralStats(data); }).catch(() => {});
   }, [authed]);
 
+
+  // 2026/11/7追加: 分析の進み具合の記録(画面を閉じても残る)。
+  // 各STEPが終わるたびに /api/admin/analysis-progress へ「完了/失敗＋日時」を保存し、銘柄を選んだときに読み込んで表示する。
+  // 「残りを続きから実行」は、未完了・失敗・要やり直しのSTEPだけを、順番に自動で実行する。
+  type ProgItem = { status: "done" | "failed"; at: string | null; note: string; inferred: boolean };
+  const PROG_ORDER: string[] = ["1","7","2","3","4","5","6","viz"];
+  const PROG_LABEL: Record<string, string> = { "1":"STEP1 SECテキスト取得", "7":"STEP2 市場・競合情報", "2":"STEP3 財務データ構造化", "3":"STEP4 スコア・シナリオ", "4":"STEP5 9軸(超短期3軸)", "5":"STEP5 9軸(短期3軸)", "6":"STEP5 9軸(長期3軸)", "viz":"STEP6 視覚化データ" };
+  const PROG_DEPS: Record<string, string[]> = {};
+  const [, setProgressTick] = useState(0);
+  const progressRef = useRef<Record<string, ProgItem>>({});
+  const selectedIdRef = useRef<string | null>(null);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const [autoRunMsg, setAutoRunMsg] = useState<string | null>(null);
+
+  const setProgressMap = (m: Record<string, ProgItem>) => { progressRef.current = m; setProgressTick(t => t + 1); };
+
+  const fmtAt = (at: string | null) => {
+    if (!at) return "";
+    try { return new Date(at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+  };
+
+  const recordProgress = (key: string, status: "done" | "failed", note?: string) => {
+    const cid = selectedCompany?.id;
+    if (!cid || !PROG_ORDER.includes(key)) return;
+    const item: ProgItem = { status, at: new Date().toISOString(), note: String(note ?? "").slice(0, 300), inferred: false };
+    if (selectedIdRef.current === cid) setProgressMap({ ...progressRef.current, [key]: item });
+    fetch("/api/admin/analysis-progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: cid, key, status, note: item.note }) }).catch(() => {});
+  };
+
+  // setStep(各STEPの最後の「✅ …」「❌ …」)から、完了/失敗を自動で記録する
+  const autoRecord = (key: string, result: string) => {
+    if (!PROG_ORDER.includes(key)) return;
+    const failed = result.startsWith("❌") || (key === "8" && result.includes("❌")) || (key === "1" && result.includes("失敗"));
+    if (failed) { recordProgress(key, "failed", result); return; }
+    if (result.startsWith("✅")) recordProgress(key, "done", result);
+  };
+
+  const loadProgress = async (cid: string) => {
+    try {
+      const r = await fetch(`/api/admin/analysis-progress?company_id=${encodeURIComponent(cid)}`, { cache: "no-store" });
+      const d = await r.json();
+      if (!r.ok || d.error || selectedIdRef.current !== cid) return;
+      const merged: Record<string, ProgItem> = {};
+      Object.entries(d.inferred ?? {}).forEach(([k, v]: [string, any]) => { merged[k] = { status: "done", at: v?.at ?? null, note: "", inferred: true }; });
+      Object.entries(d.progress ?? {}).forEach(([k, v]: [string, any]) => { merged[k] = { status: v.status, at: v.at ?? null, note: v.note ?? "", inferred: false }; });
+      // 読み込み中に、この画面で新しく記録した分があれば、そちらを優先する
+      Object.entries(progressRef.current).forEach(([k, v]) => { if (!v.inferred && (!merged[k] || (merged[k].at ?? "") < (v.at ?? ""))) merged[k] = v; });
+      setProgressMap(merged);
+    } catch { /* 記録が読めなくても、分析の操作は続けられる */ }
+  };
+
+  // done=完了 / failed=失敗 / stale=前の工程をやり直したので要やり直し / todo=未実行
+  const getStatus = (key: string): { kind: "done" | "failed" | "stale" | "todo"; at: string | null; note: string; inferred: boolean } => {
+    const it = progressRef.current[key];
+    if (!it) return { kind: "todo", at: null, note: "", inferred: false };
+    if (it.status === "failed") return { kind: "failed", at: it.at, note: it.note, inferred: false };
+    const stale = (PROG_DEPS[key] ?? []).some(d => { const di = progressRef.current[d]; return !!(di && di.status === "done" && di.at && it.at && di.at > it.at); });
+    return { kind: stale ? "stale" : "done", at: it.at, note: it.note, inferred: it.inferred };
+  };
+
+  const runRemaining = async () => {
+    if (!selectedCompany || autoRunning) return;
+    const pending = PROG_ORDER.filter(k => getStatus(k).kind !== "done");
+    if (pending.length === 0) return;
+    if (!window.confirm(`次の分析を、順番に自動で実行します(完了済みは飛ばします)。\n\n${pending.map(k => "・" + PROG_LABEL[k]).join("\n")}\n\n画面を開いたままにしてください。よろしいですか？`)) return;
+    setAutoRunning(true);
+    setAutoRunMsg(null);
+    try {
+      for (const key of PROG_ORDER) {
+        if (getStatus(key).kind === "done") continue;
+        setAutoRunMsg(`⏳ ${PROG_LABEL[key]} を実行中...`);
+        await runStepByKey(key);
+        if (getStatus(key).kind !== "done") {
+          setAutoRunMsg(`❌ ${PROG_LABEL[key]} で止まりました。内容を確認して、もう一度「残りを続きから実行」を押してください(完了したSTEPは飛ばして再開します)。`);
+          return;
+        }
+      }
+      setAutoRunMsg("✅ すべて完了しました");
+    } finally {
+      setAutoRunning(false);
+    }
+  };
+
+  const runStepByKey = async (key: string) => {
+    const axesMap: Record<string, [string, string]> = { "4": ["ultra_short", "超短期3軸"], "5": ["short", "短期3軸"], "6": ["long", "長期3軸"] };
+    switch (key) {
+      case "1": await handleStep1(); break;
+      case "7": await handleStep7(); break;
+      case "2": await handleStep2(); break;
+      case "3": await handleStep3(); break;
+      case "4": case "5": case "6": {
+        setAllAxesLoading(true); setStep(key, true);
+        try { await runAxes(axesMap[key][0], axesMap[key][1], key); } finally { setAllAxesLoading(false); }
+        break;
+      }
+      case "viz": await handleVisualize(); break;
+    }
+  };
+
   const setStep = (key: string, loading: boolean, result?: string) => {
     setStepLoading(prev => ({...prev, [key]: loading}));
     if (result !== undefined) setStepResult(prev => ({...prev, [key]: result}));
+    if (!loading && result !== undefined) autoRecord(key, result);
   };
 
   const handleSelectCompany = (c: any) => {
     setSelectedCompany(c);
+    selectedIdRef.current = c.id;
+    setProgressMap({});
+    loadProgress(c.id);
+    setAutoRunMsg(null);
     setEdinetDocId("");
     setStepResult({});
     setStepLoading({});
@@ -308,16 +412,17 @@ export default function AdminPage() {
       try {
         const res = await fetch("/api/visualize", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ companyId:selectedCompany.id, chart_type:type }) });
         const data = await res.json();
-        if (data.error) { setVizResult(`❌ ${labels[type]}: ${data.error}`); setVizLoading(false); return; }
+        if (data.error) { setVizResult(`❌ ${labels[type]}: ${data.error}`); recordProgress("viz", "failed", `${labels[type]}: ${data.error}`); setVizLoading(false); return; }
         Object.assign(merged, data.data);
-      } catch { setVizResult("❌ 通信エラー"); setVizLoading(false); return; }
+      } catch { setVizResult("❌ 通信エラー"); recordProgress("viz", "failed", "通信エラー"); setVizLoading(false); return; }
     }
     setVizResult("⏳ 保存中...");
     try {
       const saveRes = await fetch("/api/visualize", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ companyId:selectedCompany.id, save_results:merged }) });
       const saveData = await saveRes.json();
       setVizResult(saveData.success ? "✅ 視覚化データ生成完了" : `❌ 保存エラー: ${saveData.error}`);
-    } catch { setVizResult("❌ 保存通信エラー"); }
+      recordProgress("viz", saveData.success ? "done" : "failed", saveData.success ? "視覚化データ生成完了" : `保存エラー: ${saveData.error}`);
+    } catch { setVizResult("❌ 保存通信エラー"); recordProgress("viz", "failed", "保存通信エラー"); }
     finally { setVizLoading(false); }
   };
 
@@ -453,6 +558,51 @@ export default function AdminPage() {
   const sectionStyle = { background:"white", borderRadius:"12px", padding:"20px", marginBottom:"12px", border:"1px solid #d1f5f7" };
   const btnStyle = (color: string, disabled: boolean) => ({ padding:"9px 16px", backgroundColor:disabled?"#94a3b8":color, color:"white", border:"none", borderRadius:"8px", cursor:disabled?"default":"pointer" as const, fontWeight:700 as const, fontSize:"13px", width:"100%" });
 
+
+  const progIcon = (k: string) => { const s = getStatus(k).kind; return s === "done" ? "✅" : s === "failed" ? "❌" : s === "stale" ? "⚠️" : "⬜"; };
+  const progText = (k: string) => {
+    const s = getStatus(k);
+    if (s.kind === "done") return s.at ? `完了 ${fmtAt(s.at)}` : "完了(既存のデータあり・日時は不明)";
+    if (s.kind === "failed") return `失敗 ${fmtAt(s.at)}`;
+    if (s.kind === "stale") return `要やり直し(前の工程をやり直したため・前回 ${fmtAt(s.at)})`;
+    return "未実行";
+  };
+  const progColor = (k: string) => { const s = getStatus(k).kind; return s === "done" ? "#166534" : s === "failed" ? "#dc2626" : s === "stale" ? "#b45309" : "#64748b"; };
+  // 各STEPの枠の中に出す「記録された完了日時」の1行(いま実行中・結果表示中のときは出さない)
+  const renderBadge = (keys: string[], withLabel?: boolean) => {
+    if (!selectedCompany) return null;
+    return (
+      <div style={{ margin:"2px 0 6px" }}>
+        {keys.map(k => (
+          <div key={k} style={{ fontSize:11, lineHeight:1.7, color:progColor(k) }}>
+            📌 {withLabel ? `${PROG_LABEL[k]}: ` : "記録: "}{progIcon(k)} {progText(k)}
+          </div>
+        ))}
+      </div>
+    );
+  };
+  const renderProgressPanel = () => {
+    if (!selectedCompany) return null;
+    const pend = PROG_ORDER.filter(k => getStatus(k).kind !== "done");
+    const busy = autoRunning || Object.values(stepLoading).some(Boolean) || allAxesLoading || vizLoading || false;
+    return (
+      <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:12, border:"1px solid #66c3c6", background:"white" }}>
+        <div style={{ fontWeight:900, fontSize:13, color:"#082b2e", marginBottom:6 }}>📋 この銘柄の進み具合(画面を閉じても残ります)</div>
+        {PROG_ORDER.map(k => (
+          <div key={k} style={{ display:"flex", justifyContent:"space-between", gap:8, fontSize:11, lineHeight:1.9, color:progColor(k) }}>
+            <span>{progIcon(k)} {PROG_LABEL[k]}</span>
+            <span style={{ textAlign:"right" }}>{progText(k)}</span>
+          </div>
+        ))}
+        <button onClick={runRemaining} disabled={busy || pend.length === 0} style={{ ...btnStyle("#0d4f52", busy || pend.length === 0), marginTop:10 }}>
+          {autoRunning ? "⏳ 残りを自動で実行中(画面を閉じないでください)..." : pend.length === 0 ? "✅ すべて完了しています" : `▶ 残りを続きから実行(${pend.length}件)`}
+        </button>
+        {autoRunMsg && <div style={{ marginTop:6, fontSize:11, lineHeight:1.7, padding:"4px 8px", borderRadius:6, background:autoRunMsg.startsWith("❌")?"#fef2f2":"#f0fdf4", color:autoRunMsg.startsWith("❌")?"#dc2626":"#166534", whiteSpace:"pre-wrap" }}>{autoRunMsg}</div>}
+        <p style={{ fontSize:10, color:"#64748b", margin:"8px 0 0", lineHeight:1.7 }}>未完了・失敗・要やり直しのSTEPだけを、順番に自動で実行します。途中で画面を閉じても、完了したSTEPは記録されます。止まったときは、もう一度押すと続きから再開します。</p>
+      </div>
+    );
+  };
+
   const StepRow = ({ num, color, title, desc, btnLabel, onClick, disabled }: any) => {
     const isLoading = stepLoading[num];
     const res = stepResult[num];
@@ -461,8 +611,9 @@ export default function AdminPage() {
     return (
       <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:10, border:`1px solid ${isErr?"#fecaca":isDone?"#bbf7d0":"#e2e8f0"}`, background:isErr?"#fef2f2":isDone?"#f0fdf4":"#f8fafc" }}>
         <div style={{ fontWeight:900, color, fontSize:13, marginBottom:3 }}>{title}</div>
+        {!isLoading && !res && renderBadge([num])}
         <p style={{ fontSize:11, color:"#64748b", margin:"2px 0 8px" }}>{desc}</p>
-        <button onClick={onClick} disabled={isLoading||disabled} style={btnStyle(color, isLoading||disabled)}>
+        <button onClick={onClick} disabled={isLoading||disabled||autoRunning} style={btnStyle(color, isLoading||disabled||autoRunning)}>
           {isLoading?"⏳ 処理中...":isDone?"✅ 完了（再実行）":btnLabel}
         </button>
         {res && <div style={{ marginTop:6, fontSize:11, lineHeight:1.7, padding:"6px 8px", borderRadius:6, background:isErr?"#fef2f2":"#f0fdf4", color:isErr?"#dc2626":"#166534", whiteSpace:"pre-wrap" }}>{res}</div>}
@@ -774,14 +925,16 @@ export default function AdminPage() {
                   <div style={{ borderTop:"2px dashed #C7D3E3", paddingTop:14, marginBottom:4 }}>
                     <p style={{ fontSize:11, fontWeight:700, color:"#3D5A85", marginBottom:10 }}>▼ 以下の順番で実行してください</p>
                   </div>
+                  {renderProgressPanel()}
                   <StepRow num="1" color="#3b82f6" title="STEP 1｜SECからテキスト取得" desc="SEC EDGARのS-1(目論見書)のテキストをDBに保存します（約10〜30秒）" btnLabel="① テキストを取得する" onClick={handleStep1}/>
                   <StepRow num="7" color="#0369a1" title="STEP 2｜市場・競合情報収集" desc="主幹事証券・競合企業・業界PER・直近IPO事例を収集します（約20〜30秒）" btnLabel="⑦ 市場・競合情報を収集する" onClick={handleStep7}/>
                   <StepRow num="2" color="#16a34a" title="STEP 3｜財務データを構造化" desc="テキストから財務・株主・ロックアップ情報をJSON化します（約15〜25秒）" btnLabel="② 財務データを構造化する" onClick={handleStep2}/>
                   <StepRow num="3" color="#0e7490" title="STEP 4｜スコア・シナリオ生成" desc="総合スコア→まずここに注目→株価シナリオの順に3回に分けて生成します（約40〜60秒）" btnLabel="③ スコア・シナリオを生成する" onClick={handleStep3}/>
                   <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:10, border:`1px solid ${(stepResult["4"]||stepResult["5"]||stepResult["6"])?.startsWith("❌")?"#fecaca":stepResult["6"]?"#bbf7d0":"#e2e8f0"}`, background:(stepResult["4"]||stepResult["5"]||stepResult["6"])?.startsWith("❌")?"#fef2f2":stepResult["6"]?"#f0fdf4":"#f8fafc" }}>
                     <div style={{ fontWeight:900, color:"#7c3aed", fontSize:13, marginBottom:3 }}>STEP 5｜9軸 詳細分析（一括実行）</div>
+                    {!allAxesLoading && !["4","5","6"].some(n=>stepResult[n]) && renderBadge(["4","5","6"], true)}
                     <p style={{ fontSize:11, color:"#64748b", margin:"2px 0 8px" }}>超短期・短期・長期の9軸をすべて自動で順番に分析します（約2〜4分）</p>
-                    <button onClick={handleAllAxes} disabled={allAxesLoading} style={btnStyle("#7c3aed", allAxesLoading)}>
+                    <button onClick={handleAllAxes} disabled={allAxesLoading||autoRunning} style={btnStyle("#7c3aed", allAxesLoading||autoRunning)}>
                       {allAxesLoading?"⏳ 分析中（しばらくお待ちください）...":"④⑤⑥ 9軸を一括分析する"}
                     </button>
                     {["4","5","6"].map(n=>stepResult[n]&&(
@@ -793,8 +946,9 @@ export default function AdminPage() {
                   </div>
                   <div style={{ borderRadius:10, padding:"12px 14px", marginBottom:10, border:`1px solid ${vizResult?.startsWith("❌")?"#fecaca":vizResult?.includes("完了")?"#bbf7d0":"#e2e8f0"}`, background:vizResult?.startsWith("❌")?"#fef2f2":vizResult?.includes("完了")?"#f0fdf4":"#f8fafc" }}>
                     <div style={{ fontWeight:900, color:"#1E3A66", fontSize:13, marginBottom:3 }}>STEP 6｜視覚化データ生成</div>
+                    {!vizLoading && !vizResult && renderBadge(["viz"])}
                     <p style={{ fontSize:11, color:"#64748b", margin:"2px 0 8px" }}>グラフ・表データをまとめて生成します（約30〜60秒）</p>
-                    <button onClick={handleVisualize} disabled={vizLoading} style={btnStyle("#1E3A66", vizLoading)}>
+                    <button onClick={handleVisualize} disabled={vizLoading||autoRunning} style={btnStyle("#1E3A66", vizLoading||autoRunning)}>
                       {vizLoading?"⏳ 生成中...":"📊 視覚化データを生成"}
                     </button>
                     {vizResult && <div style={{ marginTop:6, fontSize:11, padding:"4px 8px", borderRadius:6, background:vizResult.startsWith("❌")?"#fef2f2":"#f0fdf4", color:vizResult.startsWith("❌")?"#dc2626":"#166534" }}>{vizResult}</div>}
