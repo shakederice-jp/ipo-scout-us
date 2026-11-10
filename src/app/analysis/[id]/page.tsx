@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const tail = score ? `AI総合評価${score}/100(${grade}ランク)。` : "";
   const description = `${who}の米国IPO情報。${facts ? facts + "。" : ""}ロックアップ解除日・主幹事・日本からの買い方を、目論見書(S-1)をもとにAIが日本語で整理。${tail}${summary ? summary.slice(0, 60) : ""}`.slice(0, 200);
   const canonicalId = ticker ?? data.id;
-  const url = `https://ipo-us.finance-tower.com/analysis/${canonicalId}`;
+  const url = `https://finance-tower.com/ipo-us/analysis/${canonicalId}`;
   return {
     title,
     description,
@@ -96,12 +96,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       siteName: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
       locale: "ja_JP",
       type: "article",
-      images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
+      images: [{ url: "https://finance-tower.com/ipo-us/ogp.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title, description,
-      images: ["https://ipo-us.finance-tower.com/ogp.png"],
+      images: ["https://finance-tower.com/ipo-us/ogp.png"],
     },
     alternates: { canonical: url },
   };
@@ -187,13 +187,13 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
     "publisher": {
       "@type": "Organization",
       "name": "大手町調査室九課",
-      "url": "https://ipo-us.finance-tower.com",
+      "url": "https://finance-tower.com/ipo-us",
     },
     "datePublished": company.listing_date ?? new Date().toISOString(),
     "dateModified": analysisSummary?.generated_at ?? company.listing_date ?? new Date().toISOString(),
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://ipo-us.finance-tower.com/analysis/${canonicalId}`,
+      "@id": `https://finance-tower.com/ipo-us/analysis/${canonicalId}`,
     },
   };
 

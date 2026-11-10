@@ -53,7 +53,8 @@ export async function POST(req: NextRequest) {
     const { data: prof } = await admin.from("user_profiles").select("stripe_customer_id").eq("id", user.id).maybeSingle();
     const customerId = (prof as any)?.stripe_customer_id as string | undefined;
 
-    const origin     = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    // 2026/11/10: /ipo-us 配下で公開するため、戻り先URLには /ipo-us を付ける
+    const origin     = (req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/ipo-us";
     const mode       = plan === "single" ? "payment" : "subscription";
     const successUrl = plan === "single" && stockId
       ? `${origin}/analysis/${stockId}?checkout=success`

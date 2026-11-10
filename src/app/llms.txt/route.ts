@@ -4,7 +4,7 @@ import { getScheduleCompanies } from "@/lib/get-companies";
 // 銘柄の一覧は、登録データから自動で作る(銘柄を追加すると、1時間以内に反映される)。
 export const revalidate = 3600;
 
-const BASE = "https://ipo-us.finance-tower.com";
+const BASE = "https://finance-tower.com/ipo-us";
 
 function todayJst(): string {
   return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);

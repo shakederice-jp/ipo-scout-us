@@ -1,19 +1,19 @@
 {
   "crons": [
     {
-      "path": "/api/cron/notify",
+      "path": "/ipo-us/api/cron/notify",
       "schedule": "0 9 * * 5"
     },
     {
-      "path": "/api/cron/db-check",
+      "path": "/ipo-us/api/cron/db-check",
       "schedule": "0 1 * * 1"
     },
     {
-      "path": "/api/cron/rakuten-ipo?slot=am",
+      "path": "/ipo-us/api/cron/rakuten-ipo?slot=am",
       "schedule": "0 0 * * *"
     },
     {
-      "path": "/api/cron/rakuten-ipo?slot=pm",
+      "path": "/ipo-us/api/cron/rakuten-ipo?slot=pm",
       "schedule": "0 9 * * *"
     }
   ]

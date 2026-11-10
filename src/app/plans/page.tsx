@@ -129,7 +129,7 @@ export default function PlansPage() {
                   </div>
                 ))}
                 {plan.id === "free" ? (
-                  <a href="/" style={{ display: "block", marginTop: 16, padding: "10px", backgroundColor: plan.bg, color: plan.color, borderRadius: 10, fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center", border: `1px solid ${plan.border}` }}>
+                  <a href="/ipo-us" style={{ display: "block", marginTop: 16, padding: "10px", backgroundColor: plan.bg, color: plan.color, borderRadius: 10, fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center", border: `1px solid ${plan.border}` }}>
                     無料で始める →
                   </a>
                 ) : (
@@ -173,7 +173,7 @@ export default function PlansPage() {
             ))}
           </div>
           <p style={{ fontSize: 11, color: "#64748b", lineHeight: 1.7, margin: "12px 0 0" }}>
-            詳しくは<a href="/privacy" style={{ color: "#047857", fontWeight: 700 }}>プライバシーポリシー</a>をご覧ください。
+            詳しくは<a href="/ipo-us/privacy" style={{ color: "#047857", fontWeight: 700 }}>プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
 
@@ -271,10 +271,10 @@ export default function PlansPage() {
             毎月最初の2銘柄は完全無料。登録不要ですぐ読めます。
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="/" style={{ padding: "12px 28px", backgroundColor: C.teal, color: "#ffffff", borderRadius: 10, fontWeight: 900, fontSize: 14, textDecoration: "none" }}>
+            <a href="/ipo-us" style={{ padding: "12px 28px", backgroundColor: C.teal, color: "#ffffff", borderRadius: 10, fontWeight: 900, fontSize: 14, textDecoration: "none" }}>
               無料で始める →
             </a>
-            <a href="/auth" style={{ padding: "12px 28px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", borderRadius: 10, fontWeight: 700, fontSize: 14, textDecoration: "none", border: "1px solid rgba(255,255,255,0.3)" }}>
+            <a href="/ipo-us/auth" style={{ padding: "12px 28px", backgroundColor: "rgba(255,255,255,0.1)", color: "white", borderRadius: 10, fontWeight: 700, fontSize: 14, textDecoration: "none", border: "1px solid rgba(255,255,255,0.3)" }}>
               アカウント登録
             </a>
           </div>

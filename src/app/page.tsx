@@ -12,19 +12,19 @@ export const metadata: Metadata = {
   openGraph: {
     title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
     description: "米国IPOの上場スケジュールと目論見書のAI分析を日本語で。上場日・公募価格・ロックアップ解除日・買い方を銘柄ごとに掲載。",
-    url: "https://ipo-us.finance-tower.com",
+    url: "https://finance-tower.com/ipo-us",
     siteName: "大手町調査室九課",
     locale: "ja_JP",
     type: "website",
-    images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
+    images: [{ url: "https://finance-tower.com/ipo-us/ogp.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
     description: "米国IPOの上場スケジュールと目論見書のAI分析を日本語で。上場日・公募価格・ロックアップ解除日・買い方を銘柄ごとに掲載。",
-    images: ["https://ipo-us.finance-tower.com/ogp.png"],
+    images: ["https://finance-tower.com/ipo-us/ogp.png"],
   },
-  alternates: { canonical: "https://ipo-us.finance-tower.com" },
+  alternates: { canonical: "https://finance-tower.com/ipo-us" },
 };
 
 const cardStyle: React.CSSProperties = {
@@ -87,8 +87,8 @@ export default async function Home({
           </p>
           <p style={{ fontSize:10.5, color:"#A9C1E8", lineHeight:1.7, margin:0 }}>
             ※ 要約・翻訳はAIによる自動生成です。投資判断の前には、EDGARの原文もあわせてご確認ください。
-            <a href="/guide" style={{ color:"#ffffff", marginLeft:10, textDecoration:"underline" }}>このサイトの使い方</a>
-            <a href="/schedule" style={{ color:"#ffffff", marginLeft:10, textDecoration:"underline" }}>上場スケジュール一覧</a>
+            <a href="/ipo-us/guide" style={{ color:"#ffffff", marginLeft:10, textDecoration:"underline" }}>このサイトの使い方</a>
+            <a href="/ipo-us/schedule" style={{ color:"#ffffff", marginLeft:10, textDecoration:"underline" }}>上場スケジュール一覧</a>
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default async function Home({
         {/* 左：カレンダー＋IPO一覧 */}
         <div style={{ flex:"1 1 560px", minWidth:0 }}>
           {/* 上場スケジュール(月ごとの一覧表)への目立つリンク */}
-          <a href="/schedule" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"12px 16px", marginBottom:12, borderRadius:14, backgroundColor:"#1E3A66", textDecoration:"none", boxShadow:"0 2px 8px rgba(30,58,102,0.25)" }}>
+          <a href="/ipo-us/schedule" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"12px 16px", marginBottom:12, borderRadius:14, backgroundColor:"#1E3A66", textDecoration:"none", boxShadow:"0 2px 8px rgba(30,58,102,0.25)" }}>
             <span style={{ display:"flex", alignItems:"center", gap:10, minWidth:0 }}>
               <span style={{ fontSize:20 }}>📋</span>
               <span style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
@@ -116,7 +116,7 @@ export default async function Home({
         <aside className="top-sidebar" style={{ flex:"0 0 300px", minWidth:280, display:"flex", flexDirection:"column", gap:12 }}>
 
           {/* 料金プランページへのリンク */}
-          <a href="/plans" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#E8EDF5", textDecoration:"none", border:"1.5px solid #1E3A66" }}>
+          <a href="/ipo-us/plans" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#E8EDF5", textDecoration:"none", border:"1.5px solid #1E3A66" }}>
             <div>
               <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>📋 料金プランを見る</div>
               <div style={{ fontSize:10, color:"#3D5A85", marginTop:2 }}>無料〜{jpyMonth("plan_c")}・有料3プラン比較</div>
@@ -125,7 +125,7 @@ export default async function Home({
           </a>
 
           {/* 2026/10/31追加(米国版の紹介制度): 紹介プログラムがマイページの奥にしかなく気づかれにくいため、トップページからも露出させる。 */}
-          <a href="/mypage" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#fef2f2", textDecoration:"none", border:"1.5px solid #dc2626" }}>
+          <a href="/ipo-us/mypage" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#fef2f2", textDecoration:"none", border:"1.5px solid #dc2626" }}>
             <div>
               <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>🎁 友達紹介で有料分析2ヶ月読み放題</div>
               <div style={{ fontSize:10, color:"#b91c1c", marginTop:2, fontWeight:700 }}>🎉 先着300名限定キャンペーン実施中</div>
@@ -159,11 +159,11 @@ export default async function Home({
               <a href="https://member.c.sbisec.co.jp/foreign/home" target="_blank" rel="noopener noreferrer" style={{ fontSize:11, fontWeight:800, color:"#1E3A66", backgroundColor:"#E8EDF5", border:"1px solid #C7D3E3", borderRadius:999, padding:"4px 12px", textDecoration:"none" }}>SBI証券 ↗</a>
             </div>
             <div style={{ fontSize:10, color:"#64748b", lineHeight:1.7, marginBottom:8 }}>※SBI証券：新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。</div>
-            <a href="/how-to-buy" style={{ fontSize:11, fontWeight:700, color:"#1E3A66", textDecoration:"none" }}>参加する方法を見る →</a>
+            <a href="/ipo-us/how-to-buy" style={{ fontSize:11, fontWeight:700, color:"#1E3A66", textDecoration:"none" }}>参加する方法を見る →</a>
           </div>
 
 {/* IPO投資ガイドへのリンク */}
-<a href="/ipo-guide" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#f0fdf4", textDecoration:"none", border:"1.5px solid #22c55e" }}>
+<a href="/ipo-us/ipo-guide" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px", backgroundColor:"#f0fdf4", textDecoration:"none", border:"1.5px solid #22c55e" }}>
             <div>
               <div style={{ fontSize:12, fontWeight:900, color:"#0F1F36" }}>💡 IPO投資で資産を増やす法則</div>
               <div style={{ fontSize:10, color:"#15803d", marginTop:2 }}>超短期・短期・長期の実践的戦略</div>
@@ -172,7 +172,7 @@ export default async function Home({
           </a>
 
                    {/* マイページ（冒頭） */}
-          <a href="/mypage" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"14px 16px", backgroundColor:"#f59e0b", border:"2px solid #d97706", textDecoration:"none", fontWeight:900, fontSize:14, color:"white", boxShadow:"0 2px 8px rgba(245,158,11,0.25)" }}>
+          <a href="/ipo-us/mypage" style={{ ...cardStyle, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"14px 16px", backgroundColor:"#f59e0b", border:"2px solid #d97706", textDecoration:"none", fontWeight:900, fontSize:14, color:"white", boxShadow:"0 2px 8px rgba(245,158,11,0.25)" }}>
             <User size={16} color="white" />
             👤 マイページ・通知設定
           </a>
@@ -209,16 +209,16 @@ export default async function Home({
       {/* フッター */}
       <footer style={{ borderTop:"1px solid #C7D3E3", backgroundColor:"white", padding:"24px 16px", textAlign:"center" }}>
         <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", columnGap:20, rowGap:8, marginBottom:12 }}>
-          <a href="/tokushoho" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>特定商取引法に基づく表記</a>
-          <a href="/privacy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>プライバシーポリシー</a>
-          <a href="/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>お問い合わせ</a>
-          <a href="/schedule" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📅 上場スケジュール</a>
-          <a href="/glossary" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📖 用語集</a>
-          <a href="/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>このサイトの使い方</a>
-          <a href="/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>日本からの買い方</a>
-          <a href="/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>料金プラン</a>
-          <a href="/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>💡 IPO投資の法則</a>
-          <a href="/install" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📲 ホーム画面に追加</a>
+          <a href="/ipo-us/tokushoho" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>特定商取引法に基づく表記</a>
+          <a href="/ipo-us/privacy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>プライバシーポリシー</a>
+          <a href="/ipo-us/contact" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>お問い合わせ</a>
+          <a href="/ipo-us/schedule" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📅 上場スケジュール</a>
+          <a href="/ipo-us/glossary" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📖 用語集</a>
+          <a href="/ipo-us/guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>このサイトの使い方</a>
+          <a href="/ipo-us/how-to-buy" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>日本からの買い方</a>
+          <a href="/ipo-us/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>料金プラン</a>
+          <a href="/ipo-us/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>💡 IPO投資の法則</a>
+          <a href="/ipo-us/install" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📲 ホーム画面に追加</a>
         </div>
         <p style={{ fontSize:10, color:"#94a3b8", lineHeight:1.7, margin:0 }}>
           本サービスの分析・スコアはAIによる試算値であり、投資勧誘ではありません。<br/>

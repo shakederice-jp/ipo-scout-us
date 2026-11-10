@@ -24,7 +24,7 @@ import { secFetch, extractBusinessExcerpt, isExcludedByName, isBlankCheckText } 
 
 export const maxDuration = 60;
 
-const SITE = "https://ipo-us.finance-tower.com";
+const SITE = "https://finance-tower.com/ipo-us";
 
 const REG_FORMS = new Set(["S-1", "F-1"]);
 const AMEND_FORMS = new Set(["S-1/A", "F-1/A"]);
@@ -265,7 +265,7 @@ async function registerFromCalendar(
         `Nasdaq公式のIPOカレンダーに載った案件を、自動登録しました。\n\n` +
         `会社名: ${r.name}\nティッカー: ${r.ticker ?? "不明"}  上場先: ${r.exchange ?? "不明"}\n` +
         `上場日: ${r.date}(${r.kind === "priced" ? "価格決定済み" : "予定"})\n事業内容: ${analysis.biz_type}\n\n` +
-        `管理画面から分析を進めてください。\nhttps://ipo-us.finance-tower.com/admin`,
+        `管理画面から分析を進めてください。\nhttps://finance-tower.com/ipo-us/admin`,
         "info"
       );
     } catch (e: any) {

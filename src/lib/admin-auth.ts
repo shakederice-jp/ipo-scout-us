@@ -15,7 +15,8 @@
 //     それまでのログイン状態はすべて無効になる(万一のときはパスワード変更で全員ログアウトできる)。
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
-export const ADMIN_COOKIE = "admin_session";
+// 2026/11/10: 同じドメイン(finance-tower.com)の日本版と名前がぶつからないよう、末尾に _us を付けた
+export const ADMIN_COOKIE = "admin_session_us";
 export const ADMIN_SESSION_MAX_AGE_SEC = 14 * 24 * 60 * 60; // ログイン状態の有効期間(14日)
 export const ADMIN_PASSWORD_MIN_LENGTH = 9; // 米国版: 9文字以上で、英字と数字を両方含むこと(日本版は12文字以上)
 

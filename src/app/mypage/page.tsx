@@ -57,7 +57,7 @@ export default function MyPage() {
     // 管理者プレビューモード（URLに?admin=1がある場合）
     const isAdminPreview = new URLSearchParams(window.location.search).get("admin") === "1";
     
-    fetch("/api/mypage", { cache: "no-store" })
+    fetch("/ipo-us/api/mypage", { cache: "no-store" })
       .then(r => r.json())
       .then(d => {
         if (d.error && isAdminPreview) {
@@ -106,7 +106,7 @@ export default function MyPage() {
     setSavingNotify(true);
     setNotifySaveResult(null);
     try {
-      const res = await fetch("/api/notification", {
+      const res = await fetch("/ipo-us/api/notification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,7 +131,7 @@ export default function MyPage() {
   const handleRemoveFavorite = async (companyId: string, name: string) => {
     if (!confirm(`「${name}」をマイポートフォリオから外しますか？`)) return;
     try {
-      const res = await fetch("/api/favorite-companies", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: companyId }) });
+      const res = await fetch("/ipo-us/api/favorite-companies", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: companyId }) });
       if (!res.ok) { alert("削除に失敗しました。時間をおいてもう一度お試しください。"); return; }
       setData((prev: any) => ({ ...prev, favoriteCompanies: (prev.favoriteCompanies ?? []).filter((f: any) => f.id !== companyId) }));
     } catch { alert("通信エラーが発生しました"); }
@@ -140,13 +140,13 @@ export default function MyPage() {
   const handleLogout = async () => {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/ipo-us";
   };
   const handleOpenPortal = async () => {
     setPortalLoading(true);
     setPortalError(null);
     try {
-      const res = await fetch("/api/portal", { method: "POST" });
+      const res = await fetch("/ipo-us/api/portal", { method: "POST" });
       const body = await res.json();
       if (!res.ok) {
         setPortalError(body.error ?? "ポータルの起動に失敗しました");
@@ -170,14 +170,14 @@ export default function MyPage() {
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#F5F4EF" }}>
       <div style={{ textAlign: "center" }}>
         <p style={{ color: "#64748b", marginBottom: 16 }}>ログインが必要です</p>
-        <a href="/auth" style={{ padding: "10px 24px", backgroundColor: PRIMARY, color: "white", borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>ログイン</a>
+        <a href="/ipo-us/auth" style={{ padding: "10px 24px", backgroundColor: PRIMARY, color: "white", borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>ログイン</a>
       </div>
     </div>
   );
 
   const profile = data.profile ?? {};
   const plan = PLAN_LABELS[profile.plan ?? "free"] ?? PLAN_LABELS.free;
-  const referralUrl = `https://ipo-us.finance-tower.com/?ref=${profile.referral_code ?? ""}`;
+  const referralUrl = `https://finance-tower.com/ipo-us/?ref=${profile.referral_code ?? ""}`;
   const completedReferrals = (data.referralLogs ?? []).filter((r: any) => r.status === "completed").length;
   const freeMonthsEarned = completedReferrals * 2;
 
@@ -266,7 +266,7 @@ export default function MyPage() {
             } />
           )}
 
-<a href="/cancel"
+<a href="/ipo-us/cancel"
             style={{ display: "block", textAlign: "center", width: "100%", marginTop: 16, padding: "12px", backgroundColor: "white", color: DARK, border: `1px solid ${BORDER}`, borderRadius: 8, textDecoration: "none", fontWeight: 700, fontSize: 13, boxSizing: "border-box" }}>
             🔓 プラン変更・解約はこちら
           </a>
@@ -290,7 +290,7 @@ export default function MyPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {(data.favoriteCompanies ?? []).map((f: any) => {
-                const href = `/analysis/${f.ticker ?? f.id}`;
+                const href = `/ipo-us/analysis/${f.ticker ?? f.id}`;
                 const ip: number | null = f.ipo_price ?? null;
                 const lp: number | null = f.latest_price ?? null;
                 const sim = ip && lp && ip > 0 ? { pct: (lp / ip - 1) * 100, val: Math.round(1000000 * lp / ip) } : null;
@@ -415,7 +415,7 @@ export default function MyPage() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {data.purchases.map((p: any) => (
-                <a key={p.id} href={`/analysis/${p.company_id}`}
+                <a key={p.id} href={`/ipo-us/analysis/${p.company_id}`}
                   style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", backgroundColor: LIGHT, borderRadius: 8, border: `1px solid ${BORDER}`, textDecoration: "none" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: DARK }}>{p.ipo_companies?.name ?? "不明"}</div>

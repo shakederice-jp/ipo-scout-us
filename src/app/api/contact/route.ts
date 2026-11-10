@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
               <div style="border-top:1px solid #e2e8f0;margin-top:24px;padding-top:16px">
                 <p style="color:#0F1F36;font-size:13px;font-weight:700;margin:0 0 4px">大手町調査室九課</p>
                 <p style="color:#64748b;font-size:12px;margin:0">IPO企業情報AI分析レポート</p>
-                <a href="https://ipo-us.finance-tower.com" style="color:#1E3A66;font-size:12px;text-decoration:none">ipo-us.finance-tower.com</a>
+                <a href="https://finance-tower.com/ipo-us" style="color:#1E3A66;font-size:12px;text-decoration:none">finance-tower.com/ipo-us</a>
               </div>
 
               <p style="margin-top:20px;font-size:11px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:12px;line-height:1.7">

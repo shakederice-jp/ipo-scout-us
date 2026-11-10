@@ -3,9 +3,12 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { NEXT_COOKIE, safeNext } from "@/lib/post-login";
 import { applyPendingReferral } from "@/lib/referral";
+import { PUBLIC_ORIGIN, withBase } from "@/lib/base-path";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams, origin: requestOrigin } = new URL(request.url);
+  // 2026/11/10: finance-tower.com/ipo-us 配下で公開するため、戻り先は公開URLを固定で使う(開発中のみリクエストのURL)
+  const origin = process.env.NODE_ENV === "production" ? PUBLIC_ORIGIN : requestOrigin;
   const code = searchParams.get("code");
   // メールのリンクが期限切れ・使用済みなどのとき、Supabaseは error / error_code を付けて戻してくる
   const linkError = searchParams.get("error_code") || searchParams.get("error");
@@ -65,7 +68,7 @@ export async function GET(request: NextRequest) {
     dest = `/auth/reset?diag=${encodeURIComponent(diag)}`;
   }
 
-  const res = NextResponse.redirect(`${origin}${dest}`);
+  const res = NextResponse.redirect(`${origin}${withBase(dest)}`);
   res.cookies.set(NEXT_COOKIE, "", { path: "/", maxAge: 0 });
   return res;
 }

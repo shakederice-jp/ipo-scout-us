@@ -75,7 +75,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
   const [modalOpen, setModalOpen]   = useState(false);
 
   useEffect(() => {
-    fetch("/api/companies")
+    fetch("/ipo-us/api/companies")
       .then(r => r.json())
       .then(data => { setCompanies(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -85,7 +85,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
   useEffect(() => {
     const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
 
-    fetch(`/api/calendar-notes?month=${monthKey}`)
+    fetch(`/ipo-us/api/calendar-notes?month=${monthKey}`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -96,7 +96,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
       })
       .catch(() => {});
 
-    fetch(`/api/economic-events?month=${monthKey}`)
+    fetch(`/ipo-us/api/economic-events?month=${monthKey}`)
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setEvents(data); })
       .catch(() => {});
@@ -118,7 +118,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
     if (!selectedDate) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/calendar-notes", {
+      const res = await fetch("/ipo-us/api/calendar-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +149,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
     if (!selectedDate) return;
     setSaving(true);
     try {
-      await fetch("/api/calendar-notes", {
+      await fetch("/ipo-us/api/calendar-notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note_date: selectedDate, memo: null, pnl: null }),
@@ -393,7 +393,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
               </h2>
               <span style={{ fontSize:11, color:C.muted }}>{loading ? (lang === "ja" ? "読み込み中..." : "Loading...") : `（${monthSorted.length}${lang === "en" ? " co." : "社"}）`}</span>
             </div>
-            <a href="/guide" style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", backgroundColor:C.teal, borderRadius:20, textDecoration:"none", marginBottom:8 }}>
+            <a href="/ipo-us/guide" style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"6px 14px", backgroundColor:C.teal, borderRadius:20, textDecoration:"none", marginBottom:8 }}>
               <span style={{ fontSize:11, fontWeight:700, color:"white" }}>📖 このサイトの効果的な使い方</span>
               <span style={{ fontSize:11, color:"rgba(255,255,255,0.8)" }}>→</span>
             </a>
@@ -476,7 +476,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
                     </p>
                   )}
                  <div style={{ display:"flex", justifyContent:"flex-end", gap:8, flexWrap:"wrap" }}>
-                    <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor: isFree ? C.teal : "#f59e0b", color:"white" }}>
+                    <a href={`/ipo-us/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor: isFree ? C.teal : "#f59e0b", color:"white" }}>
                       {lang === "ja" ? "📊 分析レポートを読む" : "📊 Read the report"}
                     </a>
                   </div>
@@ -510,7 +510,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
                       <p style={{ fontSize:12, color:"#374151", lineHeight:1.9, margin:"0 0 12px" }}>{company.ai_summary}</p>
                     )}
                     <div style={{ display:"flex", justifyContent:"flex-end", gap:8, flexWrap:"wrap" }}>
-                      <a href={`/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"#f59e0b", color:"white" }}>📊 分析レポートを読む</a>
+                      <a href={`/ipo-us/analysis/${company.id}`} style={{ padding:"7px 16px", borderRadius:8, fontSize:12, fontWeight:700, textDecoration:"none", backgroundColor:"#f59e0b", color:"white" }}>📊 分析レポートを読む</a>
                     </div>
                   </div>
                 </div>

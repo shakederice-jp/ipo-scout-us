@@ -5,7 +5,7 @@ import { fmtUsd, fmtJpyApprox, FX_NOTE } from "@/lib/fx";
 // 1時間ごとに自動で作り直す(銘柄の追加・上場日の更新が、手作業なしで反映される)
 export const revalidate = 3600;
 
-const BASE = "https://ipo-us.finance-tower.com";
+const BASE = "https://finance-tower.com/ipo-us";
 const C = { nav: "#1E3A66", dark: "#0F1F36", light: "#F5F4EF", border: "#C7D3E3", mid: "#3D5A85", soft: "#E8EDF5" };
 
 type Row = {
@@ -95,7 +95,7 @@ function Table({ rows, today }: { rows: Row[]; today: string }) {
         <tbody>
           {rows.map((r) => {
             const p = priceText(r);
-            const href = `/analysis/${r.ticker ?? r.id}`;
+            const href = `/ipo-us/analysis/${r.ticker ?? r.id}`;
             const lock = [r.lockup_90_date ? `90日：${jpShort(r.lockup_90_date)}` : "", r.lockup_180_date ? `180日：${jpShort(r.lockup_180_date)}` : ""].filter(Boolean).join(" ／ ");
             return (
               <tr key={r.id}>
@@ -165,7 +165,7 @@ export default async function SchedulePage() {
         </div>
 
         {/* カレンダーへの目立つリンク */}
-        <a href="/" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 16px", marginBottom: 14, borderRadius: 14, backgroundColor: "white", border: `2px solid ${C.nav}`, textDecoration: "none" }}>
+        <a href="/ipo-us" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 16px", marginBottom: 14, borderRadius: 14, backgroundColor: "white", border: `2px solid ${C.nav}`, textDecoration: "none" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             <span style={{ fontSize: 20 }}>📅</span>
             <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -214,8 +214,8 @@ export default async function SchedulePage() {
             </div>
           ))}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 4 }}>
-            <a href="/how-to-buy" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>日本からの買い方 →</a>
-            <a href="/glossary" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>用語集 →</a>
+            <a href="/ipo-us/how-to-buy" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>日本からの買い方 →</a>
+            <a href="/ipo-us/glossary" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>用語集 →</a>
           </div>
         </section>
 

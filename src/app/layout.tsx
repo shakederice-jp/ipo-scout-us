@@ -31,17 +31,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 2026/10/29追加: 「ホーム画面に追加」対応。設定ファイル・アイコン・iPhone用のアイコン名を設定し、
             Service Workerを登録する(オフラインのキャッシュ等はせず、追加できるようにするための最低限の対応)。
             ?v=3 は、古いアイコンの記憶を避けるための印。 */}
-        <link rel="manifest" href="/manifest.json?v=3" />
+        <link rel="manifest" href="/ipo-us/manifest.json?v=3" />
         <meta name="theme-color" content="#1E3A66" />
         <meta name="apple-mobile-web-app-title" content="AI×IPO 米国" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3" />
-        <link rel="icon" href="/icon-192.png?v=3" type="image/png" />
+        <link rel="apple-touch-icon" href="/ipo-us/apple-touch-icon.png?v=3" />
+        <link rel="icon" href="/ipo-us/icon-192.png?v=3" type="image/png" />
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-              navigator.serviceWorker.register('/sw.js').catch(function () {});
+              navigator.serviceWorker.register('/ipo-us/sw.js').catch(function () {});
             });
           }
         `}</Script>

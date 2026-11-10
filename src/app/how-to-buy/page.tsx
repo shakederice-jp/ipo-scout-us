@@ -7,14 +7,14 @@ const CHECKED_AT = "2026年10月17日";
 export const metadata: Metadata = {
   title: "米国IPOの買い方｜日本の証券会社で抽選に参加する方法と上場後に買う方法",
   description: "米国IPO（新規上場株）の買い方を、日本の個人投資家向けに整理。楽天証券・SBI証券の抽選の取り扱い条件、上場後に買う方法、1株から買えるのか、NISAは使えるのか、注意点までまとめました。",
-  alternates: { canonical: "https://ipo-us.finance-tower.com/how-to-buy" },
+  alternates: { canonical: "https://finance-tower.com/ipo-us/how-to-buy" },
   openGraph: {
     title: "米国IPOの買い方｜日本の証券会社で抽選に参加する方法と上場後に買う方法",
     description: "米国IPOの買い方を、日本の個人投資家向けに整理。楽天証券・SBI証券の取り扱い条件と、上場後に買う方法。",
-    url: "https://ipo-us.finance-tower.com/how-to-buy",
+    url: "https://finance-tower.com/ipo-us/how-to-buy",
     siteName: "米国IPO企業情報AI分析レポート｜大手町調査室九課",
     locale: "ja_JP", type: "article",
-    images: [{ url: "https://ipo-us.finance-tower.com/ogp.png", width: 1200, height: 630 }],
+    images: [{ url: "https://finance-tower.com/ipo-us/ogp.png", width: 1200, height: 630 }],
   },
 };
 
@@ -84,8 +84,8 @@ export default function HowToBuyPage() {
       "inLanguage": "ja",
       "dateModified": "2026-10-17",
       "author": { "@type": "Organization", "name": "大手町調査室九課" },
-      "publisher": { "@type": "Organization", "name": "大手町調査室九課", "url": "https://ipo-us.finance-tower.com" },
-      "mainEntityOfPage": "https://ipo-us.finance-tower.com/how-to-buy",
+      "publisher": { "@type": "Organization", "name": "大手町調査室九課", "url": "https://finance-tower.com/ipo-us" },
+      "mainEntityOfPage": "https://finance-tower.com/ipo-us/how-to-buy",
     },
     {
       "@context": "https://schema.org",
@@ -192,7 +192,7 @@ export default function HowToBuyPage() {
             当サイトの各銘柄の分析ページでは、ティッカー・上場日・ロックアップ解除日、上場後の値動き(公募価格との比較)を確認できます。
           </p>
           <div style={{ marginTop: 12 }}>
-            <a href="/" style={{ fontSize: 13, fontWeight: 800, color: C.nav }}>銘柄一覧を見る →</a>
+            <a href="/ipo-us" style={{ fontSize: 13, fontWeight: 800, color: C.nav }}>銘柄一覧を見る →</a>
           </div>
         </div>
 
@@ -220,9 +220,9 @@ export default function HowToBuyPage() {
             </div>
           ))}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 4 }}>
-            <a href="/schedule" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>上場スケジュール →</a>
-            <a href="/glossary" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>用語集 →</a>
-            <a href="/" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>カレンダーで見る →</a>
+            <a href="/ipo-us/schedule" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>上場スケジュール →</a>
+            <a href="/ipo-us/glossary" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>用語集 →</a>
+            <a href="/ipo-us" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>カレンダーで見る →</a>
           </div>
         </div>
 

@@ -11,7 +11,7 @@ export default async function sitemap() {
     .select("id, ticker, listing_date")
     .order("listing_date", { ascending: false });
 
-  const baseUrl = "https://ipo-us.finance-tower.com";
+  const baseUrl = "https://finance-tower.com/ipo-us";
 
   const staticPages = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1.0 },

@@ -86,7 +86,7 @@ export function JpBuyCard({ company }: { company: { listing_date?: string | null
       <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.8, margin: "0 0 8px" }}>{body}</p>
       <BrokerLinks />
       <div style={{ marginTop: 6 }}>
-        <a href="/how-to-buy" style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>日本から米国IPOに参加する方法を見る →</a>
+        <a href="/ipo-us/how-to-buy" style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>日本から米国IPOに参加する方法を見る →</a>
       </div>
     </div>
   );

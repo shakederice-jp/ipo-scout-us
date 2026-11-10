@@ -31,7 +31,7 @@ export default function GuidePage() {
             でも、それを読み解くのは専門家でも時間がかかる作業です。<br/>
             大手町調査室九課のAI分析レポートは、その作業を自動化しました。
           </p>
-          <a href="/" style={{ display: "inline-block", padding: "14px 36px", backgroundColor: "#ffffff", color: C.nav, borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
+          <a href="/ipo-us" style={{ display: "inline-block", padding: "14px 36px", backgroundColor: "#ffffff", color: C.nav, borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
             まず無料で試してみる →
           </a>
         </div>
@@ -152,7 +152,7 @@ export default function GuidePage() {
             <a href="https://member.c.sbisec.co.jp/foreign/home" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, fontWeight: 800, color: C.nav, backgroundColor: "#E8EDF5", border: `1px solid ${C.border}`, borderRadius: 999, padding: "5px 14px", textDecoration: "none" }}>SBI証券の公式ページ ↗</a>
           </div>
           <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.8, margin: "-4px 0 12px" }}>※SBI証券：新規IPOは、このリンクを開いたあと「IPOスピードキャッチ！(米国・中国)」の欄をご覧ください。取扱予定の新規上場銘柄を確認できます(ログインが必要な場合があります)。</p>
-          <a href="/how-to-buy" style={{ fontSize: 13, fontWeight: 800, color: C.nav, textDecoration: "none" }}>参加する方法を見る →</a>
+          <a href="/ipo-us/how-to-buy" style={{ fontSize: 13, fontWeight: 800, color: C.nav, textDecoration: "none" }}>参加する方法を見る →</a>
         </div>
 
         {/* ⑥ CTA */}
@@ -164,7 +164,7 @@ export default function GuidePage() {
             毎月、日付順で最初の2銘柄の分析レポートは完全無料。<br/>
             登録不要で、今すぐお読みいただけます。
           </p>
-          <a href="/" style={{ display: "inline-block", padding: "14px 40px", backgroundColor: "#ffffff", color: C.nav, borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
+          <a href="/ipo-us" style={{ display: "inline-block", padding: "14px 40px", backgroundColor: "#ffffff", color: C.nav, borderRadius: 12, fontWeight: 900, fontSize: 15, textDecoration: "none" }}>
             IPO銘柄一覧を見る →
           </a>
         </div>

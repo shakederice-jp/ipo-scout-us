@@ -17,7 +17,7 @@ const BASE = "https://www.rakuten-sec.co.jp/web/info";
 const DAYS = 10;
 const MAX_PER_DAY = 10;
 const CONCURRENCY = 6;
-const UA = "Mozilla/5.0 (compatible; IPO-Scout-US/1.0; +https://ipo-us.finance-tower.com)";
+const UA = "Mozilla/5.0 (compatible; IPO-Scout-US/1.0; +https://finance-tower.com/ipo-us)";
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

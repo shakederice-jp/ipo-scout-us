@@ -4,7 +4,7 @@ import { GLOSSARY } from "@/lib/glossary";
 // 用語集ページ。サイト内の吹き出し説明(src/lib/glossary.ts)と同じ辞書から自動で作るので、説明が食い違わない。
 export const revalidate = 86400;
 
-const BASE = "https://ipo-us.finance-tower.com";
+const BASE = "https://finance-tower.com/ipo-us";
 const C = { nav: "#1E3A66", dark: "#0F1F36", light: "#F5F4EF", border: "#C7D3E3", mid: "#3D5A85", soft: "#E8EDF5" };
 
 export const metadata: Metadata = {
@@ -89,9 +89,9 @@ export default function GlossaryPage() {
         ))}
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 14, margin: "4px 4px 0" }}>
-          <a href="/schedule" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>上場スケジュール →</a>
-          <a href="/how-to-buy" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>日本からの買い方 →</a>
-          <a href="/" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>カレンダーで見る →</a>
+          <a href="/ipo-us/schedule" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>上場スケジュール →</a>
+          <a href="/ipo-us/how-to-buy" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>日本からの買い方 →</a>
+          <a href="/ipo-us" style={{ fontSize: 12, fontWeight: 700, color: C.nav }}>カレンダーで見る →</a>
         </div>
         <p style={{ fontSize: 10, color: "#94a3b8", lineHeight: 1.7, textAlign: "center", margin: "18px 0 0" }}>
           用語の説明は、投資判断の参考となる一般的な内容です。投資勧誘ではありません。

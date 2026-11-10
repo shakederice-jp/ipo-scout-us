@@ -2,7 +2,8 @@
 // 戻り先は「このサイト内のパス」だけを許可する（外部サイトへ飛ばされる悪用を防ぐため）。
 
 // 会員登録→確認メールのリンク→戻り先、という流れで戻り先を覚えておくクッキーの名前
-export const NEXT_COOKIE = "post_auth_next";
+// 2026/11/10: 同じドメイン(finance-tower.com)の日本版と名前がぶつからないよう、末尾に _us を付けた
+export const NEXT_COOKIE = "post_auth_next_us";
 
 export function safeNext(raw: string | null | undefined): string | null {
   if (!raw) return null;

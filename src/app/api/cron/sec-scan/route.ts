@@ -276,7 +276,7 @@ export async function GET(req: NextRequest) {
             `業種: ${analysis.sector}\n` +
             `事業内容: ${analysis.biz_type}${fromDoc ? "" : "(S-1本文から取得できていません)"}\n\n` +
             `管理画面から分析を進めてください。\n` +
-            `https://ipo-us.finance-tower.com/admin\n\n` +
+            `https://finance-tower.com/ipo-us/admin\n\n` +
             xDraftBlock(xDraft),
             "info"
           );

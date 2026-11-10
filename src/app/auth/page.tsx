@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { NEXT_COOKIE, safeNext } from "@/lib/post-login";
+import { withBase } from "@/lib/base-path";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -50,7 +51,7 @@ export default function AuthPage() {
       const addr = email.trim();
       if (!addr) { setError("メールアドレスを入力してください"); setLoading(false); return; }
       try { document.cookie = `${NEXT_COOKIE}=${encodeURIComponent("/auth/reset")}; path=/; max-age=3600; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`; } catch {}
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(addr, { redirectTo: `${location.origin}/auth/callback` });
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(addr, { redirectTo: `${location.origin}/ipo-us/auth/callback` });
       if (resetError) {
         console.error("resetPasswordForEmail:", resetError.message);
         // 短時間に続けて送ると、送信回数の上限(Supabaseの設定)に達して断られる
@@ -75,7 +76,7 @@ export default function AuthPage() {
       const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${location.origin}/ipo-us/auth/callback`,
         ...(pendingCode ? { data: { pending_referral_code: pendingCode } } : {}),
       },
     });
@@ -89,7 +90,7 @@ export default function AuthPage() {
         if (data?.session) {
           // メール確認なしでその場でログインできた場合は、すぐに適用を試みる
           try {
-            const res = await fetch("/api/referral", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ referral_code: pendingCode }) });
+            const res = await fetch("/ipo-us/api/referral", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ referral_code: pendingCode }) });
             const json = await res.json().catch(() => ({} as any));
             referralNote = res.ok && json?.success
               ? " 🎉紹介特典を適用しました（あなたと紹介者様の有料分析が2ヶ月間読み放題になりました）。"
@@ -113,9 +114,9 @@ export default function AuthPage() {
         // 確認メールのリンクを別の端末で開いた等で、紹介特典がまだ適用されていない場合は、ログインのタイミングで
         // 適用する(条件チェックはサーバー側。対象外なら何もしない)
         if ((signInData?.user?.user_metadata as any)?.pending_referral_code) {
-          try { await fetch("/api/referral", { method: "POST" }); } catch {}
+          try { await fetch("/ipo-us/api/referral", { method: "POST" }); } catch {}
         }
-        location.href = next ?? "/";
+        location.href = withBase(next ?? "/");
       }
     }
     setLoading(false);
@@ -208,7 +209,7 @@ export default function AuthPage() {
           </button>
         )}
 
-        <a href="/" style={{ display:"block", textAlign:"center", marginTop:"16px", fontSize:"12px", color:"#3D5A85" }}>
+        <a href="/ipo-us" style={{ display:"block", textAlign:"center", marginTop:"16px", fontSize:"12px", color:"#3D5A85" }}>
           ← トップへ戻る
         </a>
       </div>

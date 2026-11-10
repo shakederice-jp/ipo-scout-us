@@ -13,7 +13,7 @@ import { xDraftBlock } from "@/lib/x-link";
 
 export const maxDuration = 60;
 
-const SITE = "https://ipo-us.finance-tower.com";
+const SITE = "https://finance-tower.com/ipo-us";
 
 const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -508,7 +508,7 @@ function NotifyModal({company,userId,onClose}:{company:IpoCompany;userId:string|
   const toggle=(k:keyof typeof settings)=>setSettings(p=>({...p,[k]:!p[k]}));
   const save=async()=>{
     setStatus("saving");
-    const res=await fetch("/api/notification",{method:"POST",headers:{"Content-Type":"application/json"},
+    const res=await fetch("/ipo-us/api/notification",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({user_id:userId??"guest",company_id:company.id,...settings})});
     if(!userId){setStatus("needsPlan");return;}
     const data=await res.json();
@@ -526,8 +526,8 @@ function NotifyModal({company,userId,onClose}:{company:IpoCompany;userId:string|
         {status==="needsPlan"&&(
           <div style={{backgroundColor:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:12,marginBottom:12,fontSize:12,color:"#92400e"}}>
             {!userId
-              ? <>通知機能を使うには<strong>ログイン</strong>が必要です。<a href="/auth" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>ログイン・新規登録 →</a></>
-              : <>通知機能は<strong>B 分析見放題＋通知プラン（{jpyMonth("plan_b")}）</strong>以上でご利用いただけます。<a href="/" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>プランを確認する →</a></>
+              ? <>通知機能を使うには<strong>ログイン</strong>が必要です。<a href="/ipo-us/auth" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>ログイン・新規登録 →</a></>
+              : <>通知機能は<strong>B 分析見放題＋通知プラン（{jpyMonth("plan_b")}）</strong>以上でご利用いただけます。<a href="/ipo-us" style={{display:"block",marginTop:6,color:PRIMARY,fontWeight:700}}>プランを確認する →</a></>
             }
           </div>
         )}
@@ -572,7 +572,7 @@ function ReferenceGroupHeader({icon,order,title,subtitle,accent}:{icon:string;or
         <div style={{fontWeight:900,fontSize:15,color:"white",lineHeight:1.3}}>{title}</div>
         <div style={{fontSize:10,color:"#C7D3E3",marginTop:3}}>{subtitle}</div>
       </div>
-      <a href="/ipo-guide" style={{fontSize:10,color:accent,textDecoration:"none",fontWeight:700,
+      <a href="/ipo-us/ipo-guide" style={{fontSize:10,color:accent,textDecoration:"none",fontWeight:700,
         whiteSpace:"nowrap",flexShrink:0,border:`1px solid ${accent}`,borderRadius:20,padding:"4px 10px",
         backgroundColor:"rgba(255,255,255,0.7)"}}>
         法則を読む →
@@ -588,18 +588,18 @@ function FavoriteButton({companyId,ticker,userId}:{companyId:string;ticker?:stri
   const [msg,setMsg]=useState<string>("");
   useEffect(()=>{
     if(!userId){setFav(false);return;}
-    fetch("/api/favorite-companies",{cache:"no-store"}).then(r=>r.json())
+    fetch("/ipo-us/api/favorite-companies",{cache:"no-store"}).then(r=>r.json())
       .then(d=>setFav(Array.isArray(d.ids)&&d.ids.includes(companyId)))
       .catch(()=>setFav(false));
   },[userId,companyId]);
   const toggle=async()=>{
     if(!userId){
-      window.location.href=`/auth?next=${encodeURIComponent(`/analysis/${ticker??companyId}`)}`;
+      window.location.href=`/ipo-us/auth?next=${encodeURIComponent(`/ipo-us/analysis/${ticker??companyId}`)}`;
       return;
     }
     setBusy(true);setMsg("");
     try{
-      const res=await fetch("/api/favorite-companies",{method:fav?"DELETE":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:companyId})});
+      const res=await fetch("/ipo-us/api/favorite-companies",{method:fav?"DELETE":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({company_id:companyId})});
       if(res.ok){setFav(!fav);setMsg(fav?"お気に入りから外しました。":"追加しました。マイページで確認できます。");}
       else{const j=await res.json().catch(()=>({}));setMsg(j.error??"保存に失敗しました。");}
     }catch{setMsg("通信エラーが発生しました。");}
@@ -724,7 +724,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
         <div style={{textAlign:"left",marginBottom:16}}><KeyFacts company={company as any} extra={keyFacts}/></div>
         <AlertTriangle size={32} color="#f59e0b" style={{margin:"0 auto 12px"}}/>
         <p style={{fontWeight:700,color:"#475569"}}>AI分析レポートは準備中です</p>
-        <a href="/calendar" style={{display:"inline-block",marginTop:16,padding:"8px 16px",borderRadius:10,
+        <a href="/ipo-us/calendar" style={{display:"inline-block",marginTop:16,padding:"8px 16px",borderRadius:10,
           backgroundColor:PRIMARY,color:"white",fontWeight:700,fontSize:13,textDecoration:"none"}}>← カレンダーへ戻る</a>
       </div>
     </div>
@@ -887,7 +887,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
     <div style={{backgroundColor:"#eef9f9",minHeight:"100vh",fontFamily:"'Noto Sans JP',sans-serif"}}>
      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",backgroundColor:"#e8f4f5",borderBottom:"1px solid #d0e8ea",flexWrap:"wrap"}}>
         {allCompanies && allCompanies.length > 0 && (
-          <select onChange={e => { if(e.target.value) window.location.href=`/analysis/${e.target.value}`; }}
+          <select onChange={e => { if(e.target.value) window.location.href=`/ipo-us/analysis/${e.target.value}`; }}
             style={{fontSize:12,padding:"6px 8px",borderRadius:8,border:"1px solid #C7D3E3",color:"#1E3A66",backgroundColor:"white",cursor:"pointer",flex:"1 1 140px",minWidth:0}}>
             <option value="">他の銘柄を選ぶ</option>
             {allCompanies.map((c:any) => (
@@ -908,7 +908,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
               const score = analysis?.total_score ?? 0;
               const text = `📊【IPO分析】${company.name}（${company.ticker ?? ""}）\nAI総合評価：${grade}ランク ${score}点/100点\n\n目論見書をAIが解析した詳細レポートはこちら👇\n#米国IPO #IPO #米国株`;
               const shareId = company.ticker ?? company.id;
-              const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`https://ipo-us.finance-tower.com/analysis/${shareId}`)}`;
+              const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(`https://finance-tower.com/ipo-us/analysis/${shareId}`)}`;
               window.open(url, "_blank");
             }}
             style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,backgroundColor:"#000000",border:"none",cursor:"pointer",color:"white",fontSize:14,fontWeight:700}}
@@ -973,7 +973,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             まず「まずここに注目！」と「株価シナリオ」で全体像をつかみ、続く「詳細分析 深掘りレポート」で9軸を掘り下げます。
             その先は<strong style={{color:"#ef4444"}}>⚡超短期</strong>・<strong style={{color:"#d97706"}}>📈短期</strong>・<strong style={{color:"#7c3aed"}}>🌱長期</strong>、
             ご自身の投資スタイルに合わせて参考資料を選んでお読みください（分類の考え方は
-            <a href="/ipo-guide" style={{color:PRIMARY,fontWeight:700}}>実践的法則ページ</a>で解説しています）。
+            <a href="/ipo-us/ipo-guide" style={{color:PRIMARY,fontWeight:700}}>実践的法則ページ</a>で解説しています）。
           </p>
         </div>
 
@@ -1074,7 +1074,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 style={{display:"block",width:"100%",padding:"13px 16px",backgroundColor:"#ffffff",color:"#1E3A66",borderRadius:10,fontWeight:900,fontSize:14,border:"none"}} messageStyle={{color:"#fecaca"}} />
               <PlanButton plan="plan_a" label={`全銘柄が読み放題（A 分析見放題プラン ${jpyMonth("plan_a")}）`}
                 style={{display:"block",width:"100%",padding:"12px 16px",backgroundColor:"transparent",color:"#ffffff",borderRadius:10,fontWeight:800,fontSize:13,border:"1.5px solid #C7D3E3"}} messageStyle={{color:"#fecaca"}} />
-              <a href="/plans" style={{fontSize:12,color:"#C7D3E3",textDecoration:"underline"}}>
+              <a href="/ipo-us/plans" style={{fontSize:12,color:"#C7D3E3",textDecoration:"underline"}}>
                 通知つきプランも含めて、全プランを比較する →
               </a>
             </div>
@@ -1355,8 +1355,8 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
                 <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:4}}>
                   {(()=>{
                     const shareId=(company as any).ticker??company.id;
-                    const expertHref=`/analysis/${shareId}`;
-                    const beginnerHref=`/analysis/${shareId}/beginner`;
+                    const expertHref=`/ipo-us/analysis/${shareId}`;
+                    const beginnerHref=`/ipo-us/analysis/${shareId}/beginner`;
                     return (
                       <>
                         <a href={beginnerHref} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,
@@ -1399,7 +1399,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
            </div>
           </div>
           <div style={{display:"flex",justifyContent:"center",padding:"8px 0 4px"}}>
-            <a href="/ipo-guide" style={{fontSize:12,color:"#1E3A66",textDecoration:"none",fontWeight:700,display:"flex",alignItems:"center",gap:6,padding:"8px 20px",borderRadius:20,border:"1px solid #1E3A66",background:"#f0fdf4"}}>
+            <a href="/ipo-us/ipo-guide" style={{fontSize:12,color:"#1E3A66",textDecoration:"none",fontWeight:700,display:"flex",alignItems:"center",gap:6,padding:"8px 20px",borderRadius:20,border:"1px solid #1E3A66",background:"#f0fdf4"}}>
               <span style={{fontSize:16}}>💡</span>
               <span style={{display:"flex",flexDirection:"column",lineHeight:1.5}}>
                 <span>IPO投資で資産を増やす</span>
@@ -1517,13 +1517,13 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
           const next=idx<sorted.length-1?sorted[idx+1]:null;
           return (
             <div style={{display:"flex",gap:8,justifyContent:"space-between"}}>
-              <a href={prev?`/analysis/${prev.id}`:undefined as any}
+              <a href={prev?`/ipo-us/analysis/${prev.id}`:undefined as any}
                 style={{flex:1,padding:"12px 16px",borderRadius:12,backgroundColor:prev?"white":"#f1f5f9",border:`1px solid ${prev?"#C7D3E3":"#e2e8f0"}`,textDecoration:"none",opacity:prev?1:0.4,pointerEvents:prev?"auto":"none"}}>
                 <div style={{fontSize:10,color:"#94a3b8",marginBottom:2}}>← 前の銘柄</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#0F1F36"}}>{prev?.name??""}</div>
                 <div style={{fontSize:10,color:"#1E3A66"}}>{prev?.listing_date??""}</div>
               </a>
-              <a href={next?`/analysis/${next.id}`:undefined as any}
+              <a href={next?`/ipo-us/analysis/${next.id}`:undefined as any}
                 style={{flex:1,padding:"12px 16px",borderRadius:12,backgroundColor:next?"white":"#f1f5f9",border:`1px solid ${next?"#C7D3E3":"#e2e8f0"}`,textDecoration:"none",textAlign:"right",opacity:next?1:0.4,pointerEvents:next?"auto":"none"}}>
                 <div style={{fontSize:10,color:"#94a3b8",marginBottom:2}}>次の銘柄 →</div>
                 <div style={{fontSize:13,fontWeight:700,color:"#0F1F36"}}>{next?.name??""}</div>
