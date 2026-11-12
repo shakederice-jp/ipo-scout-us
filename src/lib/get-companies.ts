@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { isPublicFree } from "@/lib/public-free";
 
 // 2026/10追加: 公開用の銘柄一覧の取得を1か所にまとめる。
 //  ・/api/companies(ブラウザ向け)と、トップページ(サーバー側で最初のHTMLに中身を入れる)の両方が使う。
@@ -9,13 +10,18 @@ export async function getPublicCompanies(): Promise<any[]> {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return [];
   const supabase = createClient(url, key);
-  const { data, error } = await supabase
-    .from("ipo_companies")
-    .select("id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary, price_range_min, sec_stage, ipo_price, price_track")
-    .order("listing_date", { ascending: true });
+  const cols = "id, name, ticker, sector, exchange, listing_date, ai_summary, status, highlight, initial_price, price_change_rate, analysis_summary, price_range_min, sec_stage, ipo_price, price_track";
+  // 2026/11/12追加: is_public_free(全員に無料公開する銘柄のしるし)の列が、まだ作られていない場合でも止まらないようにする
+  let { data, error } = await supabase.from("ipo_companies").select(cols + ", is_public_free").order("listing_date", { ascending: true });
+  if (error) {
+    const retry = await supabase.from("ipo_companies").select(cols).order("listing_date", { ascending: true });
+    data = retry.data as any;
+    error = retry.error;
+  }
   if (error) throw new Error(error.message);
   return (data ?? []).map((row: any) => {
     const { analysis_summary, price_range_min, sec_stage, price_track, ...rest } = row;
+    rest.is_public_free = isPublicFree(row);
     // 100万円シミュレーション用: 最新の終値と、その日付だけ取り出す(終値の推移などの細かい履歴は返さない)
     const latest_price: number | null = price_track?.latest?.close ?? null;
     const latest_date: string | null = price_track?.latest?.date ?? null;

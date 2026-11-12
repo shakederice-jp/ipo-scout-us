@@ -7,6 +7,9 @@ import AnalysisClient from "@/components/AnalysisClient";
 import { notFound } from "next/navigation";
 import { buildKeyFaq, jpDate } from "@/components/KeyFacts";
 import { fmtUsd } from "@/lib/fx";
+import { isAnthropicCompany } from "@/lib/public-free";
+import { ANTHROPIC_SLUG, ANTHROPIC_OGP, anthropicMetadata, anthropicFaq, anthropicBreadcrumbLd } from "@/lib/anthropic-seo";
+import AnthropicSeoSection from "@/components/AnthropicSeoSection";
 
 async function fetchCompany(id: string) {
   // ハイフンを含む場合はUUID、そうでなければティッカーコードとして検索
@@ -15,6 +18,17 @@ async function fetchCompany(id: string) {
   }
   const supabase = createSupabaseServerClient();
   if (!supabase) return { data: null, error: new Error("no client") };
+  // 2026/11/12追加: Anthropic専用のURL(/analysis/anthropic)。ティッカーが決まる前でも、社名で見つけて表示する
+  if (id.toLowerCase() === ANTHROPIC_SLUG) {
+    const { data, error } = await supabase
+      .from("ipo_companies")
+      .select("*")
+      .ilike("name", "anthropic%")
+      .order("listing_date", { ascending: true, nullsFirst: false })
+      .limit(1)
+      .maybeSingle();
+    return { data, error };
+  }
   const { data, error } = await supabase
     .from("ipo_companies")
     .select("*")
@@ -87,6 +101,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const description = `${who}の米国IPO情報。${facts ? facts + "。" : ""}ロックアップ解除日・主幹事・日本からの買い方を、目論見書(S-1)をもとにAIが日本語で整理。${tail}${summary ? summary.slice(0, 60) : ""}`.slice(0, 200);
   const canonicalId = ticker ?? data.id;
   const url = `https://finance-tower.com/ipo-us/analysis/${canonicalId}`;
+  // 2026/11/12追加: Anthropicは専用のタイトル・説明・キーワード・正規URL(/analysis/anthropic)・画像にする
+  if (isAnthropicCompany(data)) return anthropicMetadata(co);
   return {
     title,
     description,
@@ -168,21 +184,29 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
   }
 
   const ticker = co.ticker;
-  const canonicalId = ticker ?? company.id;
+  const isAnthropic = isAnthropicCompany(company);
+  // Anthropicは、ティッカーやIDでアクセスされても、正規のURLは /analysis/anthropic にそろえる
+  const canonicalId = isAnthropic ? ANTHROPIC_SLUG : (ticker ?? company.id);
 
   // 結論＋主要数値表で使う「公開情報」だけを取り出す(主幹事・ロックアップ期間は目論見書の表紙や条項にある事実)。
   // structured_data 全体は有料部分なので、閲覧権がなくてもこの2つ以外は渡さない。
   const ipoDetails = co.structured_data?.ipo_details ?? {};
   const pick = (v: any) => (typeof v === "string" && v.trim() && !/記載なし|未定/.test(v) ? v.trim() : null);
   const keyFacts = { underwriters: pick(ipoDetails.underwriters), lockupPeriod: pick(ipoDetails.lockup_period) };
-  const faq = buildKeyFaq(co, keyFacts);
+  const faq = isAnthropic ? anthropicFaq(co, keyFacts) : buildKeyFaq(co, keyFacts);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": `${company.name}${ticker ? `（${ticker}）` : ""}のIPO｜上場日・公募価格・ロックアップ・買い方`,
+    "headline": isAnthropic
+      ? `Anthropic（アンソロピック）のIPO｜上場日・公募価格・ロックアップ・日本からの買い方`
+      : `${company.name}${ticker ? `（${ticker}）` : ""}のIPO｜上場日・公募価格・ロックアップ・買い方`,
     "inLanguage": "ja",
-    "about": { "@type": "Corporation", "name": company.name, ...(ticker ? { "tickerSymbol": ticker } : {}) },
+    ...(isAnthropic ? { "image": ANTHROPIC_OGP } : {}),
+    "about": {
+      "@type": "Corporation", "name": company.name, ...(ticker ? { "tickerSymbol": ticker } : {}),
+      ...(isAnthropic ? { "alternateName": ["Anthropic", "アンソロピック", "アントロピック"], "url": "https://www.anthropic.com" } : {}),
+    },
     "description": analysisSummary?.summary ?? `${company.name}のIPO分析`,
     "publisher": {
       "@type": "Organization",
@@ -208,6 +232,7 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
+      {isAnthropic && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(anthropicBreadcrumbLd()) }} />}
       <AnalysisClient
         company={(hasAccess ? company : {
           ...co,
@@ -221,6 +246,7 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
         hasAccess={hasAccess}
         keyFacts={keyFacts}
       />
+      {isAnthropic && <AnthropicSeoSection faq={faq} />}
     </>
   );
 }

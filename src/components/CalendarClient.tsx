@@ -15,6 +15,7 @@ type Company = {
   listing_date: string | null;
   ai_summary?: string;
   is_free?: boolean;
+  is_public_free?: boolean;
   has_analysis?: boolean;
   is_decided?: boolean;
 };
@@ -185,6 +186,9 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
 
   const currentMonthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
   const monthSorted = sorted.filter(c => c.listing_date?.startsWith(currentMonthKey));
+  // 無料の銘柄: 「全員に無料公開」の銘柄(例: ANTHROPIC, PBC)は常に無料で、月の無料2枠には数えない
+  const freeIdsInMonth = new Set<string>();
+  { let n = 0; monthSorted.forEach(c => { if (c.is_public_free) return; n++; if (n <= 2) freeIdsInMonth.add(c.id); }); }
 
   const byDay: { [day: number]: Company[] } = {};
   sorted.forEach(c => {
@@ -420,7 +424,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
             const d = new Date(company.listing_date as string);
             const weekStr = "日月火水木金土"[d.getDay()];
             const dateStr = `${d.getMonth()+1}月${d.getDate()}日（${weekStr}）`;
-            const isFree = company.is_free ?? i < 2;
+            const isFree = company.is_public_free ? true : (company.is_free ?? freeIdsInMonth.has(company.id));
             const isHL = highlighted === company.id;
             return (
               <div key={company.id} ref={el => { itemRefs.current[company.id] = el; }}
@@ -430,7 +434,7 @@ export default function CalendarClient({ initialCompanies }: { initialCompanies?
                     <span style={{ fontSize:22, color:C.teal, lineHeight:1 }}>{CIRCLE[i] ?? `(${i+1})`}</span>
                     <div>
                       <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
-                      <span style={{ fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:4, backgroundColor: isFree?"#dcfce7":"#fef3c7", color: isFree?"#15803d":"#92400e" }}>{isFree ? (lang === "ja" ? "無料" : "Free") : (lang === "ja" ? "有料" : "Paid")}</span>
+                      <span style={{ fontSize:10, fontWeight:700, padding:"2px 6px", borderRadius:4, backgroundColor: isFree?"#dcfce7":"#fef3c7", color: isFree?"#15803d":"#92400e" }}>{isFree ? (company.is_public_free ? (lang === "ja" ? "注目・全員に無料" : "Free for all") : (lang === "ja" ? "無料" : "Free")) : (lang === "ja" ? "有料" : "Paid")}</span>
                         <span style={{ fontSize:16, fontWeight:900, color:C.text }}>{company.name}</span>
                       </div>
                       <div style={{ fontSize:11, color:C.muted }}>{[company.exchange, company.sector, company.ticker].filter(Boolean).join("・")}</div>

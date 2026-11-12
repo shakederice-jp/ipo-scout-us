@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { IpoCompany } from "@/types/ipo";
+import { isPublicFree } from "@/lib/public-free";
 
 function getEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -48,18 +49,32 @@ export async function fetchIpoCompanies(): Promise<{
     };
   }
 
-  const { data, error } = await supabase
+  const baseCols = "id,name,sector,listing_date,ai_summary,ticker,created_at,status,highlight,ai_score,exchange,biz_type";
+  // 2026/11/12追加: is_public_free(全員に無料公開する銘柄のしるし)の列が、まだ作られていない場合でも止まらないようにする
+  let { data, error } = await supabase
     .from("ipo_companies")
-    .select("id,name,sector,listing_date,ai_summary,ticker,created_at,status,highlight,ai_score,exchange,biz_type")
+    .select(baseCols + ",is_public_free")
     .order("listing_date", { ascending: true, nullsFirst: false });
+  if (error) {
+    const retry = await supabase
+      .from("ipo_companies")
+      .select(baseCols)
+      .order("listing_date", { ascending: true, nullsFirst: false });
+    data = retry.data as any;
+    error = retry.error;
+  }
 
   if (error) {
     return { data: null, error: error.message };
   }
 
   // 月ごと（現在・過去・未来を問わず）に、上場日が早い順で先頭2社を無料開放とする
+  // ただし「全員に無料公開する銘柄」(例: ANTHROPIC, PBC)は、いつでも無料で、その月の2枠には数えない
   const monthFreeCount: Record<string, number> = {};
-  const result = (data as IpoCompany[]).map((company) => {
+  const result = ((data ?? []) as unknown as IpoCompany[]).map((company) => {
+    if (isPublicFree(company as any)) {
+      return { ...company, is_free: true };
+    }
     const monthKey = company.listing_date
       ? company.listing_date.slice(0, 7)
       : "unknown";

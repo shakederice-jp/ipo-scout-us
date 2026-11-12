@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import InitialPriceForm from "@/components/InitialPriceForm";
 import { runProofread, collectFields, applyFields } from "@/lib/proofread";
+import { isPublicFree } from "@/lib/public-free";
 
 // 2026/10追加: SEC書類の進み具合(sec-track が毎日更新する sec_stage)の表示用
 const STAGE_INFO: Record<string, { label: string; color: string; bg: string; rank: number }> = {
@@ -148,6 +149,39 @@ export default function AdminPage() {
 
   const setProgressMap = (m: Record<string, ProgItem>) => { progressRef.current = m; setProgressTick(t => t + 1); };
 
+  // 2026/11/12追加: 銘柄選択の一覧で、月ごとに分け、分析が終わった銘柄に「分析終了」のしるしを付ける。
+  // 全銘柄まとめの進み具合を /api/admin/analysis-progress?summary=1 から読む(STEPが終わるたびに読み直す)。
+  const [progressSummary, setProgressSummary] = useState<Record<string, { done: number; total: number; failed: number }>>({});
+  const [onlyTodo, setOnlyTodo] = useState(false);
+  const [publicFreeMsg, setPublicFreeMsg] = useState<string | null>(null);
+  const loadSummary = async () => {
+    try {
+      const r = await fetch("/ipo-us/api/admin/analysis-progress?summary=1", { cache: "no-store" });
+      const d = await r.json();
+      if (r.ok && d.summary) setProgressSummary(d.summary);
+    } catch { /* 読めなくても、銘柄選択と分析は使える(しるしが出ないだけ) */ }
+  };
+  useEffect(() => { if (authed) loadSummary(); }, [authed]);
+  const markOf = (c: any): { icon: string; text: string; kind: "done" | "part" | "todo" | "unknown" } => {
+    const sm = progressSummary[c.id];
+    if (!sm) return { icon: "", text: "", kind: "unknown" };
+    if (sm.done >= sm.total) return { icon: "✅", text: "分析終了", kind: "done" };
+    if (sm.done > 0) return { icon: "🟡", text: `途中 ${sm.done}/${sm.total}`, kind: "part" };
+    return { icon: "⬜", text: "未分析", kind: "todo" };
+  };
+  const setPublicFree = async (c: any, value: boolean) => {
+    setPublicFreeMsg("保存中...");
+    try {
+      const r = await fetch("/ipo-us/api/admin/public-free", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: c.id, value }) });
+      const d = await r.json();
+      if (!r.ok || d.error) { setPublicFreeMsg(`❌ 保存できませんでした: ${d.error ?? r.status}`); return; }
+      if (d.column_ready === false) { setPublicFreeMsg("⚠️ 保存する場所(is_public_free列)がまだありません。先にSupabaseでSQLを実行してください。"); return; }
+      setCompanies((prev: any[]) => prev.map((x: any) => x.id === c.id ? { ...x, is_public_free: value } : x));
+      setSelectedCompany((prev: any) => prev && prev.id === c.id ? { ...prev, is_public_free: value } : prev);
+      setPublicFreeMsg(value ? "✅ 全員に無料で公開しました（反映まで数十秒かかることがあります）" : "✅ 全員無料の設定を外しました（月の無料2枠のルールに戻ります）");
+    } catch { setPublicFreeMsg("❌ 通信エラー"); }
+  };
+
   const fmtAt = (at: string | null) => {
     if (!at) return "";
     try { return new Date(at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
@@ -158,7 +192,7 @@ export default function AdminPage() {
     if (!cid || !PROG_ORDER.includes(key)) return;
     const item: ProgItem = { status, at: new Date().toISOString(), note: String(note ?? "").slice(0, 300), inferred: false };
     if (selectedIdRef.current === cid) setProgressMap({ ...progressRef.current, [key]: item });
-    fetch("/ipo-us/api/admin/analysis-progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: cid, key, status, note: item.note }) }).catch(() => {});
+    fetch("/ipo-us/api/admin/analysis-progress", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ company_id: cid, key, status, note: item.note }) }).then(() => loadSummary()).catch(() => {});
   };
 
   // setStep(各STEPの最後の「✅ …」「❌ …」)から、完了/失敗を自動で記録する
@@ -243,6 +277,7 @@ export default function AdminPage() {
     setProgressMap({});
     loadProgress(c.id);
     setAutoRunMsg(null);
+    setPublicFreeMsg(null);
     setEdinetDocId("");
     setStepResult({});
     setStepLoading({});
@@ -894,9 +929,38 @@ export default function AdminPage() {
 
               <div style={{ marginBottom:14 }}>
                 <label style={labelStyle}>📌 分析する銘柄を選択 *</label>
+                <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:12, marginBottom:6, fontSize:11, color:"#475569" }}>
+                  <span>✅ 分析終了　🟡 途中　⬜ 未分析</span>
+                  <label style={{ display:"inline-flex", alignItems:"center", gap:4, cursor:"pointer", fontWeight:700 }}>
+                    <input type="checkbox" checked={onlyTodo} onChange={e=>setOnlyTodo(e.target.checked)} />
+                    分析が終わっていない銘柄だけ表示
+                  </label>
+                </div>
                 <select onChange={e=>{ const c=companies.find(x=>x.id===e.target.value); if(c) handleSelectCompany(c); }} style={inputStyle} value={selectedCompany?.id??""}>
                   <option value="">-- 銘柄を選択してください --</option>
-                  {companies.map(c=><option key={c.id} value={c.id}>{c.name}（{c.listing_date ?? "上場日未定"}）［{stageOf(c).label}］</option>)}
+                  {(() => {
+                    // 上場月ごとに分ける(新しい月が上。上場日未定は一番上)。月の中は上場日が早い順
+                    const list = companies.filter(c => !onlyTodo || markOf(c).kind !== "done" || c.id === selectedCompany?.id);
+                    const groups: Record<string, any[]> = {};
+                    list.forEach(c => { const k = c.listing_date ? String(c.listing_date).slice(0, 7) : "未定"; (groups[k] = groups[k] ?? []).push(c); });
+                    const keys = Object.keys(groups).sort((x, y) => x === "未定" ? -1 : y === "未定" ? 1 : y.localeCompare(x));
+                    return keys.map(k => {
+                      const g = groups[k];
+                      const doneN = g.filter(c => markOf(c).kind === "done").length;
+                      const label = k === "未定"
+                        ? `■ 上場日未定（${g.length}社）`
+                        : `■ ${k.slice(0, 4)}年${Number(k.slice(5, 7))}月（${g.length}社${Object.keys(progressSummary).length ? `・分析終了 ${doneN}社` : ""}）`;
+                      return (
+                        <optgroup key={k} label={label}>
+                          {g.map(c => {
+                            const m = markOf(c);
+                            const text = `${m.icon ? `${m.icon} ${m.text}｜` : ""}${c.name}（${c.listing_date ?? "上場日未定"}）［${stageOf(c).label}］${isPublicFree(c) ? " 🌟全員無料" : ""}`;
+                            return <option key={c.id} value={c.id}>{text}</option>;
+                          })}
+                        </optgroup>
+                      );
+                    });
+                  })()}
                 </select>
               </div>
 
@@ -905,6 +969,16 @@ export default function AdminPage() {
                   <div style={{ background:"#f0fdf4", borderRadius:8, padding:"8px 12px", marginBottom:14, fontSize:12, color:"#166534" }}>
                     ✅ 選択中：<strong>{selectedCompany.name}</strong>
                     <span style={{ marginLeft:8, fontSize:10, fontWeight:800, padding:"2px 8px", borderRadius:999, color:stageOf(selectedCompany).color, background:stageOf(selectedCompany).bg }}>{stageOf(selectedCompany).label}</span>
+                    {markOf(selectedCompany).kind !== "unknown" && (
+                      <span style={{ marginLeft:6, fontSize:10, fontWeight:800, padding:"2px 8px", borderRadius:999, color: markOf(selectedCompany).kind==="done" ? "#166534" : markOf(selectedCompany).kind==="part" ? "#92400e" : "#475569", background: markOf(selectedCompany).kind==="done" ? "#bbf7d0" : markOf(selectedCompany).kind==="part" ? "#fef3c7" : "#e2e8f0" }}>{markOf(selectedCompany).icon} {markOf(selectedCompany).text}</span>
+                    )}
+                  </div>
+                  <div style={{ background:"#fefce8", borderRadius:8, padding:"8px 12px", marginBottom:14, border:"1px solid #fde68a" }}>
+                    <label style={{ display:"flex", alignItems:"flex-start", gap:8, fontSize:12, color:"#713f12", fontWeight:700, cursor:"pointer" }}>
+                      <input type="checkbox" checked={isPublicFree(selectedCompany)} onChange={e=>setPublicFree(selectedCompany, e.target.checked)} style={{ marginTop:2 }} />
+                      <span>🌟 この銘柄を、誰でも無料で読めるように公開する<br/><span style={{ fontWeight:400, fontSize:11, color:"#92400e" }}>毎月の「最初の2銘柄が無料」の枠とは別扱いです。ANTHROPICは、はじめから公開に設定されています。</span></span>
+                    </label>
+                    {publicFreeMsg && <div style={{ fontSize:11, marginTop:4, color:"#713f12" }}>{publicFreeMsg}</div>}
                   </div>
                   <div style={{ background:"#fffbeb", borderRadius:8, padding:12, marginBottom:14, border:"1px solid #fde68a" }}>
                     <label style={{ ...labelStyle, color:"#92400e" }}>💵 公募価格（ドル）※価格決定後に入力</label>

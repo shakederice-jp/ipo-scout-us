@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { isAnthropicCompany } from "@/lib/public-free";
+import { ANTHROPIC_SLUG } from "@/lib/anthropic-seo";
 
 export default async function sitemap() {
   const supabase = createClient(
@@ -8,7 +10,7 @@ export default async function sitemap() {
 
   const { data: companies } = await supabase
     .from("ipo_companies")
-    .select("id, ticker, listing_date")
+    .select("id, name, ticker, listing_date")
     .order("listing_date", { ascending: false });
 
   const baseUrl = "https://finance-tower.com/ipo-us";
@@ -26,12 +28,16 @@ export default async function sitemap() {
     { url: `${baseUrl}/install`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.4 },
   ];
 
-  const companyPages = (companies ?? []).map(c => ({
-    url: `${baseUrl}/analysis/${(c as any).ticker ?? c.id}`,
-    lastModified: new Date(c.listing_date ?? new Date()),
-    changeFrequency: "weekly" as const,
-    priority: 0.9,
-  }));
+  // Anthropicは、専用のURL(/analysis/anthropic)をサイトマップに載せる(優先度も最も高く)
+  const companyPages = (companies ?? []).map(c => {
+    const anth = isAnthropicCompany(c as any);
+    return {
+      url: `${baseUrl}/analysis/${anth ? ANTHROPIC_SLUG : ((c as any).ticker ?? c.id)}`,
+      lastModified: anth ? new Date() : new Date(c.listing_date ?? new Date()),
+      changeFrequency: (anth ? "daily" : "weekly") as "daily" | "weekly",
+      priority: anth ? 1.0 : 0.9,
+    };
+  });
 
   return [...staticPages, ...companyPages];
 }

@@ -1,4 +1,6 @@
 import { getScheduleCompanies } from "@/lib/get-companies";
+import { isAnthropicCompany } from "@/lib/public-free";
+import { ANTHROPIC_SLUG } from "@/lib/anthropic-seo";
 
 // 生成AI(ChatGPT・Claude・Perplexityなど)にサイトの概要を伝えるための案内ファイル(/llms.txt)。
 // 銘柄の一覧は、登録データから自動で作る(銘柄を追加すると、1時間以内に反映される)。
@@ -21,7 +23,7 @@ export async function GET() {
   const upcoming = rows.filter((r) => r.listing_date && r.listing_date >= today);
   const recent = rows.filter((r) => r.listing_date && r.listing_date < today && r.listing_date >= from).reverse();
   const line = (r: any) =>
-    `- [${r.name}${r.ticker ? `（${r.ticker}）` : ""}](${BASE}/analysis/${r.ticker ?? r.id}): 上場日${r.listing_date}${r.listing_date_confirmed ? "" : "（予定）"}`;
+    `- [${r.name}${r.ticker ? `（${r.ticker}）` : ""}](${BASE}/analysis/${isAnthropicCompany(r) ? ANTHROPIC_SLUG : (r.ticker ?? r.id)}): 上場日${r.listing_date}${r.listing_date_confirmed ? "" : "（予定）"}`;
 
   const body = `# 米国IPO企業情報AI分析レポート（大手町調査室九課）
 
@@ -35,7 +37,10 @@ export async function GET() {
 - [マーケットトレンド](${BASE}/trends): 米国IPO市場のニュースと動向。
 - [サイトの使い方](${BASE}/guide)
 
-## 銘柄ページ
+${rows.some((r) => isAnthropicCompany(r)) ? `## 注目銘柄
+- [Anthropic（アンソロピック）のIPO](${BASE}/analysis/${ANTHROPIC_SLUG}): 対話型AI「Claude」の開発元Anthropic, PBCの米国IPO情報（上場日・価格帯・ロックアップ解除日・主幹事・日本からの買い方）。どなたでも無料で読めます。
+
+` : ""}## 銘柄ページ
 各銘柄のページは ${BASE}/analysis/{ティッカー} の形式です。冒頭に「結論1行と主要数値表」（上場日・公募価格・ロックアップ解除日・主幹事）があり、無料で読めます。AIによる詳細な分析は、銘柄により有料です。
 
 ### これから上場する銘柄

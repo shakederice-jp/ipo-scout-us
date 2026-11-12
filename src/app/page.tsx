@@ -5,6 +5,8 @@ import { CheckoutButton } from "@/components/CheckoutButton";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Zap, Crown, AlertCircle, User } from "lucide-react";
 import { jpyMonth } from "@/lib/pricing";
+import { isAnthropicCompany } from "@/lib/public-free";
+import { ANTHROPIC_SLUG } from "@/lib/anthropic-seo";
 
 export const metadata: Metadata = {
   title: { absolute: "米国IPO企業情報AI分析レポート｜大手町調査室九課" },
@@ -109,6 +111,16 @@ export default async function Home({
             </span>
             <span style={{ fontSize:16, fontWeight:900, color:"#ffffff", flexShrink:0 }}>→</span>
           </a>
+          {/* 注目銘柄: Anthropic(全員に無料で公開)。登録されているときだけ表示する */}
+          {(initialCompanies ?? []).some((c: any) => isAnthropicCompany(c)) && (
+            <a href={`/ipo-us/analysis/${ANTHROPIC_SLUG}`} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, padding:"12px 16px", marginBottom:12, borderRadius:14, backgroundColor:"#fffbeb", border:"1.5px solid #f59e0b", textDecoration:"none" }}>
+              <span style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
+                <span style={{ fontSize:14, fontWeight:900, color:"#0F1F36", lineHeight:1.4 }}>🌟 注目：Anthropic（アンソロピック）のIPO</span>
+                <span style={{ fontSize:11, color:"#92400e", lineHeight:1.5 }}>上場日・価格帯・ロックアップ・日本からの買い方。どなたでも無料で読めます</span>
+              </span>
+              <span style={{ fontSize:16, fontWeight:900, color:"#92400e", flexShrink:0 }}>→</span>
+            </a>
+          )}
           <CalendarClient initialCompanies={initialCompanies} />
         </div>
 
