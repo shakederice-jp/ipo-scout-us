@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { syncPlanForUser } from "@/lib/plan-sync";
 import AnalysisClient from "@/components/AnalysisClient";
 import { notFound } from "next/navigation";
+import { normalizeMoneyJa, normalizeMoneyDeep } from "@/lib/jp-money";
 
 async function fetchCompany(id: string) {
   if (id.includes("-")) {
@@ -59,7 +60,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { data } = await fetchCompany(id);
   if (!data) return { title: "銘柄分析レポート（初心者向け）" };
   const co = data as any;
-  const summary = co.analysis_summary?.summary ?? `${data.name}のIPO分析レポート（初心者向け）。`;
+  const summary = normalizeMoneyJa(co.analysis_summary?.summary ?? `${data.name}のIPO分析レポート（初心者向け）。`);
   const title = `${data.name} IPO分析レポート｜初心者向け｜大手町調査室九課`;
   const ticker = (data as any).ticker;
   const canonicalId = ticker ?? data.id;
@@ -117,6 +118,11 @@ export default async function AnalysisBeginnerPage({ params }: { params: Promise
     initialAnalysis = { ...co.analysis_detail, is_new_format: false };
   }
 
+  // 文章の中の「900十億ドル」「33,242百万ドル」などを、日本の読み方(9,000億ドル・約332億ドル)に直して表示する
+  if (initialAnalysis) initialAnalysis = normalizeMoneyDeep(initialAnalysis);
+  // 視覚化データの文章部分(出典の引用・調達資金の使い道の表示文など)も同じ。数値の欄はそのまま
+  const visualizationDataJa = visualizationData ? normalizeMoneyDeep(visualizationData) : null;
+
   const isFreeCompany = (allCompanies as any[] | null)?.find((c) => c.id === company.id)?.is_free ?? false;
   const hasAccess = await checkAccess(company.id, isFreeCompany);
 
@@ -147,7 +153,7 @@ export default async function AnalysisBeginnerPage({ params }: { params: Promise
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": `${company.name} IPO分析レポート（初心者向け）`,
-    "description": analysisSummary?.summary ?? `${company.name}のIPO分析（初心者向け）`,
+    "description": normalizeMoneyJa(analysisSummary?.summary ?? `${company.name}のIPO分析（初心者向け）`),
     "publisher": {
       "@type": "Organization",
       "name": "大手町調査室九課",
@@ -172,7 +178,7 @@ export default async function AnalysisBeginnerPage({ params }: { params: Promise
           analysis_market: null, structured_data: null, raw_prospectus: null, visualization_data: null,
         }) as any}
         initialAnalysis={initialAnalysis}
-        visualizationData={hasAccess ? visualizationData : null}
+        visualizationData={hasAccess ? visualizationDataJa : null}
         allCompanies={allCompanies as any[]}
         hasAccess={hasAccess}
         level="beginner"

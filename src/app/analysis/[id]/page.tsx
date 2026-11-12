@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { buildKeyFaq, jpDate } from "@/components/KeyFacts";
 import { fmtUsd } from "@/lib/fx";
 import { isAnthropicCompany } from "@/lib/public-free";
+import { normalizeMoneyJa, normalizeMoneyDeep } from "@/lib/jp-money";
 import { ANTHROPIC_SLUG, ANTHROPIC_OGP, anthropicMetadata, anthropicFaq, anthropicBreadcrumbLd } from "@/lib/anthropic-seo";
 import AnthropicSeoSection from "@/components/AnthropicSeoSection";
 
@@ -94,7 +95,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ld ? `上場日${ld}${co.listing_date_confirmed ? "" : "(予定)"}` : "",
     priceText ? `${co.sec_stage === "priced" ? "公募価格" : "想定価格帯"}${priceText}` : "",
   ].filter(Boolean).join("、");
-  const summary: string = co.analysis_summary?.summary ?? "";
+  const summary: string = normalizeMoneyJa(co.analysis_summary?.summary ?? "");
   const score = co.analysis_summary?.total_score;
   const grade = co.analysis_summary?.grade;
   const tail = score ? `AI総合評価${score}/100(${grade}ランク)。` : "";
@@ -156,6 +157,12 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
     initialAnalysis = { ...co.analysis_detail, is_new_format: false };
   }
 
+  // 2026/11/12追加: 文章の中の「900十億ドル」「33,242百万ドル」などを、日本の読み方(9,000億ドル・約332億ドル)に直して表示する
+  // (保存済みの分析も、再分析せずに読みやすくなる。財務データの表 structured_data には、数値の読み取りがあるため、かけない)
+  if (initialAnalysis) initialAnalysis = normalizeMoneyDeep(initialAnalysis);
+  // 視覚化データの文章部分(出典の引用・調達資金の使い道の表示文など)も同じ。数値の欄はそのまま
+  const visualizationDataJa = visualizationData ? normalizeMoneyDeep(visualizationData) : null;
+
   // 無料公開対象の銘柄かどうか(月初3銘柄まで)はfetchIpoCompanies側で計算済み
   const isFreeCompany = (allCompanies as any[] | null)?.find((c) => c.id === company.id)?.is_free ?? false;
   const hasAccess = await checkAccess(company.id, isFreeCompany);
@@ -207,7 +214,7 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
       "@type": "Corporation", "name": company.name, ...(ticker ? { "tickerSymbol": ticker } : {}),
       ...(isAnthropic ? { "alternateName": ["Anthropic", "アンソロピック", "アントロピック"], "url": "https://www.anthropic.com" } : {}),
     },
-    "description": analysisSummary?.summary ?? `${company.name}のIPO分析`,
+    "description": normalizeMoneyJa(analysisSummary?.summary ?? `${company.name}のIPO分析`),
     "publisher": {
       "@type": "Organization",
       "name": "大手町調査室九課",
@@ -241,7 +248,7 @@ export default async function AnalysisPage({ params }: { params: Promise<{ id: s
           analysis_market: null, structured_data: null, raw_prospectus: null, visualization_data: null,
         }) as any}
         initialAnalysis={initialAnalysis}
-        visualizationData={hasAccess ? visualizationData : null}
+        visualizationData={hasAccess ? visualizationDataJa : null}
         allCompanies={allCompanies as any[]}
         hasAccess={hasAccess}
         keyFacts={keyFacts}

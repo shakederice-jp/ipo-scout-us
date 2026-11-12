@@ -1,4 +1,5 @@
 "use client";
+import { fmtUsdMillionsJa } from "@/lib/jp-money";
 import {
   RevenueChart, KeyMetricsTable, ShareholdersChart,
   ValuationTable, ShareStructureChart, RecentIpoChart,
@@ -835,7 +836,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
       const v=Math.round(n*mult*10)/10;
       return neg?-v:v;
     };
-    const fmtM=(v:number|null|undefined)=>v==null?"–":`${v.toLocaleString("en-US",{maximumFractionDigits:1})}百万ドル`;
+    const fmtM=(v:number|null|undefined)=>v==null?"–":fmtUsdMillionsJa(v);
     const ownRevenue=parseUsdM(latestKm?.revenue);
     const ownProfit=parseUsdM(latestKm?.ordinary_profit);
     const ownNetProfit=parseUsdM(latestKm?.net_profit);
@@ -878,7 +879,7 @@ export default function AnalysisClient({company,initialAnalysis,visualizationDat
             </tbody>
           </table>
         </div>
-        <p style={{fontSize:10,color:"#94a3b8",marginTop:8,lineHeight:1.6}}>※ 米国SEC（EDGAR）の年次報告書（10-K）のXBRLデータから自動取得。単位：百万ドル（ドル表示。円換算は行っていません）。営業損益・純損益はマイナスが赤字です。</p>
+        <p style={{fontSize:10,color:"#94a3b8",marginTop:8,lineHeight:1.6}}>※ 米国SEC（EDGAR）の年次報告書（10-K）のXBRLデータから自動取得。金額は日本の読み方（万・億・兆ドル）で表示しています（ドル表示。円換算は行っていません。「約」は端数を丸めた数字です）。営業損益・純損益はマイナスが赤字です。</p>
       </Card>
     );
   };

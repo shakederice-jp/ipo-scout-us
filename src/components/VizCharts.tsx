@@ -1,4 +1,5 @@
 "use client";
+import { fmtUsdMillionsJa } from "@/lib/jp-money";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, ReferenceLine } from "recharts";
 
 const C = { teal: "#1E3A66", nav: "#1E3A66", bg: "#f0fafa" };
@@ -230,11 +231,11 @@ export function ValuationTable({ vizData }: { vizData: any }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 12 }}>
         {[
           { label: "IPO価格", value: valuation_table.ipo_price ? `$${valuation_table.ipo_price?.toLocaleString()}` : "未定" },
-          { label: "時価総額", value: valuation_table.market_cap ? `${Number(valuation_table.market_cap).toLocaleString()}百万ドル` : "未定" },
+          { label: "時価総額", value: valuation_table.market_cap ? fmtUsdMillionsJa(Number(valuation_table.market_cap)) : "未定" },
           { label: "PER", value: valuation_table.per ? `${valuation_table.per}倍` : (valuation_table.ipo_price ? "赤字のため算出不可" : "未定") },
           { label: "PSR", value: valuation_table.psr ? `${valuation_table.psr}倍` : "未定" },
           { label: "流通比率", value: valuation_table.float_ratio != null ? `${valuation_table.float_ratio}%` : "S-1に株主別保有比率の記載がなく算出できず" },
-          { label: "調達額", value: valuation_table.fundraising ? `${valuation_table.fundraising}百万ドル` : "未定" },
+          { label: "調達額", value: valuation_table.fundraising ? (Number.isFinite(Number(valuation_table.fundraising)) ? fmtUsdMillionsJa(Number(valuation_table.fundraising)) : `${valuation_table.fundraising}百万ドル`) : "未定" },
         ].map((item, i) => (
           <div key={i} style={{ backgroundColor: C.bg, borderRadius: 8, padding: "10px 12px", textAlign: "center" }}>
             <div style={{ fontSize: 10, color: "#6b9ea0", marginBottom: 2 }}>{item.label}</div>
