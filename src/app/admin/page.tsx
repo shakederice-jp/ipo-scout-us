@@ -683,7 +683,7 @@ export default function AdminPage() {
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:"20px" }}>
           <h1 style={{ fontSize:"18px", fontWeight:900, color:"#0F1F36", margin:0 }}>⚙️ 管理画面(米国版)</h1>
           {/* 2026/10/16追加: 日本版の管理画面へ移動するリンク(ログインは各サイトで別々) */}
-          <a href="https://ipo.finance-tower.com/admin" style={{ fontSize:"12px", fontWeight:700, color:"#1E3A66", background:"white", border:"1px solid #1E3A66", borderRadius:"999px", padding:"6px 14px", textDecoration:"none" }}>
+          <a href="https://finance-tower.com/ipo-jp/admin" style={{ fontSize:"12px", fontWeight:700, color:"#1E3A66", background:"white", border:"1px solid #1E3A66", borderRadius:"999px", padding:"6px 14px", textDecoration:"none" }}>
             🇯🇵 日本版の管理画面へ →
           </a>
         </div>
