@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { isAdminRequest } from "@/lib/admin-auth";
+import { REFERRAL_CAP } from "@/lib/referral";
 
 // 2026/10/31新設(米国版の紹介制度): 紹介プログラムの実績を管理画面で見えるようにするための集計API。
 // 日本版と同じ。まずは「特典が実際に成立した件数」と「先着300名」に対する残り枠を返す。
 export const dynamic = "force-dynamic";
 
-const CAP = 300; // 「先着300名限定」の人数(表記のみ。上限に達しても自動では止めない)
+const CAP = REFERRAL_CAP; // 「先着300名」の人数(2026/11/13から、上限に達すると紹介特典を自動で停止する)
 
 export async function GET(req: NextRequest) {
   if (!isAdminRequest(req)) {
