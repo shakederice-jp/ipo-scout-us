@@ -181,7 +181,8 @@ export default function MyPage() {
   const profile = data.profile ?? {};
   const plan = PLAN_LABELS[profile.plan ?? "free"] ?? PLAN_LABELS.free;
   const referralUrl = `https://finance-tower.com/ipo-us/?ref=${profile.referral_code ?? ""}`;
-  const completedReferrals = (data.referralLogs ?? []).filter((r: any) => r.status === "completed").length;
+  // 2026/11/14: 日米共通化により、もう一方のサイトで紹介した分は紹介の記録がそちら側にあるため、会員情報の紹介人数(referral_count)の大きいほうを使う
+  const completedReferrals = Math.max((data.referralLogs ?? []).filter((r: any) => r.status === "completed").length, Number(data.profile?.referral_count ?? 0));
   const freeMonthsEarned = completedReferrals * 2;
 
   // 2026/10/31新設(米国版の紹介制度): 招待する側が招待文を自分で考えなくて済むよう、X・LINE・メール・コピーの
@@ -354,7 +355,7 @@ export default function MyPage() {
               </span>
             ) : (
               <span style={{ display: "inline-block", fontSize: 10, fontWeight: 900, color: "white", backgroundColor: "#dc2626", borderRadius: 6, padding: "3px 10px" }}>
-                🎉 先着300名限定キャンペーン実施中{refStatus ? `（残り${refStatus.remaining}名）` : ""}
+                🎉 先着300名限定キャンペーン実施中
               </span>
             )}
           </div>
@@ -433,6 +434,7 @@ export default function MyPage() {
             ・通知機能は対象外です。<br />
             ・友達・知人だけでなく、X・InstagramなどのSNSで不特定多数に紹介した場合も対象です。<br />
             ・あなたの特典に、人数の上限はありません（1人ごとに2ヶ月ずつ延びます）。<br />
+            ・<strong>日本版・米国版は共通</strong>：どちらのサイトの紹介コード・招待リンクでも、どちらのサイトで登録しても対象です。2ヶ月ぶんは日本版・米国版の両方に反映されます（同じメールアドレスで登録した場合）。<br />
             ・<strong>先着300名</strong>に達した時点で、新しい紹介への特典は自動的に終了します（すでに付いた特典はそのまま使えます）。<br />
             ・対象は、メール確認済みで、登録から14日以内の新しい会員です（1人1回・ご自身のコードは使えません）。
           </div>

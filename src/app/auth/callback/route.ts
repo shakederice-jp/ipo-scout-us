@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { NEXT_COOKIE, safeNext } from "@/lib/post-login";
 import { applyPendingReferral } from "@/lib/referral";
+import { pullFreeUntilFromOtherApp } from "@/lib/cross-app";
 import { PUBLIC_ORIGIN, withBase } from "@/lib/base-path";
 
 export async function GET(request: NextRequest) {
@@ -46,6 +47,8 @@ export async function GET(request: NextRequest) {
       } catch (e) {
         console.error("referral apply failed", e);
       }
+      // 2026/11/14: もう一方のサイトで付いた紹介特典の無料期間があれば、この会員にも引き継ぐ
+      await pullFreeUntilFromOtherApp(exchangeData.user);
     }
   } else {
     diag = linkError ? `link:${linkError}` : "nocode";
@@ -64,8 +67,12 @@ export async function GET(request: NextRequest) {
   } catch {}
 
   // 失敗したときは、再設定の画面で理由を表示する(再設定の途中だったとき、またはリンクの失敗がはっきりしているとき)
-  if (diag && (dest === "/auth/reset" || diag.startsWith("link:") || diag.startsWith("exchange:"))) {
+  if (diag && dest === "/auth/reset") {
     dest = `/auth/reset?diag=${encodeURIComponent(diag)}`;
+  } else if (diag && (diag.startsWith("link:") || diag.startsWith("exchange:"))) {
+    // 2026/11/14変更: 会員登録の確認メールのリンクを別のブラウザで押した・期限切れ等のときは、
+    // メールの確認自体は済んでいるので、ログイン画面で案内する(購入ボタン経由なら戻り先も引き継ぐ)
+    dest = `/auth?verified=1${dest !== "/" ? `&next=${encodeURIComponent(dest)}` : ""}`;
   }
 
   const res = NextResponse.redirect(`${origin}${withBase(dest)}`);
