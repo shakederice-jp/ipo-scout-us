@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ADMIN_EMAIL = 'shakederice@gmail.com';
-const FROM = 'IPO分析レポート <onboarding@resend.dev>';
+const FROM = 'IPO分析レポート <noreply@finance-tower.com>';
 
 export async function notifyAdmin(
   subject: string,
