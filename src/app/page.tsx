@@ -8,6 +8,18 @@ import { jpyMonth } from "@/lib/pricing";
 import { isAnthropicCompany } from "@/lib/public-free";
 import { ANTHROPIC_SLUG } from "@/lib/anthropic-seo";
 
+
+// 姉妹サイト(2026/11/19新設): 大手町調査室九課の全サイトへの相互リンク。
+const SISTER_SITES: [string, string][] = [
+  ["IPO分析アプリ(日本版)", "https://finance-tower.com/ipo-jp"],
+  ["IPO投資の教科書", "https://finance-tower.com/learn"],
+  ["会員登録ガイド", "https://finance-tower.com/guide"],
+  ["中学生・高校生のためのお金の流れ入門", "https://finance-tower.com/money-flow"],
+  ["大学生向け 人生設計・マネープラン入門", "https://finance-tower.com/students"],
+  ["メモレバ(AIダイエット手帳)", "https://finance-tower.com/diet"],
+  ["大手町調査室九課", "https://finance-tower.com"],
+];
+
 export const metadata: Metadata = {
   title: { absolute: "米国IPO企業情報AI分析レポート｜大手町調査室九課" },
   description: "米国IPOの上場スケジュールと、目論見書(S-1)のAI分析を日本語で。上場日・公募価格・ロックアップ解除日・日本からの買い方、買うか見送るかの目安を銘柄ごとに掲載。大手町調査室九課が運営。",
@@ -232,6 +244,12 @@ export default async function Home({
           <a href="/ipo-us/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>💡 IPO投資の法則</a>
           <a href="/ipo-us/install" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📲 ホーム画面に追加</a>
           <a href="https://finance-tower.com/students" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>姉妹サイト：大学生向け 人生設計・マネープラン入門</a>
+        </div>
+        <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", columnGap:14, rowGap:8, marginBottom:12 }}>
+          <span style={{ fontSize:11, color:"#94a3b8", whiteSpace:"nowrap" }}>姉妹サイト:</span>
+          {SISTER_SITES.map(([name, url]) => (
+            <a key={url} href={url} style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>{name}</a>
+          ))}
         </div>
         <p style={{ fontSize:10, color:"#94a3b8", lineHeight:1.7, margin:0 }}>
           本サービスの分析・スコアはAIによる試算値であり、投資勧誘ではありません。<br/>
