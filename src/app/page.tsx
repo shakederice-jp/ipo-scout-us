@@ -243,7 +243,6 @@ export default async function Home({
           <a href="/ipo-us/plans" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>料金プラン</a>
           <a href="/ipo-us/ipo-guide" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>💡 IPO投資の法則</a>
           <a href="/ipo-us/install" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>📲 ホーム画面に追加</a>
-          <a href="https://finance-tower.com/students" style={{ fontSize:11, color:"#1E3A66", textDecoration:"none", whiteSpace:"nowrap" }}>姉妹サイト：大学生向け 人生設計・マネープラン入門</a>
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center", columnGap:14, rowGap:8, marginBottom:12 }}>
           <span style={{ fontSize:11, color:"#94a3b8", whiteSpace:"nowrap" }}>姉妹サイト:</span>
